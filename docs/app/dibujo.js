@@ -87,7 +87,7 @@
   function suelo(L, x, y) { let best = L.world.kill_y; for (const s of L.solids) if (s.kind !== 'oneway' && s.x0 <= x && s.x1 >= x && s.top <= y + 0.05 && s.top > best) best = s.top; return best; }
 
   /* ================== MARTÍN ================== */
-  const PEL = { luz: '#ead0a0', claro: '#d6ac74', medio: '#bd8f58', sombra: '#93693a', osc: '#5a3a1c', borde: '#3a2312', hocico: '#ecd9b4' };
+  const PEL = { luz: '#f4e8cc', claro: '#e7d2a8', medio: '#cdb07e', sombra: '#a68a5a', osc: '#6a4e2c', borde: '#4a3422', hocico: '#f1e6cc' };
 
   /* Trazo cónico (muslo, caña, cuello): primero el contorno, luego el relleno, para que no se vean costuras */
   function conico(ctx, pts, ws, fill, borde, lw) {
@@ -135,10 +135,10 @@
     // ventana de la nariz y boca sonriente
     ctx.fillStyle = '#4a2e17'; ctx.beginPath(); ctx.ellipse(0.4, -0.045, 0.016, 0.026, 0.5, 0, TAU); ctx.fill();
     ctx.strokeStyle = '#4a2e17'; ctx.lineWidth = 0.024; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0.41, -0.115); ctx.quadraticCurveTo(0.27, -0.15, 0.13, -0.115); ctx.quadraticCurveTo(0.1, -0.108, 0.09, -0.09); ctx.stroke();
-    // bozal de tela clara (como el de los camellos de Timanfaya)
-    ctx.fillStyle = '#f2ecdd'; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.ellipse(0.33, -0.1, 0.15, 0.12, -0.2, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = 'rgba(120,100,70,.4)'; ctx.lineWidth = 0.012; ctx.beginPath(); ctx.moveTo(0.22, -0.12); ctx.quadraticCurveTo(0.33, -0.04, 0.44, -0.12); ctx.stroke();
-    ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.02; ctx.beginPath(); ctx.moveTo(0.46, -0.06); ctx.lineTo(0.43, -0.13); ctx.stroke();
+    // bozal de malla metálica (como el de los camellos de Timanfaya)
+    ctx.save(); ctx.beginPath(); ctx.ellipse(0.33, -0.1, 0.16, 0.125, -0.2, 0, TAU); ctx.fillStyle = 'rgba(70,62,55,.28)'; ctx.fill(); ctx.clip();
+    ctx.strokeStyle = 'rgba(55,48,42,.75)'; ctx.lineWidth = 0.011; ctx.beginPath(); for (let k = -6; k <= 6; k++) { ctx.moveTo(0.33 + k * 0.045 - 0.14, -0.26); ctx.lineTo(0.33 + k * 0.045 + 0.14, 0.06); ctx.moveTo(0.33 + k * 0.045 + 0.14, -0.26); ctx.lineTo(0.33 + k * 0.045 - 0.14, 0.06); } ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = '#3c3733'; ctx.lineWidth = 0.022; ctx.beginPath(); ctx.ellipse(0.33, -0.1, 0.16, 0.125, -0.2, 0, TAU); ctx.stroke();
     // cabezada de cuerda natural
     ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.036; ctx.beginPath(); ctx.moveTo(0.24, 0.07); ctx.quadraticCurveTo(0.27, -0.06, 0.25, -0.19); ctx.moveTo(-0.02, 0.17); ctx.quadraticCurveTo(0.08, -0.04, 0.04, -0.17); ctx.stroke();
     ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 0.014; ctx.beginPath(); ctx.moveTo(0.24, 0.07); ctx.quadraticCurveTo(0.27, -0.06, 0.25, -0.19); ctx.stroke();
@@ -219,13 +219,13 @@
     const sway = Math.sin(ph * 0.5) * (corre ? 0.04 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.06 : anim === 'cae' ? -0.1 : 0;
     const N = [[0.5, 1.2 + B], [1.08, 1.08 + B], [0.98, 1.66 + B], [1.32, 1.86 + B + tip]];
     const cub = q => { const m = 1 - q; return [m * m * m * N[0][0] + 3 * m * m * q * N[1][0] + 3 * m * q * q * N[2][0] + q * q * q * N[3][0], m * m * m * N[0][1] + 3 * m * m * q * N[1][1] + 3 * m * q * q * N[2][1] + q * q * q * N[3][1]]; };
-    const pts = [], ws = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push(cub(q)); ws.push(0.56 - q * 0.34 + Math.sin(q * Math.PI) * 0.03); }
+    const pts = [], ws = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push(cub(q)); ws.push(0.6 - q * 0.36 + Math.sin(q * Math.PI) * 0.03); }
     conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.045);
     ctx.strokeStyle = 'rgba(255,240,200,.45)'; ctx.lineWidth = 0.06; ctx.beginPath(); for (let i = 2; i <= 10; i++) { const [x, y] = pts[i]; i === 2 ? ctx.moveTo(x - 0.06, y + 0.03) : ctx.lineTo(x - 0.06, y + 0.03); } ctx.stroke();
     ctx.strokeStyle = PEL.osc; ctx.lineWidth = 0.028; for (let i = 3; i < 12; i++) { const [x, y] = pts[i]; ctx.beginPath(); ctx.moveTo(x - ws[i] * 0.45, y + 0.02); ctx.lineTo(x - ws[i] * 0.45 - 0.08, y - 0.07 + Math.sin(T * 3 + i) * 0.01); ctx.stroke(); }
     ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.moveTo(pts[3][0] + 0.18, pts[3][1] - 0.2); for (let i = 3; i <= 7; i++) { const [x, y] = pts[i]; ctx.lineTo(x + ws[i] * 0.42, y - 0.12 * (1 - (i - 3) / 5) - ws[i] * 0.2); } ctx.globalAlpha *= 0; ctx.fill(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
     // cabeza (pequeña, con el belfo caído)
-    ctx.save(); ctx.translate(pts[12][0] + 0.03, pts[12][1] + 0.0); ctx.rotate(-0.22 - tip * 0.8 + sway); ctx.scale(0.8, 0.8); cabeza(ctx, T, st); ctx.restore();
+    ctx.save(); ctx.translate(pts[12][0] + 0.03, pts[12][1] + 0.0); ctx.rotate(-0.34 - tip * 0.8 + sway); ctx.scale(0.8, 0.8); cabeza(ctx, T, st); ctx.restore();
     // manta acolchada beige y silla de carga verde con asientos de cuero (como las de Timanfaya)
     const verde = '#2f8f55', verdeO = '#1f6a3d', cuero = '#8a4a22';
     ctx.beginPath(); ctx.moveTo(-0.44, 1.2 + B); ctx.lineTo(-0.48, 1.32 + B); ctx.lineTo(-0.4, 1.4 + B); ctx.lineTo(0.38, 1.42 + B); ctx.lineTo(0.4, 1.32 + B); ctx.lineTo(0.38, 1.2 + B); ctx.closePath();
@@ -235,6 +235,12 @@
     ctx.beginPath(); ctx.moveTo(-0.54, 1.38 + B); ctx.lineTo(-0.52, 1.5 + B); ctx.lineTo(0.46, 1.54 + B); ctx.lineTo(0.5, 1.42 + B); ctx.closePath(); ctx.fillStyle = verde; ctx.fill(); ctx.strokeStyle = verdeO; ctx.lineWidth = 0.03; ctx.stroke();
     ctx.save(); ctx.translate(-0.02, 1.52 + B); ctx.rotate(0.06); ctx.fillStyle = cuero; rr(ctx, -0.26, 0, 0.52, 0.07, 0.035); ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.018; ctx.stroke(); ctx.restore();
     for (const [x, s, y] of [[-0.53, -1, 1.46], [0.48, 1, 1.5]]) { ctx.lineCap = 'round'; for (const [c, w] of [[verdeO, 0.05], [verde, 0.028]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, y + B); ctx.lineTo(x, y + 0.12 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x + 0.06, y + 0.17 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x - 0.06, y + 0.17 + B); ctx.stroke(); } }
+    // barandilla metálica curva con barrotes torneados
+    ctx.strokeStyle = '#2f3a33'; ctx.lineWidth = 0.045; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(-0.54, 1.46 + B); ctx.lineTo(-0.54, 1.7 + B); ctx.quadraticCurveTo(-0.5, 1.78 + B, -0.4, 1.78 + B); ctx.stroke();
+    ctx.strokeStyle = '#2f8f55'; ctx.lineWidth = 0.018; for (const x of [-0.5, -0.44]) { ctx.beginPath(); ctx.moveTo(x, 1.5 + B); ctx.lineTo(x, 1.74 + B); ctx.stroke(); }
+    // correa verde de pecho con hebilla y cincha beige
+    ctx.strokeStyle = '#2f8f55'; ctx.lineWidth = 0.06; ctx.beginPath(); ctx.moveTo(0.3, 1.42 + B); ctx.quadraticCurveTo(0.58, 1.2 + B, 0.76, 0.96 + B); ctx.stroke();
+    ctx.strokeStyle = '#e3d3a8'; ctx.lineWidth = 0.025; ctx.stroke(); ctx.fillStyle = '#aaa'; ctx.fillRect(0.5, 1.2 + B, 0.04, 0.05);
     // correa de pecho y cincha
     ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 0.04; ctx.beginPath(); ctx.moveTo(0.22, 1.24 + B); ctx.lineTo(0.26, 0.8 + B); ctx.stroke();
     ctx.restore();
