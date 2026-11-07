@@ -144,6 +144,8 @@ function startLoop() {
       } else if (s.fase === 'meta' || s.fase === 'fallo') { RUN.t += dt / 1000; RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n); }
       else RUN.t += dt / 1000;
       dibujar(dt); hud();
+      RUN.ema = RUN.ema == null ? dt : RUN.ema * 0.95 + dt * 0.05; RUN.nf = (RUN.nf || 0) + 1;
+      if (RUN.nf > 90 && RUN.ema > 22 && RUN.dprMax > 1.25) { RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }
       if ((s.fase === 'meta' || s.fase === 'fallo') && RUN.tFin && !RUN.overlay && performance.now() - RUN.tFin > (s.fase === 'meta' ? 900 : 700) / Math.max(1, turbo() > 1 ? 4 : 1)) terminar();
     }
     if (RUN.on) RUN.raf = requestAnimationFrame(bucle);
@@ -152,7 +154,11 @@ function startLoop() {
 }
 function ajustaCanvas() {
   const cv = RUN.cv; if (!cv) return;
-  const r = cv.parentNode.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  // el tamaño del lienzo se consulta cada medio segundo (no en cada imagen) y la resolución baja sola si el móvil no llega a 45 imágenes/s
+  const ahora = performance.now();
+  if (!RUN.rect || ahora - RUN.rectT > 500) { RUN.rect = cv.parentNode.getBoundingClientRect(); RUN.rectT = ahora; }
+  if (RUN.dprMax == null) RUN.dprMax = 2;
+  const r = RUN.rect, dpr = Math.min(window.devicePixelRatio || 1, RUN.dprMax);
   const w = Math.max(160, Math.round(r.width * dpr)), h = Math.max(120, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
   const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(asp < 1 ? 9 : 10, 15 - (1.4 - asp) * 12);   // cámara cercana: Martín se ve grande; en vertical, aún más

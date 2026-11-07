@@ -202,23 +202,36 @@
     ctx.rotate(rot); ctx.scale(sx, sy);
     // cuerpo fijo y patas animadas: la franja de las patas se dibuja en columnas que se inclinan desde la cadera
     const ox = -SPR.ax * s, oy = -SPR.ay * s, y0 = Math.round(SPR.cad * s), bh = cv.height - y0;
-    let Ah = 0, Af = 0, Lh = 0, Lf = 0;
-    if (anim === 'corre' || anim === 'gana') {
-      // paso ligado al avance: la pezuña apoyada retrocede exactamente lo que avanza el cuerpo (no patina) y la otra pasa por el aire
-      const S = 150, P = 0.62, D = S * (SPR.alto / 560) / P;          // barrido en px del dibujo, fracción de apoyo y metros por ciclo
-      const dist = anim === 'gana' ? T * 1.2 : ph / 3.2, c0 = dist / D;
-      const pie = c => { const v = c - Math.floor(c); if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * 0.12]; };
-      [Ah, Lh] = pie(c0); [Af, Lf] = pie(c0 + 0.5);
+    // la pose de las patas se cuantiza en 24 fotogramas que se pintan una sola vez y se guardan: después cada imagen es un único drawImage
+    let clave = 'q', c0 = 0;
+    if (anim === 'corre' || anim === 'gana') { const D = 150 * (SPR.alto / 560) / 0.62, dist = anim === 'gana' ? T * 1.2 : ph / 3.2; c0 = Math.floor(((dist / D) % 1 + 1) % 1 * 24) / 24; clave = 'c' + Math.round(c0 * 24); }
+    else if (anim === 'salta') clave = 's'; else if (anim === 'cae') clave = 'f';
+    if (!cv.fot) cv.fot = {};
+    let fr = cv.fot[clave];
+    if (!fr) {
+      let Ah = 0, Af = 0, Lh = 0, Lf = 0;
+      if (clave[0] === 'c') {
+        const S = 150, P = 0.62;
+        const pie = c => { const v = c - Math.floor(c); if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * 0.12]; };
+        [Ah, Lh] = pie(c0); [Af, Lf] = pie(c0 + 0.5);
+      } else if (clave === 's') { Ah = -14; Af = 26; Lh = 0.16; Lf = 0.2; }
+      else if (clave === 'f') { Ah = -18; Af = 16; }
+      const pad = Math.ceil(110 * s); fr = document.createElement('canvas'); fr.width = cv.width + pad * 2; fr.height = cv.height; fr.pad = pad;
+      const g = fr.getContext('2d'); g.drawImage(cv, 0, 0, cv.width, y0, pad, 0, cv.width, y0);
+      const N = 40, cw = cv.width / N;
+      for (const [lay, A0, L0] of [[cv.tras, Ah, Lh], [cv.del, Af, Lf]]) for (let i = 0; i < N; i++) {
+        const x0 = i * cw, xm = (x0 + cw / 2) / s, fy = (SPR.ay - SPR.cad) / (pieY(xm) - SPR.cad), w = Math.min(cw + 1, cv.width - x0);
+        g.save(); g.translate(pad + x0, y0); g.transform(1, 0, A0 * s / bh, fy * (1 - L0), 0, 0);
+        g.drawImage(lay, x0, y0, w, bh, 0, 0, w, bh); g.restore();
+      }
+      cv.fot[clave] = fr;
     }
-    else if (anim === 'salta') { Ah = -14; Af = 26; Lh = 0.16; Lf = 0.2; }
-    else if (anim === 'cae') { Ah = -18; Af = 16; }
-    ctx.drawImage(cv, 0, 0, cv.width, y0, ox, oy, cv.width, y0);
-    const N = 40, cw = cv.width / N;
-    for (const [lay, A0, L0] of [[cv.tras, Ah, Lh], [cv.del, Af, Lf]]) for (let i = 0; i < N; i++) {
-      const x0 = i * cw, xm = (x0 + cw / 2) / s, fy = (SPR.ay - SPR.cad) / (pieY(xm) - SPR.cad), w = Math.min(cw + 1, cv.width - x0);
-      ctx.save(); ctx.translate(ox + x0, oy + y0); ctx.transform(1, 0, A0 * s / bh, fy * (1 - L0), 0, 0);
-      ctx.drawImage(lay, x0, y0, w, bh, 0, 0, w, bh); ctx.restore();
-    }
+    ctx.drawImage(fr, ox - fr.pad, oy);
+    // ronzal: cuelga flojo de la anilla del bozal y vuelve hasta la silla, balanceándose con el paso
+    { const sw = Math.sin(T * 2.1) * 6 + (anim === 'corre' ? Math.sin(ph * 1.1) * 8 : 0), P = (x, y) => [(x - SPR.ax) * s, (y - SPR.ay) * s];
+      const [a1, a2] = P(467, 156), [c1, c2] = P(455 + sw, 330), [d1, d2] = P(300 + sw * 0.4, 300), [e1, e2] = P(262, 222);
+      ctx.lineCap = 'round'; for (const [col, lw] of [['#7a5a32', 7.5], ['#ead6a4', 5]]) { ctx.strokeStyle = col; ctx.lineWidth = lw * s; ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); }
+      ctx.strokeStyle = 'rgba(150,115,60,.6)'; ctx.lineWidth = 1.4 * s; ctx.setLineDash([4 * s, 3 * s]); ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); ctx.setLineDash([]); }
     // nivel de agua en la ventana de la cantimplora
     const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
     ctx.fillStyle = '#0d2233'; rr(ctx, X, Y, W, H, r); ctx.fill();
