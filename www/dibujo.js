@@ -14,7 +14,7 @@
 
   /* Temas por nivel: hora del día y ambiente */
   const TEMAS = [
-    { cielo: ['#2a6fb8', '#5fa4d8', '#a9d3ea', '#f7e2b8'], sol: [0.78, 0.2], solC: '#fff3c4', haz: 0.10, lejos: '#9aa3c4', lejos2: '#7f86a8', med: '#6f5a63', geria: '#2a2223', tinte: 'rgba(255,230,170,0.06)', nubes: 0.8 },
+    { cielo: ['#2a6fb8', '#5fa4d8', '#a9d3ea', '#f7e2b8'], sol: [0.78, 0.2], solC: '#fff3c4', haz: 0.10, lejos: '#9aa3c4', lejos2: '#7f86a8', fuego: '#b95a33', med: '#6f5a63', geria: '#2a2223', tinte: 'rgba(255,230,170,0.06)', nubes: 0.8 },
     { cielo: ['#1f64b0', '#4f9ad6', '#9ccbea', '#f3e6c4'], sol: [0.5, 0.12], solC: '#fffbe0', haz: 0.05, lejos: '#a5b0cf', lejos2: '#8a94b4', med: '#74606a', geria: '#2c2425', tinte: 'rgba(255,255,255,0.03)', nubes: 1 },
     { cielo: ['#3a73b5', '#7fa9d2', '#e8cfa6', '#f6b982'], sol: [0.84, 0.3], solC: '#ffe0a0', haz: 0.14, lejos: '#a597b5', lejos2: '#8a7c9e', med: '#6b525a', geria: '#2a2022', tinte: 'rgba(255,170,90,0.10)', nubes: 0.9 },
     { cielo: ['#43508f', '#8a74a8', '#e5a28f', '#f8c47a'], sol: [0.8, 0.38], solC: '#ffd0a0', haz: 0.18, lejos: '#9a7ea0', lejos2: '#7d6488', med: '#5e4552', geria: '#241b20', tinte: 'rgba(255,130,100,0.12)', nubes: 0.9 },
@@ -105,18 +105,18 @@
 
   /* Pata de dromedario: cadera → rodilla (almohadilla oscura) → caña fina → pezuña ancha. sg = lado en que dobla la rodilla */
   function pata(ctx, hx, hy, fx, fy, sg, cerca, anchoMuslo) {
-    const a = 0.47, b = 0.45, dx = fx - hx, dy = fy - hy, dd = Math.hypot(dx, dy) || 1, d = Math.min(dd, a + b - 0.004);
+    const a = 0.5, b = 0.47, dx = fx - hx, dy = fy - hy, dd = Math.hypot(dx, dy) || 1, d = Math.min(dd, a + b - 0.004);
     const ux = dx / dd, uy = dy / dd, p = (d * d + a * a - b * b) / (2 * d), h = Math.sqrt(Math.max(0, a * a - p * p));
     const kx = hx + ux * p - uy * h * sg, ky = hy + uy * p + ux * h * sg, ex = hx + ux * d, ey = hy + uy * d;
     const col = cerca ? PEL.medio : PEL.sombra;
-    conico(ctx, [[hx, hy], [kx, ky]], [anchoMuslo, 0.15], col, PEL.borde, 0.045);
-    conico(ctx, [[kx, ky], [(kx + ex) / 2, (ky + ey) / 2], [ex, ey + 0.08]], [0.14, 0.1, 0.09], col, PEL.borde, 0.045);
-    if (cerca) { ctx.fillStyle = 'rgba(255,235,190,.28)'; ctx.beginPath(); ctx.ellipse(hx - 0.02, hy - 0.12, anchoMuslo * 0.2, 0.15, 0.1, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(kx + 0.02 * sg, ky, 0.075, 0.06, 0, 0, TAU); ctx.fill();
-    // pezuña (almohadilla ancha del camello)
-    ctx.fillStyle = '#3b2616'; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03;
-    ctx.beginPath(); ctx.moveTo(ex - 0.1, ey + 0.09); ctx.quadraticCurveTo(ex - 0.13, ey - 0.02, ex - 0.06, ey - 0.05); ctx.lineTo(ex + 0.14, ey - 0.05); ctx.quadraticCurveTo(ex + 0.19, ey - 0.02, ex + 0.12, ey + 0.09); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#d9c3a0'; ctx.fillRect(ex - 0.08, ey + 0.045, 0.2, 0.03);
+    conico(ctx, [[hx, hy + 0.05], [(hx + kx) / 2, (hy + ky) / 2], [kx, ky]], [anchoMuslo, anchoMuslo * 0.62, 0.12], col, PEL.borde, 0.04);
+    conico(ctx, [[kx, ky], [(kx + ex) / 2, (ky + ey) / 2], [ex, ey + 0.07]], [0.12, 0.08, 0.085], col, PEL.borde, 0.04);
+    if (cerca) { ctx.fillStyle = 'rgba(255,235,190,.3)'; ctx.beginPath(); ctx.ellipse(hx - 0.03, hy - 0.1, anchoMuslo * 0.18, 0.14, 0.1, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(kx + 0.015 * sg, ky, 0.07, 0.055, 0, 0, TAU); ctx.fill();
+    // pie de camello: dedos juntos y almohadilla ancha
+    ctx.fillStyle = '#3b2616'; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.028;
+    ctx.beginPath(); ctx.moveTo(ex - 0.07, ey + 0.08); ctx.quadraticCurveTo(ex - 0.1, ey - 0.01, ex - 0.045, ey - 0.04); ctx.lineTo(ex + 0.06, ey - 0.04); ctx.quadraticCurveTo(ex + 0.17, ey - 0.01, ex + 0.12, ey + 0.08); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d9c3a0'; ctx.fillRect(ex - 0.05, ey + 0.04, 0.16, 0.025);
   }
 
   function cabeza(ctx, T, st) {
@@ -164,86 +164,87 @@
     ctx.save(); ctx.translate(px, py); ctx.scale(st.dir < 0 ? -u : u, -u);
     ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
     const T = st.t || 0, ph = st.fase, anim = st.anim, corre = anim === 'corre';
-    const bob = anim === 'idle' ? Math.sin(T * 2.2) * 0.018 : (corre ? Math.abs(Math.sin(ph)) * 0.06 : 0);
+    const bob = anim === 'idle' ? Math.sin(T * 2.2) * 0.018 : (corre ? Math.abs(Math.sin(ph)) * 0.05 : 0), B = bob;
     const hop = anim === 'gana' ? Math.abs(Math.sin(T * 6)) * 0.35 : 0;
     const sq = st.golpe > 0 ? 1 - st.golpe * 0.12 : 1, f = clamp(st.agua / 100, 0, 1);
-    const cabeceo = anim === 'salta' ? 0.1 : anim === 'cae' ? -0.1 : 0;
+    const cabeceo = anim === 'salta' ? 0.08 : anim === 'cae' ? -0.08 : 0;
     ctx.translate(0, hop); ctx.scale(1 + (1 - sq) * 0.6, sq);
-    const hipY = 0.92 + bob, KX = 1.3;
-    const objetivo = (hx, fase, delante, cerca) => {
-      if (anim === 'salta') return [hx + (delante ? 0.42 : -0.3), delante ? 0.66 : 0.34];
-      if (anim === 'cae') return [hx + (delante ? 0.26 : -0.28), 0.1];
-      if (corre) { const s = Math.sin(fase), c = Math.cos(fase); return [hx + s * 0.4, Math.max(0, c) * 0.3]; }
+    const hipY = 0.95 + bob;
+    // delanteras: el carpo se dobla hacia delante y el pie queda detrás de él; traseras: el corvejón hacia atrás
+    const objetivo = (hx, fase, delante) => {
+      if (anim === 'salta') return delante ? [hx + 0.34, 0.62] : [hx - 0.3, 0.3];
+      if (anim === 'cae') return delante ? [hx + 0.2, 0.12] : [hx - 0.22, 0.1];
+      if (corre) { const s = Math.sin(fase), c = Math.cos(fase); return [hx + s * 0.36, Math.max(0, c) * (delante ? 0.34 : 0.28)]; }
       return [hx, 0];
     };
-    const fN = ph, fL = ph + Math.PI;                       // paso de camello (dos patas del mismo lado a la vez)
-    const patas = [[-0.5, fL, false, false, 1, 0.2], [0.44, fL, true, false, -1, 0.18], [-0.46, fN, false, true, 1, 0.22], [0.52, fN, true, true, -1, 0.19]];
-    for (let i = 0; i < 2; i++) { const [hx, fa, de, ce, sg, an] = patas[i]; const [fx, fy] = objetivo(hx, fa, de, ce); pata(ctx, hx, hipY, fx, fy, sg, ce, an); }
+    const fN = ph, fL = ph + Math.PI;                       // paso de camello: las dos patas del mismo lado a la vez
+    const patas = [[-0.55, fL, false, false, -1, 0.24], [0.5, fL, true, false, 1, 0.19], [-0.55, fN, false, true, -1, 0.26], [0.5, fN, true, true, 1, 0.2]];
+    const dibPata = i => { const [hx, fa, de, ce, sg, an] = patas[i]; const [fx, fy] = objetivo(hx, fa, de); pata(ctx, hx, hipY, fx, fy, sg, ce, an); };
+    dibPata(0); dibPata(1);
     ctx.save(); ctx.translate(0, hipY); ctx.rotate(cabeceo); ctx.translate(0, -hipY);
-    const B = bob;
-    ctx.save(); ctx.scale(KX, 1);
-    // cola con borla
-    const sw = Math.sin(ph * 0.5 + T * 1.5) * 0.06;
-    conico(ctx, [[-0.66, 1.2 + B], [-0.82, 1.1 + B], [-0.86 + sw, 0.88 + B], [-0.8 + sw * 1.5, 0.7 + B]], [0.1, 0.08, 0.07, 0.06], PEL.sombra, PEL.borde, 0.04);
-    ctx.fillStyle = PEL.osc; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03; ctx.beginPath(); ctx.ellipse(-0.8 + sw * 1.5, 0.64 + B, 0.065, 0.12, sw, 0, TAU); ctx.fill(); ctx.stroke();
-    // cuerpo
-    ctx.beginPath(); ctx.moveTo(-0.64, 1.14 + B);
-    ctx.bezierCurveTo(-0.52, 1.32 + B, -0.46, 1.64 + B, -0.22, 1.7 + B);
-    ctx.bezierCurveTo(0.0, 1.74 + B, 0.02, 1.42 + B, 0.2, 1.36 + B);
-    ctx.bezierCurveTo(0.34, 1.34 + B, 0.46, 1.36 + B, 0.54, 1.44 + B);
-    ctx.bezierCurveTo(0.76, 1.3 + B, 0.76, 0.98 + B, 0.52, 0.82 + B);
-    ctx.bezierCurveTo(0.2, 0.72 + B, -0.3, 0.74 + B, -0.52, 0.86 + B);
-    ctx.bezierCurveTo(-0.74, 0.94 + B, -0.8, 1.1 + B, -0.64, 1.14 + B); ctx.closePath();
-    let g = ctx.createLinearGradient(0, 1.74 + B, 0, 0.72 + B); g.addColorStop(0, PEL.luz); g.addColorStop(0.35, PEL.claro); g.addColorStop(0.75, PEL.medio); g.addColorStop(1, PEL.sombra);
+    // cola fina con borla
+    const sw = Math.sin(ph * 0.5 + T * 1.5) * 0.07;
+    conico(ctx, [[-0.84, 1.1 + B], [-0.98, 1.0 + B], [-1.0 + sw, 0.8 + B], [-0.95 + sw * 1.5, 0.62 + B]], [0.09, 0.07, 0.06, 0.05], PEL.sombra, PEL.borde, 0.035);
+    ctx.fillStyle = PEL.osc; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.ellipse(-0.95 + sw * 1.5, 0.56 + B, 0.05, 0.1, sw, 0, TAU); ctx.fill(); ctx.stroke();
+    // cuerpo: lomo, joroba única, pecho hondo y vientre recogido
+    ctx.beginPath(); ctx.moveTo(-0.88, 1.12 + B);
+    ctx.bezierCurveTo(-0.86, 1.26 + B, -0.62, 1.32 + B, -0.42, 1.34 + B);
+    ctx.bezierCurveTo(-0.34, 1.5 + B, -0.3, 1.75 + B, -0.1, 1.86 + B);
+    ctx.bezierCurveTo(0.1, 1.94 + B, 0.28, 1.8 + B, 0.34, 1.52 + B);
+    ctx.bezierCurveTo(0.38, 1.4 + B, 0.5, 1.36 + B, 0.62, 1.38 + B);
+    ctx.bezierCurveTo(0.8, 1.3 + B, 0.95, 1.12 + B, 0.84, 0.88 + B);
+    ctx.bezierCurveTo(0.7, 0.72 + B, 0.25, 0.76 + B, -0.1, 0.86 + B);
+    ctx.bezierCurveTo(-0.35, 0.92 + B, -0.5, 0.93 + B, -0.62, 0.9 + B);
+    ctx.bezierCurveTo(-0.82, 0.9 + B, -0.92, 1.0 + B, -0.88, 1.12 + B); ctx.closePath();
+    let g = ctx.createLinearGradient(0, 1.95 + B, 0, 0.74 + B); g.addColorStop(0, PEL.luz); g.addColorStop(0.35, PEL.claro); g.addColorStop(0.75, PEL.medio); g.addColorStop(1, PEL.sombra);
     ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.045; ctx.lineJoin = 'round'; ctx.stroke();
     ctx.save(); ctx.clip();
-    ctx.fillStyle = 'rgba(70,35,10,.22)'; ctx.beginPath(); ctx.ellipse(0.0, 0.7 + B, 0.75, 0.2, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,245,215,.4)'; ctx.beginPath(); ctx.ellipse(-0.22, 1.56 + B, 0.2, 0.08, -0.3, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,240,200,.28)'; ctx.beginPath(); ctx.ellipse(0.0, 1.05 + B, 0.55, 0.1, 0.05, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(70,35,10,.22)'; ctx.beginPath(); ctx.ellipse(0.0, 0.72 + B, 0.85, 0.18, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,240,200,.3)'; ctx.beginPath(); ctx.ellipse(-0.58, 1.08 + B, 0.2, 0.17, 0.4, 0, TAU); ctx.fill();      // muslo
+    ctx.fillStyle = 'rgba(255,240,200,.28)'; ctx.beginPath(); ctx.ellipse(0.5, 1.1 + B, 0.17, 0.19, -0.3, 0, TAU); ctx.fill();       // hombro
+    ctx.fillStyle = 'rgba(255,245,215,.4)'; ctx.beginPath(); ctx.ellipse(-0.1, 1.78 + B, 0.14, 0.07, -0.4, 0, TAU); ctx.fill();    // luz de la joroba
     ctx.strokeStyle = 'rgba(110,66,28,.4)'; ctx.lineWidth = 0.018; ctx.lineCap = 'round';
-    for (let i = 0; i < 16; i++) { const x = -0.6 + (i % 8) * 0.17 + (i > 7 ? 0.08 : 0), y = 0.85 + Math.floor(i / 8) * 0.28 + hash(i) * 0.1; ctx.beginPath(); ctx.moveTo(x, y + B); ctx.lineTo(x - 0.05, y - 0.07 + B); ctx.stroke(); }
+    for (let i = 0; i < 18; i++) { const x = -0.8 + (i % 9) * 0.18 + (i > 8 ? 0.08 : 0), y = 0.92 + Math.floor(i / 9) * 0.26 + hash(i) * 0.1; ctx.beginPath(); ctx.moveTo(x, y + B); ctx.lineTo(x - 0.05, y - 0.07 + B); ctx.stroke(); }
     ctx.restore();
-    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(0.52, 0.85 + B, 0.1, 0.07, 0.5, 0, TAU); ctx.fill();   // callo del pecho
-    // pelo largo de la joroba y de la pechera
-    ctx.fillStyle = PEL.sombra; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.lineJoin = 'round';
-    [[-0.54, 1.46], [-0.47, 1.58], [-0.38, 1.67], [-0.27, 1.73], [-0.15, 1.74], [-0.04, 1.69], [0.03, 1.58]].forEach(([x, y], i) => { const o = Math.sin(T * 2 + i) * 0.012, dx = (i - 3) * 0.022; ctx.beginPath(); ctx.moveTo(x - 0.05, y + B - 0.03); ctx.quadraticCurveTo(x + dx, y + B + 0.1 + o, x + 0.05, y + B - 0.03); ctx.closePath(); ctx.fill(); });
-    ctx.fillStyle = PEL.osc; for (let i = 0; i < 5; i++) { const x = 0.52 + i * 0.03, y = 1.0 - i * 0.04 + B; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.1, y - 0.15 + Math.sin(T * 2 + i) * 0.01, x + 0.02, y - 0.2); ctx.lineTo(x - 0.03, y - 0.02); ctx.closePath(); ctx.fill(); }
-    ctx.restore();
-    // cuello curvo con crin
-    const sway = Math.sin(ph * 0.5) * (corre ? 0.05 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.08 : anim === 'cae' ? -0.1 : 0;
-    const N = [[0.46, 1.3 + B], [0.78, 1.4 + B], [0.74, 1.68 + B], [0.86 + sway, 1.92 + B + tip]];
+    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(0.7, 0.82 + B, 0.1, 0.06, 0.5, 0, TAU); ctx.fill();   // callo del pecho
+    // pelo largo en lo alto de la joroba y en la pechera
+    ctx.fillStyle = PEL.sombra; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.02; ctx.lineJoin = 'round';
+    [[-0.28, 1.68], [-0.2, 1.8], [-0.08, 1.87], [0.06, 1.9], [0.18, 1.84], [0.28, 1.7]].forEach(([x, y], i) => { const o = Math.sin(T * 2 + i) * 0.012; ctx.beginPath(); ctx.moveTo(x - 0.045, y + B - 0.02); ctx.quadraticCurveTo(x + (i - 2.5) * 0.02, y + B + 0.1 + o, x + 0.045, y + B - 0.02); ctx.closePath(); ctx.fill(); });
+    ctx.fillStyle = PEL.osc; for (let i = 0; i < 5; i++) { const x = 0.74 + i * 0.02, y = 1.02 - i * 0.05 + B; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.1, y - 0.14 + Math.sin(T * 2 + i) * 0.01, x + 0.02, y - 0.2); ctx.lineTo(x - 0.03, y - 0.02); ctx.closePath(); ctx.fill(); }
+    // cuello largo en S, saliendo del pecho
+    const sway = Math.sin(ph * 0.5) * (corre ? 0.04 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.06 : anim === 'cae' ? -0.1 : 0;
+    const N = [[0.5, 1.22 + B], [1.0, 1.16 + B], [0.82, 1.7 + B], [1.12, 1.9 + B + tip]];
     const cub = q => { const m = 1 - q; return [m * m * m * N[0][0] + 3 * m * m * q * N[1][0] + 3 * m * q * q * N[2][0] + q * q * q * N[3][0], m * m * m * N[0][1] + 3 * m * m * q * N[1][1] + 3 * m * q * q * N[2][1] + q * q * q * N[3][1]]; };
-    const pts = [], ws = []; for (let i = 0; i <= 10; i++) { const q = i / 10; pts.push(cub(q)); ws.push(0.46 - q * 0.22); }
-    conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.05);
-    ctx.strokeStyle = 'rgba(255,240,200,.45)'; ctx.lineWidth = 0.07; ctx.beginPath(); for (let i = 1; i <= 8; i++) { const [x, y] = pts[i]; i === 1 ? ctx.moveTo(x - 0.05, y + 0.04) : ctx.lineTo(x - 0.05, y + 0.04); } ctx.stroke();
-    ctx.strokeStyle = PEL.osc; ctx.lineWidth = 0.03; for (let i = 1; i < 10; i++) { const [x, y] = pts[i]; ctx.beginPath(); ctx.moveTo(x - ws[i] * 0.45, y + 0.02); ctx.lineTo(x - ws[i] * 0.45 - 0.09, y - 0.08 + Math.sin(T * 3 + i) * 0.01); ctx.stroke(); }
-    // cabeza
-    ctx.save(); ctx.translate(pts[10][0] + 0.02, pts[10][1] + 0.03); ctx.rotate(-0.18 - tip * 0.8 + sway); cabeza(ctx, T, st); ctx.restore();
-    // manta de lana natural y silla de carga de madera (como las de los camellos de Timanfaya)
-    ctx.save(); ctx.scale(KX, 1);
-    ctx.beginPath(); ctx.moveTo(-0.5, 1.5 + B); ctx.bezierCurveTo(-0.34, 1.64 + B, -0.04, 1.62 + B, 0.1, 1.34 + B); ctx.lineTo(0.15, 1.0 + B); ctx.lineTo(-0.52, 1.02 + B); ctx.bezierCurveTo(-0.58, 1.18 + B, -0.56, 1.36 + B, -0.5, 1.5 + B); ctx.closePath();
+    const pts = [], ws = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push(cub(q)); ws.push(0.5 - q * 0.3 + Math.sin(q * Math.PI) * 0.02); }
+    conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.045);
+    ctx.strokeStyle = 'rgba(255,240,200,.45)'; ctx.lineWidth = 0.06; ctx.beginPath(); for (let i = 2; i <= 10; i++) { const [x, y] = pts[i]; i === 2 ? ctx.moveTo(x - 0.06, y + 0.03) : ctx.lineTo(x - 0.06, y + 0.03); } ctx.stroke();
+    ctx.strokeStyle = PEL.osc; ctx.lineWidth = 0.028; for (let i = 3; i < 12; i++) { const [x, y] = pts[i]; ctx.beginPath(); ctx.moveTo(x - ws[i] * 0.45, y + 0.02); ctx.lineTo(x - ws[i] * 0.45 - 0.08, y - 0.07 + Math.sin(T * 3 + i) * 0.01); ctx.stroke(); }
+    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.moveTo(pts[3][0] + 0.18, pts[3][1] - 0.2); for (let i = 3; i <= 7; i++) { const [x, y] = pts[i]; ctx.lineTo(x + ws[i] * 0.42, y - 0.12 * (1 - (i - 3) / 5) - ws[i] * 0.2); } ctx.globalAlpha *= 0; ctx.fill(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
+    // cabeza (pequeña, con el belfo caído)
+    ctx.save(); ctx.translate(pts[12][0] + 0.03, pts[12][1] + 0.0); ctx.rotate(-0.5 - tip * 0.8 + sway); ctx.scale(0.82, 0.82); cabeza(ctx, T, st); ctx.restore();
+    // armazón de madera (dos horcones que abrazan la joroba), manta de lana y cincha
+    const madera = '#8d5a2c';
+    ctx.beginPath(); ctx.moveTo(-0.46, 1.12 + B); ctx.lineTo(-0.52, 1.32 + B); ctx.bezierCurveTo(-0.42, 1.5 + B, -0.3, 1.6 + B, -0.24, 1.64 + B); ctx.lineTo(0.3, 1.64 + B); ctx.bezierCurveTo(0.36, 1.58 + B, 0.4, 1.5 + B, 0.42, 1.4 + B); ctx.lineTo(0.4, 1.12 + B); ctx.closePath();
     ctx.fillStyle = '#d9c7a0'; ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.035; ctx.stroke();
     ctx.save(); ctx.clip();
-    for (const [yy, c, w] of [[1.38, '#6b4a2b', 0.07], [1.26, '#3d322b', 0.05], [1.17, '#a8402a', 0.03], [1.1, '#6b4a2b', 0.07]]) { ctx.fillStyle = c; ctx.fillRect(-0.7, yy + B, 1.0, w); }
+    for (const [yy, c, w] of [[1.5, '#a8402a', 0.06], [1.38, '#3d322b', 0.07], [1.26, '#6b4a2b', 0.05], [1.18, '#a8402a', 0.05]]) { ctx.fillStyle = c; ctx.fillRect(-0.7, yy + B, 1.3, w); }
     ctx.restore();
-    ctx.strokeStyle = '#d9c7a0'; ctx.lineWidth = 0.028; for (let i = 0; i < 8; i++) { const x = -0.5 + i * 0.08; ctx.beginPath(); ctx.moveTo(x, 1.02 + B); ctx.lineTo(x - 0.01 + Math.sin(ph + i) * 0.012, 0.93 + B); ctx.stroke(); }
-    // armazón de madera: dos horcones y travesaño, atados con cuerda
-    const madera = '#8d5a2c', vet = 'rgba(40,20,8,.35)';
-    conico(ctx, [[-0.55, 1.0 + B], [-0.6, 1.32 + B], [-0.52, 1.6 + B]], [0.09, 0.08, 0.07], madera, PEL.borde, 0.04);
-    conico(ctx, [[0.15, 1.0 + B], [0.17, 1.28 + B], [0.1, 1.56 + B]], [0.09, 0.08, 0.07], madera, PEL.borde, 0.04);
-    ctx.strokeStyle = vet; ctx.lineWidth = 0.012; ctx.beginPath(); ctx.moveTo(-0.58, 1.1 + B); ctx.lineTo(-0.58, 1.5 + B); ctx.moveTo(0.16, 1.1 + B); ctx.lineTo(0.15, 1.46 + B); ctx.stroke();
-    ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.03; for (const [x, y] of [[-0.53, 1.58], [0.11, 1.54], [-0.59, 1.26], [0.17, 1.24]]) { ctx.beginPath(); ctx.moveTo(x - 0.05, y - 0.03 + B); ctx.lineTo(x + 0.05, y + 0.04 + B); ctx.moveTo(x - 0.05, y + 0.04 + B); ctx.lineTo(x + 0.05, y - 0.03 + B); ctx.stroke(); }
-    ctx.restore(); ctx.restore();
-    // patas cercanas (por delante del cuerpo)
+    ctx.strokeStyle = '#d9c7a0'; ctx.lineWidth = 0.026; for (let i = 0; i < 12; i++) { const x = -0.44 + i * 0.075; ctx.beginPath(); ctx.moveTo(x, 1.13 + B); ctx.lineTo(x - 0.01 + Math.sin(ph + i) * 0.012, 1.04 + B); ctx.stroke(); }
+    conico(ctx, [[-0.36, 1.3 + B], [-0.36, 1.6 + B], [-0.24, 1.78 + B]], [0.08, 0.07, 0.06], madera, PEL.borde, 0.035);
+    conico(ctx, [[0.36, 1.3 + B], [0.38, 1.56 + B], [0.3, 1.72 + B]], [0.08, 0.07, 0.06], madera, PEL.borde, 0.035);
+    ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.028; for (const [x, y] of [[-0.35, 1.52], [0.37, 1.5], [-0.35, 1.36], [0.37, 1.36]]) { ctx.beginPath(); ctx.moveTo(x - 0.05, y - 0.03 + B); ctx.lineTo(x + 0.05, y + 0.04 + B); ctx.moveTo(x - 0.05, y + 0.04 + B); ctx.lineTo(x + 0.05, y - 0.03 + B); ctx.stroke(); }
+    ctx.fillStyle = '#4a3322'; ctx.fillRect(0.18, 0.78 + B, 0.1, 0.24);   // cincha bajo el vientre
+    ctx.restore();
+    // patas cercanas
     ctx.save(); ctx.translate(0, hipY); ctx.rotate(cabeceo * 0.4); ctx.translate(0, -hipY);
-    for (let i = 2; i < 4; i++) { const [hx, fa, de, ce, sg, an] = patas[i]; const [fx, fy] = objetivo(hx, fa, de, ce); pata(ctx, hx, hipY, fx, fy, sg, ce, an); }
+    dibPata(2); dibPata(3);
     ctx.restore();
-    // tinaja de barro colgada de la silla con una red de cuerda
+    // tinaja colgada de la silla con cuerdas, entre las patas
     ctx.save(); ctx.translate(0, hipY); ctx.rotate(cabeceo); ctx.translate(0, -hipY);
-    const jx = -0.3, jy = 0.84 + B + (anim === 'gana' ? 0.14 : 0) + (corre ? Math.sin(ph * 2) * 0.014 : 0);
-    ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.032; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(jx - 0.12, jy + 0.5); ctx.lineTo(-0.68, 1.58 + B); ctx.moveTo(jx + 0.12, jy + 0.5); ctx.lineTo(0.13, 1.54 + B); ctx.stroke();
-    ctx.translate(jx, jy); ctx.scale(0.96, 0.96); ctx.translate(-jx, -jy);
-    ctx.strokeStyle = '#6a4424'; ctx.lineWidth = 0.034; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(jx - 0.22, jy + 0.16); ctx.quadraticCurveTo(jx - 0.36, jy - 0.04, jx - 0.1, jy - 0.01); ctx.moveTo(jx + 0.22, jy + 0.16); ctx.quadraticCurveTo(jx + 0.34, jy - 0.03, jx + 0.1, jy - 0.01); ctx.stroke();
+    const jx = -0.1, jy = 0.52 + B + (anim === 'gana' ? 0.14 : 0) + (corre ? Math.sin(ph * 2) * 0.014 : 0);
+    ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.03; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(jx - 0.11, jy + 0.5); ctx.lineTo(jx - 0.2, 1.1 + B); ctx.moveTo(jx + 0.11, jy + 0.5); ctx.lineTo(jx + 0.2, 1.1 + B); ctx.stroke();
+    ctx.translate(jx, jy); ctx.scale(0.9, 0.9); ctx.translate(-jx, -jy);
+    ctx.strokeStyle = '#6a4424'; ctx.lineWidth = 0.034; ctx.beginPath(); ctx.moveTo(jx - 0.22, jy + 0.16); ctx.quadraticCurveTo(jx - 0.36, jy - 0.04, jx - 0.1, jy - 0.01); ctx.moveTo(jx + 0.22, jy + 0.16); ctx.quadraticCurveTo(jx + 0.34, jy - 0.03, jx + 0.1, jy - 0.01); ctx.stroke();
     ctx.beginPath(); ctx.ellipse(jx, jy + 0.22, 0.24, 0.29, 0, 0, TAU);
     g = ctx.createRadialGradient(jx - 0.09, jy + 0.34, 0.02, jx, jy + 0.22, 0.34); g.addColorStop(0, '#e89862'); g.addColorStop(0.6, COL.cantaro); g.addColorStop(1, COL.cantaro2); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = '#5e2f17'; ctx.lineWidth = 0.04; ctx.stroke();
     ctx.fillStyle = COL.cantaro2; ctx.beginPath(); ctx.ellipse(jx, jy + 0.52, 0.11, 0.055, 0, 0, TAU); ctx.fill(); ctx.stroke();
@@ -254,6 +255,7 @@
     const bajo = f < 0.3, hh = 0.3 * f; ctx.fillStyle = bajo ? '#ffd24a' : COL.agua; ctx.fillRect(jx - 0.1, jy + 0.03 + (0.3 - hh), 0.2, hh + 0.01); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(jx - 0.1, jy + 0.03 + (0.3 - hh), 0.2, 0.02);
     ctx.restore(); ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 0.016; rr(ctx, jx - 0.08, jy + 0.03, 0.16, 0.3, 0.05); ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.beginPath(); ctx.ellipse(jx - 0.14, jy + 0.38, 0.03, 0.09, 0.3, 0, TAU); ctx.fill();
+    ctx.restore();
     ctx.restore();
     ctx.restore();
   }
@@ -270,20 +272,26 @@
     const g = ctx.createLinearGradient(0, by - amp * 2 * u, 0, by + u * 1.5); g.addColorStop(0, color); g.addColorStop(1, haze); ctx.fillStyle = g; ctx.fill();
   }
 
+  let DYN = null;   // mientras se pinta una capa en caché, aquí se anotan los elementos que se mueven (humo, aspas)
   function volcan(ctx, cx, by, ah, aw, lit, dark, t, humo, seed) {
     // cono con ladera iluminada, cráter y estrías de lapilli
     const topW = aw * 0.13, ty = by - ah;
     ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW, ty); ctx.quadraticCurveTo(cx + aw * 0.35, by - ah * 0.5, cx + aw, by); ctx.closePath(); ctx.fillStyle = dark; ctx.fill();
     ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW * 0.2, ty); ctx.quadraticCurveTo(cx + aw * 0.02, by - ah * 0.55, cx + aw * 0.1, by); ctx.closePath(); ctx.fillStyle = lit; ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW, ty); ctx.quadraticCurveTo(cx + aw * 0.35, by - ah * 0.5, cx + aw, by); ctx.closePath(); ctx.clip();
+    for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? 'rgba(230,150,80,.14)' : 'rgba(10,5,6,.22)'; ctx.fillRect(cx - aw, by - ah * (0.18 + k * 0.2), aw * 2, ah * 0.08); }
+    ctx.restore();
     ctx.fillStyle = 'rgba(20,8,6,.5)'; ctx.beginPath(); ctx.ellipse(cx, ty, topW * 1.02, Math.max(2, ah * 0.035), 0, 0, TAU); ctx.fill();
     ctx.strokeStyle = 'rgba(30,12,8,.22)'; ctx.lineWidth = Math.max(1, aw * 0.012);
     for (let i = 0; i < 6; i++) { const q = hash(seed + i), x0 = cx + (q - 0.5) * topW * 1.6, x1 = cx + (q - 0.5) * aw * 1.7; ctx.beginPath(); ctx.moveTo(x0, ty + ah * 0.05); ctx.lineTo(x1, by); ctx.stroke(); }
-    if (humo) {
-      const gl = ctx.createRadialGradient(cx, ty, 0, cx, ty, topW * 3.2); gl.addColorStop(0, 'rgba(255,140,60,' + (0.45 + Math.sin(t * 2 + seed) * 0.1) + ')'); gl.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = gl; ctx.fillRect(cx - topW * 3.2, ty - topW * 3.2, topW * 6.4, topW * 6.4);
-      ctx.fillStyle = 'rgba(255,170,80,.9)';
-      for (let i = 0; i < 5; i++) { const q = ((t * 0.35 + i * 0.21 + hash(seed + i)) % 1); ctx.beginPath(); ctx.arc(cx + (hash(seed + i * 3) - 0.5) * topW * 2.4 * q * 2, ty - Math.sin(q * Math.PI) * ah * 0.35, Math.max(1, aw * 0.004) * (1 - q * 0.6), 0, TAU); ctx.fill(); }
-      for (let i = 0; i < 7; i++) { const q = ((t * 0.06 + i / 7) % 1), y = ty - q * ah * 1.1, x = cx + q * aw * 0.9 + Math.sin(q * 6 + i) * aw * 0.08, r = topW * (0.35 + q * 1.1); ctx.fillStyle = 'rgba(130,118,122,' + (0.28 * (1 - q)) + ')'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-    }
+    if (humo) { if (DYN) DYN.push({ k: 'humo', cx, ty, topW, ah, aw, seed }); else humoDyn(ctx, { cx, ty, topW, ah, aw, seed }, t, 0, 0); }
+  }
+  function humoDyn(ctx, it, t, ox, oy) {
+    const { topW, ah, aw, seed } = it, cx = it.cx + ox, ty = it.ty + oy;
+    const gl = ctx.createRadialGradient(cx, ty, 0, cx, ty, topW * 3.2); gl.addColorStop(0, 'rgba(255,140,60,' + (0.45 + Math.sin(t * 2 + seed) * 0.1) + ')'); gl.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = gl; ctx.fillRect(cx - topW * 3.2, ty - topW * 3.2, topW * 6.4, topW * 6.4);
+    ctx.fillStyle = 'rgba(255,170,80,.9)';
+    for (let i = 0; i < 5; i++) { const q = ((t * 0.35 + i * 0.21 + hash(seed + i)) % 1); ctx.beginPath(); ctx.arc(cx + (hash(seed + i * 3) - 0.5) * topW * 2.4 * q * 2, ty - Math.sin(q * Math.PI) * ah * 0.35, Math.max(1, aw * 0.004) * (1 - q * 0.6), 0, TAU); ctx.fill(); }
+    for (let i = 0; i < 7; i++) { const q = ((t * 0.06 + i / 7) % 1), y = ty - q * ah * 1.1, x = cx + q * aw * 0.9 + Math.sin(q * 6 + i) * aw * 0.08, r = topW * (0.35 + q * 1.1); ctx.fillStyle = 'rgba(130,118,122,' + (0.28 * (1 - q)) + ')'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
   }
 
   function casa(ctx, x, y, w, h, col) {
@@ -297,7 +305,10 @@
     ctx.fillStyle = '#f1ebdf'; ctx.beginPath(); ctx.moveTo(x - s * 0.5, y); ctx.lineTo(x - s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.5, y); ctx.closePath(); ctx.fill();
     ctx.fillStyle = 'rgba(80,60,60,.2)'; ctx.beginPath(); ctx.moveTo(x + s * 0.1, y); ctx.lineTo(x + s * 0.1, y - s * 1.5); ctx.lineTo(x + s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.5, y); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#7a3d2c'; ctx.beginPath(); ctx.moveTo(x - s * 0.4, y - s * 1.5); ctx.lineTo(x, y - s * 2.05); ctx.lineTo(x + s * 0.4, y - s * 1.5); ctx.closePath(); ctx.fill();
-    ctx.save(); ctx.translate(x, y - s * 1.55); ctx.rotate(t * 0.5); ctx.strokeStyle = '#5a4030'; ctx.lineWidth = Math.max(1, s * 0.06);
+    if (DYN) DYN.push({ k: 'molino', x, y: y - s * 1.55, s }); else aspasDyn(ctx, { x, y: y - s * 1.55, s }, t, 0, 0);
+  }
+  function aspasDyn(ctx, it, t, ox, oy) {
+    const s = it.s; ctx.save(); ctx.translate(it.x + ox, it.y + oy); ctx.rotate(t * 0.5); ctx.strokeStyle = '#5a4030'; ctx.lineWidth = Math.max(1, s * 0.06);
     for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -s * 1.1); ctx.stroke(); ctx.fillStyle = 'rgba(255,248,235,.9)'; ctx.fillRect(-s * 0.06, -s * 1.1, s * 0.22, s * 0.7); }
     ctx.restore();
   }
@@ -307,46 +318,81 @@
     for (let i = 0; i < 7; i++) { const a = -Math.PI * 0.95 + i * (Math.PI * 0.95 / 3) * 0.99 + Math.sin(t * 0.8 + seed + i) * 0.05; const l = s * (0.7 + hash(seed + i) * 0.2); ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx + Math.cos(a) * l * 0.6, ty + Math.sin(a) * l * 0.6 - l * 0.3, tx + Math.cos(a) * l, ty + Math.sin(a) * l * 0.6 + l * 0.28); ctx.stroke(); }
   }
 
-  function dibujaFondo(ctx, W, H, u, cam, TM, t) {
-    const sol = [W * TM.sol[0], H * TM.sol[1]];
-    let g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, TM.cielo[0]); g.addColorStop(0.38, TM.cielo[1]); g.addColorStop(0.7, TM.cielo[2]); g.addColorStop(1, TM.cielo[3]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    // sol con halo y rayos suaves
-    g = ctx.createRadialGradient(sol[0], sol[1], u * 0.2, sol[0], sol[1], u * 9); g.addColorStop(0, 'rgba(255,245,210,.85)'); g.addColorStop(0.15, 'rgba(255,230,170,.35)'); g.addColorStop(1, 'rgba(255,220,160,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = TM.solC; ctx.beginPath(); ctx.arc(sol[0], sol[1], u * 0.85, 0, TAU); ctx.fill();
-    if (TM.haz > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 3; i++) { const a = 2.15 + i * 0.4 + Math.sin(t * 0.15 + i) * 0.04, l = Math.max(W, H) * 1.3; const gg = ctx.createLinearGradient(sol[0], sol[1], sol[0] + Math.cos(a) * l, sol[1] + Math.sin(a) * l); gg.addColorStop(0, 'rgba(255,240,200,' + TM.haz * 0.45 + ')'); gg.addColorStop(1, 'rgba(255,240,200,0)'); ctx.fillStyle = gg; ctx.beginPath(); ctx.moveTo(sol[0], sol[1]); ctx.lineTo(sol[0] + Math.cos(a - 0.05) * l, sol[1] + Math.sin(a - 0.09) * l); ctx.lineTo(sol[0] + Math.cos(a + 0.09) * l, sol[1] + Math.sin(a + 0.09) * l); ctx.fill(); } ctx.restore(); }
-    // nubes
-    for (let i = 0; i < 7; i++) {
-      const per = 70, x = ((i * 11.3 + t * (0.18 + (i % 3) * 0.05) - cam.x * 0.05) % per + per) % per - 10, y = H * (0.08 + 0.075 * ((i * 5) % 5)), s = u * (0.8 + (i % 3) * 0.35) * TM.nubes;
-      ctx.save(); ctx.translate(x * u, y);
-      for (const [dx, dy, r] of [[0, 0, 1.0], [1.1, -0.35, 0.85], [2.1, -0.05, 1.0], [-1.0, 0.1, 0.7], [3.0, 0.1, 0.65]]) { const cg = ctx.createRadialGradient(dx * s, (dy - 0.25) * s, 0, dx * s, dy * s, r * s * 1.1); cg.addColorStop(0, 'rgba(255,255,255,.85)'); cg.addColorStop(1, 'rgba(235,232,245,0)'); ctx.fillStyle = cg; ctx.beginPath(); ctx.ellipse(dx * s, dy * s, r * s * 1.2, r * s * 0.7, 0, 0, TAU); ctx.fill(); }
-      ctx.restore();
+  /* ---------- Fondo: capas en caché (se pintan pocas veces y luego solo se desplazan) ---------- */
+  const CACHE = new WeakMap(), ESC = 0.5;
+  const lienzo = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
+  function nubeSprite() {
+    if (nubeSprite.c) return nubeSprite.c; const s = 64, c = lienzo(s * 5, s * 2.4), g2 = c.getContext('2d'); g2.translate(s * 1.4, s * 1.3);
+    for (const [dx, dy, r] of [[0, 0, 1.0], [1.1, -0.35, 0.85], [2.1, -0.05, 1.0], [-1.0, 0.1, 0.7], [3.0, 0.1, 0.65]]) { const cg = g2.createRadialGradient(dx * s, (dy - 0.25) * s, 0, dx * s, dy * s, r * s * 1.1); cg.addColorStop(0, 'rgba(255,255,255,.85)'); cg.addColorStop(1, 'rgba(235,232,245,0)'); g2.fillStyle = cg; g2.beginPath(); g2.ellipse(dx * s, dy * s, r * s * 1.2, r * s * 0.7, 0, 0, TAU); g2.fill(); }
+    return (nubeSprite.c = c);
+  }
+  function capaCache(c, nombre, par, W, H, u, cam, pinta) {
+    const Ws = Math.ceil(W * 2.4), Hs = Math.ceil(H + u * 7), off = cam.x * par; let L = c.capas[nombre];
+    if (!L || (off - L.off) * u < W * 0.05 || (off - L.off) * u > Ws - W * 1.05) {
+      const o = off - W * 0.6 / u; L = c.capas[nombre] = L || {}; L.off = o; L.dyn = [];
+      if (!L.cv) L.cv = lienzo(Ws * ESC, Hs * ESC); const g2 = L.cv.getContext('2d'); g2.setTransform(1, 0, 0, 1, 0, 0); g2.clearRect(0, 0, L.cv.width, L.cv.height); g2.scale(ESC, ESC);
+      DYN = L.dyn; try { pinta(g2, Ws, Hs, u, { x: o / par, y: 0 }); } finally { DYN = null; }
     }
-    // aves lejanas
-    ctx.strokeStyle = 'rgba(40,30,40,.55)'; ctx.lineWidth = Math.max(1, u * 0.04);
-    for (let i = 0; i < 3; i++) { const x = (((t * 1.2 + i * 9) % 40) - 4) * u - cam.x * 0.1 * u % (W), y = H * (0.2 + i * 0.05) + Math.sin(t * 2 + i) * u * 0.2, a = Math.sin(t * 6 + i) * 0.3; if (x > -20 && x < W + 20) { ctx.beginPath(); ctx.moveTo(x - u * 0.3, y + a * u * 0.3); ctx.quadraticCurveTo(x - u * 0.12, y - u * 0.12 * (1 + a), x, y); ctx.quadraticCurveTo(x + u * 0.12, y - u * 0.12 * (1 - a), x + u * 0.3, y + a * u * 0.3); ctx.stroke(); } }
-    // montañas y volcanes
+    const dx = -(off - L.off) * u, dy = H - Hs + cam.y * par * u;
+    return { cv: L.cv, dx, dy, Ws, Hs, dyn: L.dyn };
+  }
+
+  function pintaLejos(ctx, W, H, u, cam, TM) {
+    const hz = H - (0.7 - cam.y * 0.04) * u - u * 2.7;
+    let g = ctx.createLinearGradient(0, hz, 0, hz + u * 3); g.addColorStop(0, TM.cielo[3]); g.addColorStop(0.15, '#4a86b4'); g.addColorStop(1, '#1f4f7a'); ctx.fillStyle = g; ctx.fillRect(0, hz, W, u * 3.4);
+    ctx.fillStyle = 'rgba(255,248,215,.55)'; for (let i = 0; i < 40; i++) { const x = (i * 83.3) % W, y = hz + u * (0.15 + (i % 7) * 0.3), w = u * (0.12 + (i % 4) * 0.08); ctx.fillRect(x, y, w, Math.max(1, u * 0.025)); }
     capaMontes(ctx, W, H, u, cam, 0.04, 0.7, 2.3, TM.lejos, TM.cielo[3], 1.7);
-    // volcanes grandes (con humo) — paralaje 0,1
+  }
+  function pintaVolcanes(ctx, W, H, u, cam, TM) {
     const per1 = 38, off1 = cam.x * 0.1, i1 = Math.floor(off1 / per1) - 1, by1 = H - (0.35 - cam.y * 0.1) * u;
-    for (let i = i1; i < i1 + Math.ceil(W / u / per1) + 3; i++) { const hk = hash(i * 31 + 5), cx = (i * per1 + hk * 14 - off1) * u; volcan(ctx, cx, by1, u * (6 + hk * 3.5), u * (8.5 + hk * 3), TM.lejos2, TM.med, t, hk > 0.45, i * 13); }
+    for (let i = i1; i < i1 + Math.ceil(W / u / per1) + 3; i++) { const hk = hash(i * 31 + 5), cx = (i * per1 + hk * 14 - off1) * u; volcan(ctx, cx, by1, u * (4.6 + hk * 3), u * (7.5 + hk * 3.4), TM.fuego || '#a8512e', '#3b2527', 0, hk > 0.45, i * 13); volcan(ctx, cx + u * (9 + hk * 6), by1, u * (2.6 + hk * 2), u * (4.5 + hk * 2), '#8c4a30', '#2f1f22', 0, false, i * 29 + 7); }
     ctx.fillStyle = TM.med; ctx.fillRect(0, by1 - 1, W, H - by1 + 2);
-    capaMontes(ctx, W, H, u, cam, 0.2, 0.15, 1.5, TM.med, TM.geria, 4.2);
-    // La Geria: ladera de lapilli con hoyos y muretes, casas, palmeras y molino — paralaje 0,38
+  }
+  function pintaMedia(ctx, W, H, u, cam, TM) { capaMontes(ctx, W, H, u, cam, 0.2, 0.15, 1.5, TM.med, TM.geria, 4.2); }
+  function pintaGeria(ctx, W, H, u, cam, TM) {
     const par = 0.38, off = cam.x * par, by = H - (0.0 - cam.y * par) * u, per = 30;
     const yR = x => by - (0.9 + cresta(x, 8.3) * 0.9) * u;
     ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, yR(x / u + off)); ctx.lineTo(W + 10, H); ctx.closePath();
-    g = ctx.createLinearGradient(0, by - 3 * u, 0, by + u); g.addColorStop(0, '#4a3a3a'); g.addColorStop(0.3, TM.geria); g.addColorStop(1, '#171112'); ctx.fillStyle = g; ctx.fill();
+    let g = ctx.createLinearGradient(0, by - 3 * u, 0, by + u); g.addColorStop(0, '#4a3a3a'); g.addColorStop(0.3, TM.geria); g.addColorStop(1, '#171112'); ctx.fillStyle = g; ctx.fill();
     ctx.strokeStyle = 'rgba(190,170,150,.35)'; ctx.lineWidth = Math.max(1, u * 0.06);
     for (let x = -((off * u) % (u * 1.7)); x < W + u; x += u * 1.7) { const wx = (x / u + off); const yy = yR(wx) + u * (0.5 + hash(Math.floor(wx / 1.7)) * 0.9); ctx.beginPath(); ctx.arc(x, yy, u * 0.5, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); }
     const i0 = Math.floor(off / per) - 1;
     for (let i = i0; i < i0 + Math.ceil(W / u / per) + 3; i++) {
       const hk = hash(i * 17 + 3), wx = i * per + hk * 10, x = (wx - off) * u, y = yR(wx) + u * 0.15;
-      if (hk > 0.7) molino(ctx, x, y, u * 1.5, t); else if (hk > 0.3) { casa(ctx, x, y, u * 1.4, u * 1.0); casa(ctx, x + u * 1.5, y, u * 1.0, u * 0.75, '#efe7d6'); } else casa(ctx, x, y, u * 1.2, u * 0.9);
-      palmera(ctx, x + u * 3.1, y, u * 1.4, t, i * 7); if (hk > 0.5) palmera(ctx, x - u * 1.2, y, u * 1.1, t, i * 11);
+      if (hk > 0.7) molino(ctx, x, y, u * 1.5, 0); else if (hk > 0.3) { casa(ctx, x, y, u * 1.4, u * 1.0); casa(ctx, x + u * 1.5, y, u * 1.0, u * 0.75, '#efe7d6'); } else casa(ctx, x, y, u * 1.2, u * 0.9);
+      palmera(ctx, x + u * 3.1, y, u * 1.4, 0, i * 7); if (hk > 0.5) palmera(ctx, x - u * 1.2, y, u * 1.1, 0, i * 11);
     }
-    // bruma del horizonte
     g = ctx.createLinearGradient(0, by - u * 3.5, 0, by + u * 0.8); g.addColorStop(0, 'rgba(255,225,185,0)'); g.addColorStop(1, 'rgba(255,225,185,.22)'); ctx.fillStyle = g; ctx.fillRect(0, by - u * 3.5, W, u * 4.3);
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, by + u * 0.8, W, H);
+  }
+
+  function dibujaFondo(ctx, W, H, u, cam, TM, t) {
+    const cv = ctx.canvas, tema = TEMAS.indexOf(TM), key = W + 'x' + H + 'x' + u.toFixed(2) + 'x' + tema;
+    let c = CACHE.get(cv); if (!c || c.key !== key) { c = { key, capas: {} }; CACHE.set(cv, c); }
+    if (!c.cielo) {   // cielo, sol y rayos: una sola vez
+      const k = lienzo(W * ESC, H * ESC), g2 = k.getContext('2d'); g2.scale(ESC, ESC); const sol = [W * TM.sol[0], H * TM.sol[1]];
+      let g = g2.createLinearGradient(0, 0, 0, H); g.addColorStop(0, TM.cielo[0]); g.addColorStop(0.38, TM.cielo[1]); g.addColorStop(0.7, TM.cielo[2]); g.addColorStop(1, TM.cielo[3]); g2.fillStyle = g; g2.fillRect(0, 0, W, H);
+      g = g2.createRadialGradient(sol[0], sol[1], u * 0.2, sol[0], sol[1], u * 9); g.addColorStop(0, 'rgba(255,245,210,.85)'); g.addColorStop(0.15, 'rgba(255,230,170,.35)'); g.addColorStop(1, 'rgba(255,220,160,0)'); g2.fillStyle = g; g2.fillRect(0, 0, W, H);
+      g2.fillStyle = TM.solC; g2.beginPath(); g2.arc(sol[0], sol[1], u * 0.85, 0, TAU); g2.fill();
+      if (TM.haz > 0) { g2.save(); g2.globalCompositeOperation = 'lighter'; for (let i = 0; i < 3; i++) { const a = 2.15 + i * 0.4, l = Math.max(W, H) * 1.3; const gg = g2.createLinearGradient(sol[0], sol[1], sol[0] + Math.cos(a) * l, sol[1] + Math.sin(a) * l); gg.addColorStop(0, 'rgba(255,240,200,' + TM.haz * 0.45 + ')'); gg.addColorStop(1, 'rgba(255,240,200,0)'); g2.fillStyle = gg; g2.beginPath(); g2.moveTo(sol[0], sol[1]); g2.lineTo(sol[0] + Math.cos(a - 0.09) * l, sol[1] + Math.sin(a - 0.09) * l); g2.lineTo(sol[0] + Math.cos(a + 0.09) * l, sol[1] + Math.sin(a + 0.09) * l); g2.fill(); } g2.restore(); }
+      c.cielo = k;
+    }
+    ctx.drawImage(c.cielo, 0, 0, W, H);
+    // nubes (sprite) y aves
+    const sp = nubeSprite();
+    for (let i = 0; i < 7; i++) {
+      const per = 70, x = ((i * 11.3 + t * (0.18 + (i % 3) * 0.05) - cam.x * 0.05) % per + per) % per - 10, y = H * (0.08 + 0.075 * ((i * 5) % 5)), s = u * (0.8 + (i % 3) * 0.35) * TM.nubes, k = s / 64;
+      ctx.drawImage(sp, x * u - 1.4 * s, y - 1.3 * s, sp.width * k, sp.height * k);
+    }
+    ctx.strokeStyle = 'rgba(40,30,40,.55)'; ctx.lineWidth = Math.max(1, u * 0.04);
+    for (let i = 0; i < 3; i++) { const x = (((t * 1.2 + i * 9) % 40) - 4) * u - cam.x * 0.1 * u % (W), y = H * (0.2 + i * 0.05) + Math.sin(t * 2 + i) * u * 0.2, a = Math.sin(t * 6 + i) * 0.3; if (x > -20 && x < W + 20) { ctx.beginPath(); ctx.moveTo(x - u * 0.3, y + a * u * 0.3); ctx.quadraticCurveTo(x - u * 0.12, y - u * 0.12 * (1 + a), x, y); ctx.quadraticCurveTo(x + u * 0.12, y - u * 0.12 * (1 + 0 - a), x + u * 0.3, y + a * u * 0.3); ctx.stroke(); } }
+    // capas con paralaje
+    for (const [nombre, par, f] of [['lejos', 0.04, pintaLejos], ['volc', 0.1, pintaVolcanes], ['media', 0.2, pintaMedia], ['geria', 0.38, pintaGeria]]) {
+      const L = capaCache(c, nombre, par, W, H, u, cam, (g2, Ws, Hs, uu, fc) => f(g2, Ws, Hs, uu, fc, TM));
+      { const sx = Math.max(0, -L.dx), sy = Math.max(0, -L.dy), sw = Math.min(W - Math.max(0, L.dx), L.Ws - sx), sh = Math.min(H - Math.max(0, L.dy), L.Hs - sy);
+        if (sw > 0 && sh > 0) ctx.drawImage(L.cv, sx * ESC, sy * ESC, sw * ESC, sh * ESC, sx + L.dx, sy + L.dy, sw, sh); }
+      for (const it of L.dyn) { const x = it.k === 'humo' ? it.cx : it.x, y = it.k === 'humo' ? it.ty : it.y; if (x + L.dx < -u * 12 || x + L.dx > W + u * 12) continue; if (it.k === 'humo') humoDyn(ctx, it, t, L.dx, L.dy); else aspasDyn(ctx, it, t, L.dx, L.dy); }
+    }
   }
 
   /* ---- Primer plano ---- */
@@ -529,10 +575,18 @@
 
   /* Pulido final: viñeta y tinte del momento del día */
   function dibujaPost(ctx, W, H, esc, agua) {
-    const TM = TEMAS[esc.tema || 0];
-    ctx.fillStyle = TM.tinte; ctx.fillRect(0, 0, W, H);
-    const g = ctx.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.35, W / 2, H * 0.55, Math.max(W, H) * 0.8); g.addColorStop(0, 'rgba(8,4,12,0)'); g.addColorStop(1, 'rgba(8,4,12,.45)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    if (agua > 0 && agua < 30) { const gg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.4, W / 2, H / 2, Math.max(W, H) * 0.75); gg.addColorStop(0, 'rgba(255,200,40,0)'); gg.addColorStop(1, 'rgba(255,190,30,.28)'); ctx.fillStyle = gg; ctx.fillRect(0, 0, W, H); }
+    const TM = TEMAS[esc.tema || 0], cv = ctx.canvas, key = W + 'x' + H + 'x' + (esc.tema || 0); let c = CACHE.get(cv);
+    if (!c) { c = { key: '', capas: {} }; CACHE.set(cv, c); }
+    if (c.postKey !== key) {
+      const k = lienzo(W * ESC, H * ESC), g2 = k.getContext('2d'); g2.scale(ESC, ESC);
+      g2.fillStyle = TM.tinte; g2.fillRect(0, 0, W, H);
+      let g = g2.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.35, W / 2, H * 0.55, Math.max(W, H) * 0.8); g.addColorStop(0, 'rgba(8,4,12,0)'); g.addColorStop(1, 'rgba(8,4,12,.45)'); g2.fillStyle = g; g2.fillRect(0, 0, W, H);
+      const k2 = lienzo(W * ESC, H * ESC), h2 = k2.getContext('2d'); h2.scale(ESC, ESC);
+      g = h2.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.4, W / 2, H / 2, Math.max(W, H) * 0.75); g.addColorStop(0, 'rgba(255,200,40,0)'); g.addColorStop(1, 'rgba(255,190,30,.28)'); h2.fillStyle = g; h2.fillRect(0, 0, W, H);
+      c.post = k; c.postBajo = k2; c.postKey = key;
+    }
+    ctx.drawImage(c.post, 0, 0, W, H);
+    if (agua > 0 && agua < 30) ctx.drawImage(c.postBajo, 0, 0, W, H);
   }
 
   /* Cabecera del mapa: paisaje vivo con Martín esperando */
