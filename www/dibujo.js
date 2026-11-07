@@ -210,13 +210,13 @@
     for (let i = 0; i < 5; i++) { const x = 0.8 + (i % 2) * 0.03, y = 1.1 - i * 0.07 + B; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.15, y - 0.12 + Math.sin(T * 2 + i) * 0.01, x + 0.02, y - 0.2); ctx.lineTo(x - 0.04, y - 0.02); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     // cuello alto y grueso en S
     const sway = Math.sin(ph * 0.5) * (corre ? 0.04 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.06 : anim === 'cae' ? -0.1 : 0;
-    const N = [[0.55, 1.22 + B], [1.12, 1.12 + B], [0.9, 1.84 + B], [1.14, 2.24 + B + tip]];
+    const N = [[0.55, 1.22 + B], [1.1, 1.08 + B], [0.96, 1.6 + B], [1.2, 1.9 + B + tip]];
     const cub = q => { const m = 1 - q; return [m * m * m * N[0][0] + 3 * m * m * q * N[1][0] + 3 * m * q * q * N[2][0] + q * q * q * N[3][0], m * m * m * N[0][1] + 3 * m * m * q * N[1][1] + 3 * m * q * q * N[2][1] + q * q * q * N[3][1]]; };
-    const pts = [], ws = []; for (let i = 0; i <= 14; i++) { const q = i / 14; pts.push(cub(q)); ws.push(0.6 - q * 0.28 - Math.sin(q * Math.PI) * 0.04); }
+    const pts = [], ws = []; for (let i = 0; i <= 14; i++) { const q = i / 14; pts.push(cub(q)); ws.push(0.66 - q * 0.3 - Math.sin(q * Math.PI) * 0.04); }
     conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.035);
     ctx.strokeStyle = 'rgba(255,248,225,.5)'; ctx.lineWidth = 0.07; ctx.beginPath(); for (let i = 3; i <= 11; i++) { const [x, y] = pts[i]; i === 3 ? ctx.moveTo(x - 0.08, y) : ctx.lineTo(x - 0.08, y); } ctx.stroke();
     // cabeza
-    ctx.save(); ctx.translate(pts[14][0] + 0.06, pts[14][1] + 0.0); ctx.rotate(-0.12 - tip * 0.8 + sway); ctx.scale(0.98, 0.98); cabeza(ctx, T, st); ctx.restore();
+    ctx.save(); ctx.translate(pts[14][0] + 0.06, pts[14][1] + 0.0); ctx.rotate(-0.2 - tip * 0.8 + sway); ctx.scale(0.9, 0.9); cabeza(ctx, T, st); ctx.restore();
     ctx.beginPath(); ctx.moveTo(-0.42, 1.5 + B); ctx.bezierCurveTo(-0.44, 1.6 + B, -0.36, 1.94 + B, -0.08, 2.0 + B); ctx.bezierCurveTo(0.2, 2.04 + B, 0.36, 1.8 + B, 0.42, 1.52 + B); ctx.closePath();
     ctx.fillStyle = '#e4cf9c'; ctx.fill(); ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 0.045; ctx.stroke();
     ctx.strokeStyle = 'rgba(122,74,36,.55)'; ctx.lineWidth = 0.012; ctx.setLineDash([0.03, 0.025]); ctx.beginPath(); ctx.moveTo(-0.36, 1.56 + B); ctx.bezierCurveTo(-0.38, 1.7 + B, -0.3, 1.9 + B, -0.08, 1.94 + B); ctx.bezierCurveTo(0.16, 1.98 + B, 0.3, 1.78 + B, 0.36, 1.56 + B); ctx.stroke(); ctx.setLineDash([]);
