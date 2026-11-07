@@ -180,7 +180,7 @@
     const T = st.t || 0, ph = st.fase || 0, anim = st.anim, f = clamp(st.agua / 100, 0, 1);
     const hp = SPR.alto * u, s = hp / 560, cv = sprEscalado(hp);
     let dy = 0, rot = 0, sx = 1, sy = 1;
-    if (anim === 'corre') { dy = -Math.abs(Math.sin(ph)) * 0.07 * u; rot = Math.sin(ph) * 0.025; sx = 1 + Math.sin(ph * 2) * 0.012; sy = 1 / sx; }
+    if (anim === 'corre') { const c = ph / 3.2 / ((100 * SPR.alto / 560) / 0.6) * Math.PI * 4; dy = -(0.5 + 0.5 * Math.cos(c)) * 0.05 * u; rot = Math.sin(c / 2) * 0.012; sx = 1 + Math.sin(ph * 2) * 0.012; sy = 1 / sx; }
     else if (anim === 'idle') { sy = 1 + Math.sin(T * 2.2) * 0.012; }
     else if (anim === 'salta') { rot = -0.09; sx = 0.97; sy = 1.04; }
     else if (anim === 'cae') { rot = 0.07; sx = 1.02; sy = 0.98; }
@@ -192,7 +192,13 @@
     // cuerpo fijo y patas animadas: la franja de las patas se dibuja en columnas que se inclinan desde la cadera
     const ox = -SPR.ax * s, oy = -SPR.ay * s, y0 = Math.round(SPR.cad * s), bh = cv.height - y0;
     let Ah = 0, Af = 0, Lh = 0, Lf = 0;
-    if (anim === 'corre' || anim === 'gana') { const q = anim === 'gana' ? T * 9 : ph; Ah = Math.sin(q) * 30; Af = -Math.sin(q) * 34; Lh = Math.max(0, Math.cos(q)) * 0.12; Lf = Math.max(0, -Math.cos(q)) * 0.14; }
+    if (anim === 'corre' || anim === 'gana') {
+      // paso ligado al avance: la pezuña apoyada retrocede exactamente lo que avanza el cuerpo (no patina) y la otra pasa por el aire
+      const S = 100, P = 0.6, D = S * (SPR.alto / 560) / P;          // barrido en px del dibujo, fracción de apoyo y metros por ciclo
+      const dist = anim === 'gana' ? T * 1.2 : ph / 3.2, c0 = dist / D;
+      const pie = c => { const v = c - Math.floor(c); if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * 0.17]; };
+      [Ah, Lh] = pie(c0); [Af, Lf] = pie(c0 + 0.5);
+    }
     else if (anim === 'salta') { Ah = -14; Af = 26; Lh = 0.16; Lf = 0.2; }
     else if (anim === 'cae') { Ah = -18; Af = 16; }
     ctx.drawImage(cv, 0, 0, cv.width, y0, ox, oy, cv.width, y0);
