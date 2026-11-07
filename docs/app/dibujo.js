@@ -162,7 +162,46 @@
 
   }
 
+  /* Martín a partir de la ilustración (camello.png, 551×560, mirando a la derecha). Si aún no ha cargado, se usa el dibujo vectorial. */
+  const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.75, win: [184, 315, 19, 32] };
+  if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.png'; }
+  function sprEscalado(hp) {
+    const k = Math.max(16, Math.round(hp)); if (SPR.cache[k]) return SPR.cache[k];
+    const s = k / 560, c = document.createElement('canvas'); c.width = Math.ceil(551 * s); c.height = k;
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
+    // reducción en pasos de ½ para que no se pierda el detalle
+    let src = SPR.img, w = 551, h = 560;
+    while (w * 0.5 > c.width) { const t2 = document.createElement('canvas'); t2.width = Math.ceil(w * 0.5); t2.height = Math.ceil(h * 0.5); const g2 = t2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(src, 0, 0, t2.width, t2.height); src = t2; w = t2.width; h = t2.height; }
+    g.drawImage(src, 0, 0, c.width, c.height);
+    const ks = Object.keys(SPR.cache); if (ks.length > 6) delete SPR.cache[ks[0]];
+    return (SPR.cache[k] = c);
+  }
+  function dibujaMartinSprite(ctx, u, px, py, st) {
+    const T = st.t || 0, ph = st.fase || 0, anim = st.anim, f = clamp(st.agua / 100, 0, 1);
+    const hp = SPR.alto * u, s = hp / 560, cv = sprEscalado(hp);
+    let dy = 0, rot = 0, sx = 1, sy = 1;
+    if (anim === 'corre') { dy = -Math.abs(Math.sin(ph)) * 0.07 * u; rot = Math.sin(ph) * 0.025; sx = 1 + Math.sin(ph * 2) * 0.012; sy = 1 / sx; }
+    else if (anim === 'idle') { sy = 1 + Math.sin(T * 2.2) * 0.012; }
+    else if (anim === 'salta') { rot = -0.09; sx = 0.97; sy = 1.04; }
+    else if (anim === 'cae') { rot = 0.07; sx = 1.02; sy = 0.98; }
+    else if (anim === 'gana') { dy = -Math.abs(Math.sin(T * 6)) * 0.35 * u; rot = Math.sin(T * 6) * 0.04; }
+    if (st.golpe > 0) { sy *= 1 - st.golpe * 0.12; sx *= 1 + st.golpe * 0.08; }
+    ctx.save(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
+    ctx.translate(px, py + dy); if (st.dir < 0) ctx.scale(-1, 1);
+    ctx.rotate(rot); ctx.scale(sx, sy);
+    ctx.drawImage(cv, -SPR.ax * s, -SPR.ay * s, cv.width, cv.height);
+    // nivel de agua en la ventana de la cantimplora
+    const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
+    ctx.fillStyle = '#0d2233'; rr(ctx, X, Y, W, H, r); ctx.fill();
+    ctx.save(); rr(ctx, X, Y, W, H, r); ctx.clip(); const hh = H * f;
+    ctx.fillStyle = f < 0.3 ? '#ffd24a' : '#3aa0ff'; ctx.fillRect(X, Y + H - hh, W, hh); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(X, Y + H - hh, W, Math.max(1, H * 0.06)); ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = Math.max(1, s * 2.5); rr(ctx, X, Y, W, H, r); ctx.stroke();
+    if (st.golpe > 0) { ctx.globalCompositeOperation = 'source-atop'; }
+    ctx.restore();
+  }
+
   function dibujaMartin(ctx, u, px, py, st) {
+    if (SPR.ok) return dibujaMartinSprite(ctx, u, px, py, st);
     // (px,py) = pies; u = px por unidad. st: {dir, fase, anim, agua, golpe, t, alpha}
     ctx.save(); ctx.translate(px, py); ctx.scale(st.dir < 0 ? -u : u, -u);
     ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
