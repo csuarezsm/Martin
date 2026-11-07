@@ -112,7 +112,7 @@
     conico(ctx, [[hx, hy + 0.05], [(hx + kx) / 2, (hy + ky) / 2], [kx, ky]], [anchoMuslo, anchoMuslo * 0.62, 0.12], col, PEL.borde, 0.04);
     conico(ctx, [[kx, ky], [(kx + ex) / 2, (ky + ey) / 2], [ex, ey + 0.07]], [0.12, 0.08, 0.085], col, PEL.borde, 0.04);
     if (cerca) { ctx.fillStyle = 'rgba(255,235,190,.3)'; ctx.beginPath(); ctx.ellipse(hx - 0.03, hy - 0.1, anchoMuslo * 0.18, 0.14, 0.1, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(kx + 0.015 * sg, ky, 0.07, 0.055, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.ellipse(kx + 0.02 * sg, ky, 0.09, 0.075, 0, 0, TAU); ctx.fill();
     // pie de camello: dedos juntos y almohadilla ancha
     ctx.fillStyle = '#3b2616'; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.028;
     ctx.beginPath(); ctx.moveTo(ex - 0.07, ey + 0.08); ctx.quadraticCurveTo(ex - 0.1, ey - 0.01, ex - 0.045, ey - 0.04); ctx.lineTo(ex + 0.06, ey - 0.04); ctx.quadraticCurveTo(ex + 0.17, ey - 0.01, ex + 0.12, ey + 0.08); ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -138,6 +138,7 @@
     // bozal de tela clara (como el de los camellos de Timanfaya)
     ctx.fillStyle = '#f2ecdd'; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.ellipse(0.33, -0.1, 0.15, 0.12, -0.2, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = 'rgba(120,100,70,.4)'; ctx.lineWidth = 0.012; ctx.beginPath(); ctx.moveTo(0.22, -0.12); ctx.quadraticCurveTo(0.33, -0.04, 0.44, -0.12); ctx.stroke();
+    ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.02; ctx.beginPath(); ctx.moveTo(0.46, -0.06); ctx.lineTo(0.43, -0.13); ctx.stroke();
     // cabezada de cuerda natural
     ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.036; ctx.beginPath(); ctx.moveTo(0.24, 0.07); ctx.quadraticCurveTo(0.27, -0.06, 0.25, -0.19); ctx.moveTo(-0.02, 0.17); ctx.quadraticCurveTo(0.08, -0.04, 0.04, -0.17); ctx.stroke();
     ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 0.014; ctx.beginPath(); ctx.moveTo(0.24, 0.07); ctx.quadraticCurveTo(0.27, -0.06, 0.25, -0.19); ctx.stroke();
@@ -145,9 +146,9 @@
     const rs = Math.sin(T * 2.3) * 0.03; ctx.strokeStyle = '#e4cf9a'; ctx.lineWidth = 0.03; ctx.beginPath(); ctx.moveTo(0.25, -0.2); ctx.quadraticCurveTo(0.2 + rs, -0.45, 0.28 + rs * 2, -0.62); ctx.stroke(); ctx.fillStyle = '#cdb994'; ctx.beginPath(); ctx.ellipse(0.28 + rs * 2, -0.67, 0.035, 0.055, rs, 0, TAU); ctx.fill();
     // oreja
     const fl = Math.sin(T * 2.7) > 0.93 ? 0.35 : 0;
-    ctx.save(); ctx.translate(-0.1, 0.14); ctx.rotate(0.55 + fl); ctx.fillStyle = PEL.medio; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03;
-    ctx.beginPath(); ctx.moveTo(-0.04, 0); ctx.quadraticCurveTo(-0.05, 0.13, 0.0, 0.2); ctx.quadraticCurveTo(0.06, 0.13, 0.05, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#e8a6a0'; ctx.beginPath(); ctx.ellipse(0.0, 0.07, 0.022, 0.06, 0, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(-0.1, 0.12); ctx.rotate(1.0 + fl); ctx.fillStyle = PEL.medio; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03;
+    ctx.beginPath(); ctx.ellipse(0, 0.05, 0.05, 0.075, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c98f80'; ctx.beginPath(); ctx.ellipse(0, 0.05, 0.022, 0.045, 0, 0, TAU); ctx.fill(); ctx.restore();
     // flequillo
     ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.moveTo(-0.05, 0.16); ctx.quadraticCurveTo(0.0, 0.27, 0.07, 0.2); ctx.quadraticCurveTo(0.03, 0.2, 0.06, 0.15); ctx.closePath(); ctx.fill();
     // ojo grande y expresivo
@@ -187,13 +188,13 @@
     ctx.save(); ctx.translate(0, hipY); ctx.rotate(cabeceo); ctx.translate(0, -hipY);
     // cola fina con borla
     const sw = Math.sin(ph * 0.5 + T * 1.5) * 0.07;
-    conico(ctx, [[-0.84, 1.1 + B], [-0.98, 1.0 + B], [-1.0 + sw, 0.8 + B], [-0.95 + sw * 1.5, 0.62 + B]], [0.09, 0.07, 0.06, 0.05], PEL.sombra, PEL.borde, 0.035);
-    ctx.fillStyle = PEL.osc; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.ellipse(-0.95 + sw * 1.5, 0.56 + B, 0.05, 0.1, sw, 0, TAU); ctx.fill(); ctx.stroke();
+    conico(ctx, [[-0.84, 1.12 + B], [-0.94, 1.04 + B], [-0.96 + sw, 0.9 + B], [-0.93 + sw * 1.5, 0.78 + B]], [0.09, 0.07, 0.06, 0.05], PEL.sombra, PEL.borde, 0.035);
+    ctx.fillStyle = PEL.osc; ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.ellipse(-0.93 + sw * 1.5, 0.72 + B, 0.05, 0.08, sw, 0, TAU); ctx.fill(); ctx.stroke();
     // cuerpo: lomo, joroba única, pecho hondo y vientre recogido
     ctx.beginPath(); ctx.moveTo(-0.88, 1.12 + B);
     ctx.bezierCurveTo(-0.86, 1.26 + B, -0.62, 1.32 + B, -0.42, 1.34 + B);
-    ctx.bezierCurveTo(-0.34, 1.48 + B, -0.3, 1.66 + B, -0.1, 1.72 + B);
-    ctx.bezierCurveTo(0.1, 1.78 + B, 0.28, 1.68 + B, 0.34, 1.5 + B);
+    ctx.bezierCurveTo(-0.4, 1.5 + B, -0.34, 1.86 + B, -0.08, 1.94 + B);
+    ctx.bezierCurveTo(0.16, 2.0 + B, 0.3, 1.8 + B, 0.36, 1.5 + B);
     ctx.bezierCurveTo(0.38, 1.4 + B, 0.5, 1.36 + B, 0.62, 1.38 + B);
     ctx.bezierCurveTo(0.8, 1.3 + B, 0.95, 1.12 + B, 0.84, 0.88 + B);
     ctx.bezierCurveTo(0.7, 0.72 + B, 0.25, 0.76 + B, -0.1, 0.86 + B);
@@ -216,24 +217,24 @@
     ctx.fillStyle = PEL.osc; for (let i = 0; i < 5; i++) { const x = 0.74 + i * 0.02, y = 1.02 - i * 0.05 + B; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.1, y - 0.14 + Math.sin(T * 2 + i) * 0.01, x + 0.02, y - 0.2); ctx.lineTo(x - 0.03, y - 0.02); ctx.closePath(); ctx.fill(); }
     // cuello largo en S, saliendo del pecho
     const sway = Math.sin(ph * 0.5) * (corre ? 0.04 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.06 : anim === 'cae' ? -0.1 : 0;
-    const N = [[0.5, 1.2 + B], [1.02, 1.12 + B], [0.84, 1.72 + B], [1.18, 1.94 + B + tip]];
+    const N = [[0.5, 1.2 + B], [1.08, 1.08 + B], [0.98, 1.66 + B], [1.32, 1.86 + B + tip]];
     const cub = q => { const m = 1 - q; return [m * m * m * N[0][0] + 3 * m * m * q * N[1][0] + 3 * m * q * q * N[2][0] + q * q * q * N[3][0], m * m * m * N[0][1] + 3 * m * m * q * N[1][1] + 3 * m * q * q * N[2][1] + q * q * q * N[3][1]]; };
-    const pts = [], ws = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push(cub(q)); ws.push(0.44 - q * 0.27 + Math.sin(q * Math.PI) * 0.015); }
+    const pts = [], ws = []; for (let i = 0; i <= 12; i++) { const q = i / 12; pts.push(cub(q)); ws.push(0.56 - q * 0.34 + Math.sin(q * Math.PI) * 0.03); }
     conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.045);
     ctx.strokeStyle = 'rgba(255,240,200,.45)'; ctx.lineWidth = 0.06; ctx.beginPath(); for (let i = 2; i <= 10; i++) { const [x, y] = pts[i]; i === 2 ? ctx.moveTo(x - 0.06, y + 0.03) : ctx.lineTo(x - 0.06, y + 0.03); } ctx.stroke();
     ctx.strokeStyle = PEL.osc; ctx.lineWidth = 0.028; for (let i = 3; i < 12; i++) { const [x, y] = pts[i]; ctx.beginPath(); ctx.moveTo(x - ws[i] * 0.45, y + 0.02); ctx.lineTo(x - ws[i] * 0.45 - 0.08, y - 0.07 + Math.sin(T * 3 + i) * 0.01); ctx.stroke(); }
     ctx.fillStyle = PEL.osc; ctx.beginPath(); ctx.moveTo(pts[3][0] + 0.18, pts[3][1] - 0.2); for (let i = 3; i <= 7; i++) { const [x, y] = pts[i]; ctx.lineTo(x + ws[i] * 0.42, y - 0.12 * (1 - (i - 3) / 5) - ws[i] * 0.2); } ctx.globalAlpha *= 0; ctx.fill(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
     // cabeza (pequeña, con el belfo caído)
-    ctx.save(); ctx.translate(pts[12][0] + 0.03, pts[12][1] + 0.0); ctx.rotate(-0.5 - tip * 0.8 + sway); ctx.scale(0.82, 0.82); cabeza(ctx, T, st); ctx.restore();
+    ctx.save(); ctx.translate(pts[12][0] + 0.03, pts[12][1] + 0.0); ctx.rotate(-0.22 - tip * 0.8 + sway); ctx.scale(0.8, 0.8); cabeza(ctx, T, st); ctx.restore();
     // manta acolchada beige y silla de carga verde con asientos de cuero (como las de Timanfaya)
     const verde = '#2f8f55', verdeO = '#1f6a3d', cuero = '#8a4a22';
-    ctx.beginPath(); ctx.moveTo(-0.44, 1.26 + B); ctx.lineTo(-0.48, 1.38 + B); ctx.bezierCurveTo(-0.4, 1.5 + B, -0.28, 1.62 + B, -0.2, 1.64 + B); ctx.lineTo(0.28, 1.64 + B); ctx.bezierCurveTo(0.34, 1.58 + B, 0.38, 1.5 + B, 0.4, 1.42 + B); ctx.lineTo(0.38, 1.26 + B); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(-0.44, 1.2 + B); ctx.lineTo(-0.48, 1.32 + B); ctx.lineTo(-0.4, 1.4 + B); ctx.lineTo(0.38, 1.42 + B); ctx.lineTo(0.4, 1.32 + B); ctx.lineTo(0.38, 1.2 + B); ctx.closePath();
     ctx.fillStyle = '#d8c9a4'; ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03; ctx.stroke();
-    ctx.strokeStyle = 'rgba(120,95,65,.35)'; ctx.lineWidth = 0.014; ctx.beginPath(); ctx.moveTo(-0.45, 1.32 + B); ctx.lineTo(0.39, 1.32 + B); ctx.stroke();
+    ctx.strokeStyle = 'rgba(120,95,65,.35)'; ctx.lineWidth = 0.014; ctx.beginPath(); ctx.moveTo(-0.45, 1.26 + B); ctx.lineTo(0.39, 1.26 + B); ctx.stroke();
     // asiento verde inclinado con cojín de cuero y horquillas en los extremos
-    ctx.beginPath(); ctx.moveTo(-0.52, 1.6 + B); ctx.lineTo(-0.5, 1.72 + B); ctx.lineTo(0.44, 1.78 + B); ctx.lineTo(0.48, 1.64 + B); ctx.closePath(); ctx.fillStyle = verde; ctx.fill(); ctx.strokeStyle = verdeO; ctx.lineWidth = 0.03; ctx.stroke();
-    ctx.save(); ctx.translate(-0.02, 1.76 + B); ctx.rotate(0.06); ctx.fillStyle = cuero; rr(ctx, -0.26, 0, 0.52, 0.07, 0.035); ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.018; ctx.stroke(); ctx.restore();
-    for (const [x, s, y] of [[-0.51, -1, 1.7], [0.46, 1, 1.76]]) { ctx.lineCap = 'round'; for (const [c, w] of [[verdeO, 0.05], [verde, 0.028]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, y + B); ctx.lineTo(x, y + 0.12 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x + 0.06, y + 0.17 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x - 0.06, y + 0.17 + B); ctx.stroke(); } }
+    ctx.beginPath(); ctx.moveTo(-0.54, 1.38 + B); ctx.lineTo(-0.52, 1.5 + B); ctx.lineTo(0.46, 1.54 + B); ctx.lineTo(0.5, 1.42 + B); ctx.closePath(); ctx.fillStyle = verde; ctx.fill(); ctx.strokeStyle = verdeO; ctx.lineWidth = 0.03; ctx.stroke();
+    ctx.save(); ctx.translate(-0.02, 1.52 + B); ctx.rotate(0.06); ctx.fillStyle = cuero; rr(ctx, -0.26, 0, 0.52, 0.07, 0.035); ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.018; ctx.stroke(); ctx.restore();
+    for (const [x, s, y] of [[-0.53, -1, 1.46], [0.48, 1, 1.5]]) { ctx.lineCap = 'round'; for (const [c, w] of [[verdeO, 0.05], [verde, 0.028]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, y + B); ctx.lineTo(x, y + 0.12 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x + 0.06, y + 0.17 + B); ctx.moveTo(x, y + 0.08 + B); ctx.lineTo(x - 0.06, y + 0.17 + B); ctx.stroke(); } }
     // correa de pecho y cincha
     ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 0.04; ctx.beginPath(); ctx.moveTo(0.22, 1.24 + B); ctx.lineTo(0.26, 0.8 + B); ctx.stroke();
     ctx.restore();
@@ -417,12 +418,25 @@
       for (const [dx, h, w] of [[0, 1.5, 0.16], [-0.26, 1.0, 0.12], [0.26, 1.15, 0.12], [-0.5, 0.65, 0.09]]) { rr(ctx, dx * s - w * s, -h * s, w * s * 2, h * s, w * s); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(30,80,50,.55)'; ctx.beginPath(); ctx.moveTo(dx * s, -h * s + w * s); ctx.lineTo(dx * s, -w * s); ctx.stroke(); ctx.strokeStyle = '#2d6a3c'; }
     } else if (d.t === 'lagarto') {
       const mov = d.px != null && d.px + 2.4 > d.x && d.px < d.x + 3.6, w = mov ? Math.sin(t * 28) : Math.sin(t * 2) * 0.2;
-      ctx.fillStyle = '#4b5a3a'; ctx.strokeStyle = '#2a3322'; ctx.lineWidth = Math.max(1, s * 0.02);
-      ctx.beginPath(); ctx.ellipse(0, -s * 0.1, s * 0.3, s * 0.1, 0, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.ellipse(s * 0.33, -s * 0.12, s * 0.12, s * 0.07, 0, 0, TAU); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(-s * 0.28, -s * 0.1); ctx.quadraticCurveTo(-s * 0.55, -s * (0.1 - w * 0.1), -s * 0.75, -s * 0.04 + w * s * 0.05); ctx.stroke();
-      ctx.strokeStyle = '#2a3322'; for (const lx of [-0.15, 0.18]) { ctx.beginPath(); ctx.moveTo(s * lx, -s * 0.06); ctx.lineTo(s * (lx + w * 0.06), 0); ctx.stroke(); }
-      ctx.fillStyle = '#d9d19a'; ctx.beginPath(); ctx.arc(s * 0.38, -s * 0.14, s * 0.018, 0, TAU); ctx.fill();
+      // lagarto atlántico (Gallotia atlantica): esbelto, cabeza en cuña, cola larguísima y motas azules en el costado
+      const L = s * 1.0, lw = Math.max(1, s * 0.022), ph = t * (mov ? 28 : 2);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      // cola larga y fina, ondulando
+      ctx.strokeStyle = '#2a2a22'; ctx.lineWidth = s * 0.075; ctx.beginPath(); ctx.moveTo(-L * 0.3, -s * 0.12); ctx.bezierCurveTo(-L * 0.6, -s * (0.1 - w * 0.07), -L * 0.85, -s * (0.04 + w * 0.08), -L * 1.35, -s * (0.1 - w * 0.06)); ctx.stroke();
+      ctx.strokeStyle = '#4a4636'; ctx.lineWidth = s * 0.06; ctx.stroke();
+      // patas con dedos largos (alternas al correr)
+      ctx.strokeStyle = '#3a3a2c'; ctx.lineWidth = s * 0.06;
+      for (const [lx, fase] of [[0.18, 0], [0.18, Math.PI], [-0.12, Math.PI], [-0.12, 0]]) { const sw2 = Math.sin(ph + fase) * (mov ? 0.12 : 0.03), far = fase > 1; ctx.globalAlpha = far ? 0.6 : 1; ctx.beginPath(); ctx.moveTo(s * lx, -s * 0.11); ctx.lineTo(s * (lx - 0.05 + sw2), -s * 0.04); ctx.lineTo(s * (lx + 0.12 + sw2), 0); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      // cuerpo en huso
+      ctx.fillStyle = '#4a4636'; ctx.strokeStyle = '#25231a'; ctx.lineWidth = lw;
+      ctx.beginPath(); ctx.moveTo(-L * 0.32, -s * 0.13); ctx.bezierCurveTo(-L * 0.1, -s * 0.27, L * 0.2, -s * 0.26, L * 0.36, -s * 0.17); ctx.bezierCurveTo(L * 0.2, -s * 0.05, -L * 0.1, -s * 0.04, -L * 0.32, -s * 0.13); ctx.closePath(); ctx.fill(); ctx.stroke();
+      // cabeza triangular
+      ctx.beginPath(); ctx.moveTo(L * 0.26, -s * 0.22); ctx.quadraticCurveTo(L * 0.45, -s * 0.24, L * 0.6, -s * 0.15); ctx.quadraticCurveTo(L * 0.45, -s * 0.07, L * 0.26, -s * 0.08); ctx.closePath(); ctx.fillStyle = '#524e3a'; ctx.fill(); ctx.stroke();
+      // franjas claras del lomo y motas azules del costado
+      ctx.strokeStyle = '#b9b48a'; ctx.lineWidth = s * 0.018; ctx.beginPath(); ctx.moveTo(-L * 0.28, -s * 0.2); ctx.quadraticCurveTo(0, -s * 0.28, L * 0.3, -s * 0.22); ctx.stroke();
+      ctx.fillStyle = '#4db3d9'; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-L * 0.2 + i * L * 0.12, -s * 0.11 - (i % 2) * s * 0.02, s * 0.022, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = '#e9e2b0'; ctx.beginPath(); ctx.arc(L * 0.43, -s * 0.16, s * 0.02, 0, TAU); ctx.fill();
     } else if (d.t === 'piedra') {
       for (const [dx, r, c] of [[0, 0.18, '#5d5254'], [0.26, 0.11, '#6f6264'], [-0.22, 0.09, '#4c4244']]) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(dx * s, -r * s * 0.6, r * s * 1.2, r * s * 0.8, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(dx * s - r * s * 0.3, -r * s * 0.95, r * s * 0.5, r * s * 0.22, 0, 0, TAU); ctx.fill(); }
     } else {
