@@ -155,7 +155,7 @@ function ajustaCanvas() {
   const r = cv.parentNode.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const w = Math.max(160, Math.round(r.width * dpr)), h = Math.max(120, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(10, 15 - (1.4 - asp) * 9);   // cámara cercana: Martín se ve grande; en vertical, aún más
+  const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(asp < 1 ? 7.6 : 10, 15 - (1.4 - asp) * 12);   // cámara cercana: Martín se ve grande; en vertical, aún más
   RUN.u = Math.min(w / vw, h / 7.4);
 }
 function dibujar(dt) {
@@ -164,10 +164,10 @@ function dibujar(dt) {
   const W = cv.width, H = cv.height, u = RUN.u, vw = W / u, vh = H / u;
   // cámara: Martín al ~35 % del ancho con un poco de anticipación; vertical suavizado con zona muerta
   const k = 1 - Math.exp(-(dt || 16) / 1000 * 5);
-  let objX = s.x - vw * (W < H ? 0.3 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
+  let objX = s.x - vw * (W < H ? 0.24 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
   objX = Math.max(L.world.min_x - 0.5, Math.min(L.world.max_x - vw + 0.5, objX));
   const piso = s.fase === 'reaparece' ? s.ry : s.y;
-  const idealY = piso - vh * (W < H ? 0.36 : 0.30);
+  const idealY = piso - vh * (W < H ? 0.27 : 0.30);
   if (RUN.camInit !== RUN.idx + ':' + RUN.modo + ':' + RUN.intento) { RUN.camInit = RUN.idx + ':' + RUN.modo + ':' + RUN.intento; RUN.cam.x = objX; RUN.cam.y = idealY; }
   RUN.cam.x += (objX - RUN.cam.x) * Math.min(1, k * 2.4);
   const dz = vh * 0.12; if (idealY - RUN.cam.y > dz) RUN.cam.y += (idealY - dz - RUN.cam.y) * k; else if (RUN.cam.y - idealY > dz) RUN.cam.y += (idealY + dz - RUN.cam.y) * k;
