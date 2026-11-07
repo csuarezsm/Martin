@@ -76,200 +76,8 @@ const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars 
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
 
-/* ================= Dibujo ================= */
-const COL = {
-  cieloA: '#2f78b5', cieloB: '#8fc4e4', cieloC: '#f2dcb0', lejos: '#5a4545', lejos2: '#7a5448', medio: '#3d302e', ceniza: '#cbbfb4',
-  lapilli: '#241e1f', lapilli2: '#352c2c', tierra: '#9b4b2f', tierra2: '#c1693d', arena: '#e0b978', roca: '#4a4143', roca2: '#6b5e5f', rocaOsc: '#2b2527',
-  repisa: '#8c7968', repisa2: '#b3a08c', abismo: '#120d0e', camello: '#c99a5b', camello2: '#e6c590', camelloOsc: '#9c7340', manta: '#a8452a', manta2: '#f0d9a8',
-  agua: '#3aa7e8', agua2: '#9ad6ff', cantaro: '#b8693a', cantaro2: '#8a4a28', verde: '#4f8a43', verde2: '#7aa94f', blanco: '#f4efe6'
-};
-const hash = n => { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
-
-/* Prepara lo que no cambia de un nivel: base de cada roca y adornos */
-function preparaEscena(L) {
-  const sc = { rocas: [], deco: [], huecos: [], flags: [] };
-  for (const s of L.solids) {
-    if (s.kind === 'rock') {
-      let base = L.world.kill_y;
-      for (const g of L.solids) if (g.kind === 'ground' && g.x0 < s.x1 && g.x1 > s.x0 && g.top < s.top && g.top > base) base = g.top;
-      sc.rocas.push({ id: s.id, base });
-    }
-  }
-  for (const o of L.obstacles || []) if (o.kind === 'gap') {
-    let a = -99, b = -99;
-    for (const g of L.solids) { if (g.bot > -1e8) continue; if (Math.abs(g.x1 - o.x0) < 0.01) a = g.top; if (Math.abs(g.x0 - o.x1) < 0.01) b = g.top; }
-    const top = Math.max(a, b) > -90 ? Math.min(a > -90 ? a : b, b > -90 ? b : a) : 0;
-    sc.huecos.push({ x0: o.x0, x1: o.x1, top });
-  }
-  // adornos (tuneras y pitas) sobre suelo llano, sin tapar obstáculos
-  let k = 0;
-  for (const g of L.solids) {
-    if (g.kind !== 'ground' || g.bot > -1e8) continue;
-    for (let x = g.x0 + 2; x < g.x1 - 2; x += 2.6) {
-      const h = hash(Math.floor(x * 10) + k * 977);
-      if (h < 0.34) {
-        const choque = L.solids.some(r => r.kind === 'rock' && r.x0 < x + 1.2 && r.x1 > x - 1.2 && Math.abs(r.top - g.top) < 3);
-        if (!choque) sc.deco.push({ x: x + h * 1.2, y: g.top, t: h < 0.17 ? 'tunera' : 'pita', s: 0.7 + h * 1.6 });
-      }
-    }
-    k++;
-  }
-  return sc;
-}
-
-/* ---- Martín ---- */
-function dibujaMartin(ctx, u, px, py, st) {
-  // u = píxeles por unidad; (px,py) = punto de apoyo (centro de los pies). st: {dir, fase, anim, agua, golpe, ganar, alpha}
-  ctx.save(); ctx.translate(px, py); ctx.scale(st.dir < 0 ? -u : u, -u);   // y hacia arriba
-  ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
-  const t = st.fase;
-  const sw = Math.sin(t), sw2 = Math.sin(t + Math.PI);
-  let lift = 0, tuck = 0;
-  if (st.anim === 'salta') tuck = 0.5; else if (st.anim === 'cae') tuck = -0.25;
-  const bob = st.anim === 'idle' ? Math.sin(st.t * 2.4) * 0.025 : (st.anim === 'corre' ? Math.abs(Math.sin(t)) * 0.06 : 0);
-  const sq = st.golpe > 0 ? 1 - st.golpe * 0.12 : 1;
-  const hop = st.anim === 'gana' ? Math.abs(Math.sin(st.t * 6)) * 0.35 : 0;
-  ctx.translate(0, hop);
-  ctx.scale(1 + (1 - sq) * 0.6, sq);
-  const pata = (x, ang, cen) => {
-    // pata: de la cadera (x,0.72) a la pezuña
-    const dx = Math.sin(ang) * 0.3, alza = st.anim === 'corre' ? Math.max(0, Math.cos(ang)) * 0.16 : 0;
-    let fy = alza, fx = x + dx;
-    if (tuck > 0) { fy = 0.38 * tuck + (cen ? 0.1 : 0); fx = x + (cen ? 0.16 : -0.06); }
-    if (tuck < 0) { fy = 0.05; fx = x + (cen ? 0.22 : -0.22); }
-    ctx.strokeStyle = COL.camelloOsc; ctx.lineWidth = 0.14; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x, 0.78 + bob); ctx.lineTo((x + fx) / 2 + 0.03, 0.4 + fy / 2 + bob / 2); ctx.lineTo(fx, 0.05 + fy); ctx.stroke();
-    ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.ellipse(fx + 0.02, 0.05 + fy, 0.09, 0.05, 0, 0, 7); ctx.fill();
-  };
-  // patas de atrás (más oscuras) y de delante
-  pata(-0.34, sw * 0.9, false); pata(0.3, sw2 * 0.9, true);
-  // cola
-  ctx.strokeStyle = COL.camelloOsc; ctx.lineWidth = 0.07;
-  ctx.beginPath(); ctx.moveTo(-0.6, 1.0 + bob); ctx.quadraticCurveTo(-0.78, 0.95 + sw * 0.05, -0.74, 0.7); ctx.stroke();
-  // cuerpo
-  ctx.fillStyle = COL.camello; ctx.beginPath(); ctx.ellipse(0, 0.98 + bob, 0.62, 0.34, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = COL.camello2; ctx.beginPath(); ctx.ellipse(0.05, 0.88 + bob, 0.5, 0.2, 0, 0, 7); ctx.fill();
-  // joroba
-  ctx.fillStyle = COL.camello; ctx.beginPath(); ctx.ellipse(-0.1, 1.38 + bob, 0.27, 0.3, 0, 0, 7); ctx.fill();
-  // manta
-  ctx.fillStyle = COL.manta; ctx.beginPath(); ctx.moveTo(-0.28, 1.12 + bob); ctx.quadraticCurveTo(-0.1, 1.28 + bob, 0.14, 1.1 + bob); ctx.lineTo(0.08, 0.78 + bob); ctx.lineTo(-0.3, 0.8 + bob); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = COL.manta2; ctx.lineWidth = 0.04; ctx.beginPath(); ctx.moveTo(-0.29, 0.92 + bob); ctx.lineTo(0.1, 0.92 + bob); ctx.stroke();
-  // cuello y cabeza
-  ctx.strokeStyle = COL.camello; ctx.lineWidth = 0.25; ctx.beginPath(); ctx.moveTo(0.38, 1.0 + bob); ctx.quadraticCurveTo(0.62, 1.3 + bob, 0.58, 1.55 + bob); ctx.stroke();
-  ctx.fillStyle = COL.camello; ctx.beginPath(); ctx.ellipse(0.68, 1.62 + bob, 0.22, 0.14, -0.15, 0, 7); ctx.fill();
-  ctx.fillStyle = COL.camello2; ctx.beginPath(); ctx.ellipse(0.83, 1.57 + bob, 0.1, 0.085, -0.15, 0, 7); ctx.fill();
-  ctx.fillStyle = COL.camelloOsc; ctx.beginPath(); ctx.ellipse(0.55, 1.78 + bob, 0.05, 0.09, 0.4, 0, 7); ctx.fill();
-  ctx.fillStyle = '#20150d'; ctx.beginPath(); ctx.arc(0.7, 1.66 + bob, 0.032, 0, 7); ctx.fill();
-  if (st.golpe > 0 || st.anim === 'cae') { ctx.strokeStyle = '#20150d'; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.moveTo(0.66, 1.7 + bob); ctx.lineTo(0.74, 1.7 + bob); ctx.stroke(); }
-  // cántaro de agua sobre la joroba
-  const jx = -0.1, jy = 1.62 + bob + hop * 0.15 + (st.anim === 'gana' ? 0.18 : 0);
-  ctx.fillStyle = COL.cantaro; ctx.beginPath(); ctx.ellipse(jx, jy + 0.18, 0.2, 0.24, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = COL.cantaro2; ctx.beginPath(); ctx.ellipse(jx, jy + 0.42, 0.09, 0.07, 0, 0, 7); ctx.fill();
-  // el nivel del agua se ve a través de una ventanita
-  const f = Math.max(0, Math.min(1, st.agua / 100));
-  ctx.fillStyle = '#0d2233'; ctx.fillRect(jx - 0.07, jy - 0.02, 0.14, 0.4);
-  ctx.fillStyle = f < 0.3 ? '#ffd24a' : COL.agua; const hh = 0.4 * f; ctx.fillRect(jx - 0.07, jy - 0.02 + (0.4 - hh), 0.14, hh);
-  ctx.restore();
-}
-
-/* ---- Escenario ---- */
-function dibujaEscena(ctx, W, H, u, cam, L, esc, t, fx) {
-  const sx = wx => (wx - cam.x) * u, sy = wy => H - (wy - cam.y) * u;
-  // cielo
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, COL.cieloA); g.addColorStop(0.55, COL.cieloB); g.addColorStop(1, COL.cieloC);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // sol
-  ctx.fillStyle = '#fff6d0'; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(W * 0.82, H * 0.2, u * 1.1, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
-  // nubes (lentas)
-  ctx.fillStyle = 'rgba(255,255,255,.7)';
-  for (let i = 0; i < 6; i++) {
-    const x = ((i * 9.7 + t * 0.25 - cam.x * 0.08) % 62 + 62) % 62 - 8, y = H * (0.1 + 0.07 * ((i * 5) % 4));
-    ctx.beginPath(); ctx.ellipse(x * u, y, u * 2.2, u * 0.55, 0, 0, 7); ctx.ellipse(x * u + u * 1.2, y - u * 0.3, u * 1.4, u * 0.55, 0, 0, 7); ctx.fill();
-  }
-  // volcanes lejanos (paralaje 0,12) y laderas (0,3)
-  const capas = [[0.12, COL.lejos, 6.2, 9, 46, 0.8], [0.3, COL.medio, 2.5, 6, 27, 0.5]];
-  for (const [par, col, alt, ancho, per, baseY] of capas) {
-    ctx.fillStyle = col;
-    const off = cam.x * par, i0 = Math.floor(off / per) - 1, by = H - (baseY - cam.y * par) * u;
-    for (let i = i0; i < i0 + Math.ceil(W / u / per) + 3; i++) {
-      const hk = hash(i * 31 + (par * 100 | 0)), cx = (i * per + hk * per * 0.4 - off) * u, ah = (alt * (0.7 + hk * 0.6)) * u, aw = ancho * (0.8 + hk * 0.5) * u;
-      ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.3, by - ah * 0.55, cx - aw * 0.12, by - ah); ctx.lineTo(cx + aw * 0.12, by - ah); ctx.quadraticCurveTo(cx + aw * 0.3, by - ah * 0.55, cx + aw, by); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = par > 0.2 ? '#5d4a44' : COL.lejos2; ctx.beginPath(); ctx.moveTo(cx - aw * 0.12, by - ah); ctx.lineTo(cx + aw * 0.12, by - ah); ctx.lineTo(cx + aw * 0.2, by - ah * 0.8); ctx.lineTo(cx - aw * 0.2, by - ah * 0.8); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = col;
-      if (par > 0.2 && hk > 0.5) { // casita blanca lejana
-        ctx.fillStyle = COL.blanco; ctx.fillRect(cx + aw * 0.55, by - u * 0.55, u * 0.9, u * 0.55); ctx.fillStyle = '#b5532f'; ctx.fillRect(cx + aw * 0.55 - u * 0.05, by - u * 0.62, u * 1.0, u * 0.1); ctx.fillStyle = col;
-      }
-    }
-    ctx.fillRect(0, by - 1, W, H - by + 2);
-  }
-  // abismo de los huecos
-  ctx.fillStyle = COL.abismo;
-  for (const h of esc.huecos) {
-    const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
-    ctx.fillRect(x0, sy(h.top), x1 - x0, H);
-  }
-  // suelo, rocas y repisas
-  for (const s of L.solids) {
-    const x0 = sx(s.x0), x1 = sx(s.x1); if (x1 < -4 || x0 > W + 4) continue;
-    const yt = sy(s.top);
-    if (s.kind === 'ground' || s.kind === 'wall') {
-      const yb = s.bot > -1e8 ? sy(s.bot) : H + 4;
-      ctx.fillStyle = COL.lapilli; ctx.fillRect(x0, yt, x1 - x0, yb - yt);
-      ctx.fillStyle = COL.tierra; ctx.fillRect(x0, yt, x1 - x0, Math.min(u * 0.55, yb - yt));
-      ctx.fillStyle = COL.tierra2; ctx.fillRect(x0, yt, x1 - x0, u * 0.14);
-      ctx.fillStyle = COL.arena; ctx.fillRect(x0, yt - u * 0.03, x1 - x0, u * 0.07);
-      // lapilli: puntitos
-      ctx.fillStyle = COL.lapilli2;
-      for (let x = Math.max(s.x0, cam.x - 1); x < Math.min(s.x1, cam.x + W / u + 1); x += 0.7) {
-        const hk = hash(Math.floor(x * 10) + 7); const px = sx(x + hk * 0.5), py = yt + u * (0.7 + hk * 1.6);
-        if (py < yb) ctx.fillRect(px, py, u * 0.16, u * 0.12);
-      }
-      ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(x0, yt, u * 0.05, yb - yt); ctx.fillRect(x1 - u * 0.05, yt, u * 0.05, yb - yt);
-    } else if (s.kind === 'rock') {
-      const r = esc.rocas.find(q => q.id === s.id), base = r ? r.base : s.top - 1, yb = sy(base);
-      ctx.fillStyle = COL.roca;
-      ctx.beginPath(); ctx.moveTo(x0, yb); ctx.lineTo(x0, yt + u * 0.25); ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.12, yt - u * 0.05, x0 + (x1 - x0) * 0.4, yt); ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.75, yt - u * 0.12, x1 - u * 0.1, yt + u * 0.2); ctx.lineTo(x1, yt + u * 0.5); ctx.lineTo(x1, yb); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = COL.roca2; ctx.beginPath(); ctx.moveTo(x0 + u * 0.1, yt + u * 0.3); ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.4, yt - u * 0.02, x1 - u * 0.2, yt + u * 0.28); ctx.lineTo(x1 - u * 0.3, yt + u * 0.42); ctx.lineTo(x0 + u * 0.15, yt + u * 0.45); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = COL.rocaOsc; ctx.lineWidth = Math.max(1.5, u * 0.07); ctx.beginPath(); ctx.moveTo(x0 + (x1 - x0) * 0.4, yt + u * 0.2); ctx.lineTo(x0 + (x1 - x0) * 0.5, yb - (yb - yt) * 0.35); ctx.stroke();
-      ctx.strokeStyle = '#1c1618'; ctx.lineWidth = Math.max(1.5, u * 0.06);
-      ctx.beginPath(); ctx.moveTo(x0, yb); ctx.lineTo(x0, yt + u * 0.25); ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.12, yt - u * 0.05, x0 + (x1 - x0) * 0.4, yt); ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.75, yt - u * 0.12, x1 - u * 0.1, yt + u * 0.2); ctx.lineTo(x1, yt + u * 0.5); ctx.lineTo(x1, yb); ctx.stroke();
-    } else if (s.kind === 'oneway') {
-      const th = Math.max(u * 0.3, 4);
-      ctx.fillStyle = COL.repisa; ctx.fillRect(x0, yt, x1 - x0, th); ctx.fillStyle = COL.repisa2; ctx.fillRect(x0, yt, x1 - x0, u * 0.1);
-      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0, yt + th, x1 - x0, u * 0.08);
-      ctx.strokeStyle = '#1c1618'; ctx.lineWidth = 1; ctx.strokeRect(x0, yt, x1 - x0, th);
-    }
-  }
-  // adornos
-  for (const d of esc.deco) {
-    const x = sx(d.x); if (x < -40 || x > W + 40) continue; const y = sy(d.y);
-    if (d.t === 'pita') {
-      ctx.strokeStyle = COL.verde; ctx.lineWidth = Math.max(2, u * 0.09); ctx.lineCap = 'round';
-      for (let a = -3; a <= 3; a++) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + a * u * 0.14 * d.s, y - u * (0.45 + (3 - Math.abs(a)) * 0.08) * d.s); ctx.stroke(); }
-    } else {
-      ctx.fillStyle = COL.verde2;
-      for (const [dx, dy, r] of [[0, 0.35, 0.28], [-0.22, 0.75, 0.2], [0.2, 0.7, 0.22]]) { ctx.beginPath(); ctx.ellipse(x + dx * u * d.s, y - dy * u * d.s, r * u * d.s * 0.8, r * u * d.s, 0, 0, 7); ctx.fill(); }
-    }
-  }
-  // puntos de control
-  for (const c of L.cps) {
-    const x = sx(c.x); if (x < -40 || x > W + 40) continue; const y = sy(c.y), ya = c.alcanzado;
-    ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = Math.max(2, u * 0.1); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - u * 2.1); ctx.stroke();
-    ctx.fillStyle = ya ? COL.agua : '#d6d0c4'; ctx.beginPath(); ctx.moveTo(x, y - u * 2.1); ctx.lineTo(x + u * 0.9, y - u * 1.8 + Math.sin(t * 4) * u * 0.05); ctx.lineTo(x, y - u * 1.4); ctx.closePath(); ctx.fill();
-  }
-  // meta: pozo/punto de entrega con casita
-  const mx = sx(L.goals.finish_x);
-  if (mx > -200 && mx < W + 200) {
-    const gs = L.solids.find(s => s.kind !== 'wall' && s.x0 <= L.goals.finish_x && s.x1 >= L.goals.finish_x && s.bot < -1e8), y = sy(gs ? gs.top : 0);
-    ctx.fillStyle = COL.blanco; ctx.fillRect(mx + u * 1.5, y - u * 2.4, u * 3.4, u * 2.4);
-    ctx.fillStyle = '#b5532f'; ctx.fillRect(mx + u * 1.3, y - u * 2.65, u * 3.8, u * 0.3);
-    ctx.fillStyle = '#3a6f97'; ctx.fillRect(mx + u * 2.2, y - u * 1.7, u * 0.9, u * 1.7);
-    ctx.fillStyle = '#e8e2d4'; ctx.fillRect(mx + u * 3.6, y - u * 1.9, u * 0.8, u * 0.8);
-    // pozo
-    ctx.fillStyle = COL.roca2; ctx.fillRect(mx - u * 0.1, y - u * 0.7, u * 1.1, u * 0.7); ctx.fillStyle = COL.agua; ctx.fillRect(mx + u * 0.05, y - u * 0.7, u * 0.8, u * 0.12);
-    ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = Math.max(2, u * 0.08); ctx.beginPath(); ctx.moveTo(mx, y - u * 0.7); ctx.lineTo(mx, y - u * 1.6); ctx.lineTo(mx + u * 0.9, y - u * 1.6); ctx.lineTo(mx + u * 0.9, y - u * 0.7); ctx.stroke();
-  }
-}
+/* ================= Dibujo (www/dibujo.js) ================= */
+const { COL, hash, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost } = window.Dibujo;
 
 /* ================= Partida en marcha ================= */
 const RUN = { on: false, raf: 0, last: 0, acc: 0, cv: null, ctx: null, L: null, esc: null, s: null, idx: 0, modo: 'nivel', opts: {}, inp: { pila: [], salto: false }, rec: null, cam: { x: 0, y: 0 },
@@ -301,6 +109,7 @@ function paso1() {
   if (s.fase === 'reaparece') RUN.reapT = s.rt;
   if (RUN.golpe > 0) RUN.golpe = Math.max(0, RUN.golpe - 1 / 21);
   RUN.fase += Math.abs(s.vx) * M.DT * 3.2;
+  if (s.suelo && Math.abs(s.vx) > 1.5 && (RUN.paso = (RUN.paso || 0) + 1) % 11 === 0) RUN.fx.push({ k: 'polvo', x: s.x - s.cara * 0.5, y: s.y, v: 0, n: 16, fuerte: false });
   RUN.t += M.DT;
   RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n);
   if ((s.fase === 'meta' || s.fase === 'fallo') && !RUN.tFin) RUN.tFin = performance.now();
@@ -346,8 +155,8 @@ function ajustaCanvas() {
   const r = cv.parentNode.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const w = Math.max(160, Math.round(r.width * dpr)), h = Math.max(120, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  const asp = w / h, vw = asp >= 1.4 ? 22 : Math.max(15, 22 - (1.4 - asp) * 8);   // ~22 u de ancho; algo menos en vertical para que Martín se vea mayor
-  RUN.u = Math.min(w / vw, h / 10);
+  const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(10, 15 - (1.4 - asp) * 9);   // cámara cercana: Martín se ve grande; en vertical, aún más
+  RUN.u = Math.min(w / vw, h / 7.4);
 }
 function dibujar(dt) {
   const cv = RUN.cv, ctx = RUN.ctx, s = RUN.s, L = RUN.L; if (!cv || !ctx) return;
@@ -355,10 +164,10 @@ function dibujar(dt) {
   const W = cv.width, H = cv.height, u = RUN.u, vw = W / u, vh = H / u;
   // cámara: Martín al ~35 % del ancho con un poco de anticipación; vertical suavizado con zona muerta
   const k = 1 - Math.exp(-(dt || 16) / 1000 * 5);
-  let objX = s.x - vw * 0.35 + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
+  let objX = s.x - vw * (W < H ? 0.3 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
   objX = Math.max(L.world.min_x - 0.5, Math.min(L.world.max_x - vw + 0.5, objX));
   const piso = s.fase === 'reaparece' ? s.ry : s.y;
-  const idealY = piso - vh * (W < H ? 0.24 : 0.32);
+  const idealY = piso - vh * (W < H ? 0.36 : 0.30);
   if (RUN.camInit !== RUN.idx + ':' + RUN.modo + ':' + RUN.intento) { RUN.camInit = RUN.idx + ':' + RUN.modo + ':' + RUN.intento; RUN.cam.x = objX; RUN.cam.y = idealY; }
   RUN.cam.x += (objX - RUN.cam.x) * Math.min(1, k * 2.4);
   const dz = vh * 0.12; if (idealY - RUN.cam.y > dz) RUN.cam.y += (idealY - dz - RUN.cam.y) * k; else if (RUN.cam.y - idealY > dz) RUN.cam.y += (idealY + dz - RUN.cam.y) * k;
@@ -366,19 +175,15 @@ function dibujar(dt) {
   const px = (s.x - RUN.cam.x) * u, py = H - (s.y - RUN.cam.y) * u;
   // personaje
   if (s.fase !== 'reaparece' || s.rt < 24) {
+    dibujaSombra(ctx, L, s, u, RUN.cam, H);
     let anim = 'idle';
     if (s.fase === 'meta') anim = 'gana'; else if (!s.suelo) anim = s.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(s.vx) > 0.3) anim = 'corre';
     const parpadeo = s.fase === 'reaparece' ? 0.4 + 0.6 * ((24 - s.rt) / 24) : (s.frio > 0 && s.fase === 'jugando' && Math.floor(s.frio / 3) % 2 === 0 ? 0.55 : 1);
     dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
   }
   if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
-  // partículas
-  for (const f of RUN.fx) {
-    const q = f.v / f.n, x = (f.x - RUN.cam.x) * u, y = H - (f.y - RUN.cam.y) * u;
-    if (f.k === 'polvo') { ctx.fillStyle = 'rgba(224,185,120,' + (0.5 * (1 - q)) + ')'; ctx.beginPath(); ctx.arc(x - u * 0.3, y, u * (0.12 + q * 0.25), 0, 7); ctx.arc(x + u * 0.3, y, u * (0.12 + q * 0.25), 0, 7); ctx.fill(); }
-    else if (f.k === 'gota') { ctx.fillStyle = 'rgba(58,167,232,' + (1 - q) + ')'; const tt = f.v / 60; ctx.beginPath(); ctx.arc(x + f.vx * tt * u, y - (f.vy * tt - 6 * tt * tt) * u, u * 0.07, 0, 7); ctx.fill(); }
-    else if (f.k === 'texto') { ctx.fillStyle = 'rgba(255,255,255,' + (1 - q) + ')'; ctx.strokeStyle = 'rgba(0,0,0,' + (1 - q) + ')'; ctx.lineWidth = 3; ctx.font = '800 ' + Math.round(u * 0.8) + 'px system-ui,sans-serif'; ctx.textAlign = 'center'; const yy = y - q * u * 1.2; ctx.strokeText(f.txt, x, yy); ctx.fillText(f.txt, x, yy); ctx.textAlign = 'left'; }
-  }
+  dibujaFx(ctx, W, H, u, RUN.cam, RUN.fx, RUN.t);
+  dibujaPost(ctx, W, H, RUN.esc, s.agua);
   // sin avisos de color solo: contorno en la vista de poca agua
   if (s.agua > 0 && s.agua < 30) { ctx.strokeStyle = 'rgba(255,210,74,.75)'; ctx.lineWidth = 6; ctx.setLineDash([18, 12]); ctx.strokeRect(3, 3, W - 6, H - 6); ctx.setLineDash([]); }
 }
@@ -438,7 +243,7 @@ function soltarTodo() { RUN.inp.pila = []; RUN.inp.salto = false; document.query
 /* ================= Flujo de la partida ================= */
 function crearIntento() {
   const n = NIV[RUN.idx].nivel;
-  RUN.L = n; RUN.esc = RUN.esc && RUN.esc.id === n.level_id ? RUN.esc : Object.assign(preparaEscena(n), { id: n.level_id });
+  RUN.L = n; RUN.esc = RUN.esc && RUN.esc.id === n.level_id ? RUN.esc : Object.assign(preparaEscena(n, RUN.idx), { id: n.level_id });
   for (const c of n.cps) c.alcanzado = false;
   RUN.s = M.nuevo(n, Object.assign({ eventos: true }, RUN.opts));
   RUN.rec = M.grabadora(); RUN.fx = []; RUN.golpe = 0; RUN.t = 0; RUN.fase = 0; RUN.tFin = 0; RUN.overlay = 'listo'; RUN.hint = ''; RUN.avisado = false; RUN.rutaVista = '';
@@ -554,13 +359,13 @@ function renderGame() {
     <div class="mg-cv"><canvas id="mgCv" aria-label="Juego"></canvas>
       <div class="mg-hud">
         <div class="mg-izq"><div class="mg-nom">${esc(n.name)}</div>
-          <div class="mg-agua" role="img" aria-label="Agua del cántaro"><span class="mg-ic">💧</span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div></div>
-        <div class="mg-der"><div class="mg-t">⏱ <b id="mgTiempo">0:00.0</b></div><button class="mg-pausa" id="mgPausa" aria-label="Pausa">⏸</button></div>
+          <div class="mg-agua" role="img" aria-label="Agua del cántaro"><span class="mg-ic"><svg viewBox="0 0 24 30" width="20" height="24" aria-hidden="true"><path d="M12 1C12 1 2 13 2 19a10 10 0 0 0 20 0C22 13 12 1 12 1Z" fill="#5cc0f5" stroke="#fff" stroke-width="1.6"/><path d="M7 19a5 5 0 0 0 4 4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/></svg></span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div></div>
+        <div class="mg-der"><div class="mg-t">⏱ <b id="mgTiempo">0:00.0</b></div><button class="mg-pausa" id="mgPausa" aria-label="Pausa"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></button></div>
       </div>
       <div class="mg-hint" id="mgHint"></div>
       <div class="mg-ov" id="mgOv"></div>
     </div>
-    <div class="mg-pad"><div class="mg-lr"><button class="mg-b" id="mgL" aria-label="Izquierda">◀</button><button class="mg-b" id="mgR" aria-label="Derecha">▶</button></div><button class="mg-b mg-j" id="mgJ" aria-label="Saltar">⬆</button></div>
+    <div class="mg-pad"><div class="mg-lr"><button class="mg-b" id="mgL" aria-label="Izquierda"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M30 8 14 24 30 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mg-b" id="mgR" aria-label="Derecha"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M18 8 34 24 18 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><button class="mg-b mg-j" id="mgJ" aria-label="Saltar"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M8 32 24 14 40 32" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mg-jt">SALTAR</span></button></div>
   </div>`;
   RUN.cv = $('#mgCv'); RUN.ctx = RUN.cv.getContext('2d'); RUN.camInit = '';
   enlazarControles();
