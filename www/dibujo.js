@@ -163,7 +163,11 @@
   }
 
   /* Martín a partir de la ilustración (camello.png, 551×560, mirando a la derecha). Si aún no ha cargado, se usa el dibujo vectorial. */
-  const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.4, win: [184, 315, 19, 32], cad: 366, cx0: 172, cx1: 236 };
+  const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.4, win: [184, 315, 19, 32], cad: 366, cx0: 172, cx1: 236,
+    // altura de las pezuñas en el dibujo (en perspectiva las traseras quedan más arriba): se estiran sus columnas hasta el suelo
+    corte: [[235, 340], [222, 440], [214, 465], [200, 485], [196, 600]],
+    pies: [[0, 484], [120, 484], [165, 500], [200, 520], [270, 522], [320, 553], [551, 553]] };
+  const pieY = x => { const P = SPR.pies; for (let i = 1; i < P.length; i++) if (x <= P[i][0]) { const a = P[i - 1], b = P[i], q = (x - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * q; } return 553; };
   if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.png'; }
   function sprEscalado(hp) {
     const k = Math.max(16, Math.round(hp)); if (SPR.cache[k]) return SPR.cache[k];
@@ -173,6 +177,13 @@
     let src = SPR.img, w = 551, h = 560;
     while (w * 0.5 > c.width) { const t2 = document.createElement('canvas'); t2.width = Math.ceil(w * 0.5); t2.height = Math.ceil(h * 0.5); const g2 = t2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(src, 0, 0, t2.width, t2.height); src = t2; w = t2.width; h = t2.height; }
     g.drawImage(src, 0, 0, c.width, c.height);
+    // dos capas de patas (traseras / delanteras) separadas por la línea donde se cruzan las patas del lado lejano
+    const y0 = Math.round(SPR.cad * s), capa = del => { const q = document.createElement('canvas'); q.width = c.width; q.height = c.height; const h = q.getContext('2d'); h.drawImage(c, 0, 0);
+      h.globalCompositeOperation = 'destination-in'; h.beginPath(); const L = SPR.corte;
+      if (del) { h.moveTo(c.width, y0); L.forEach(([x, y]) => h.lineTo(x * s, y * s)); h.lineTo(c.width, c.height); }
+      else { h.moveTo(0, y0); L.forEach(([x, y]) => h.lineTo(x * s, y * s)); h.lineTo(0, c.height); }
+      h.closePath(); h.fill(); return q; };
+    c.tras = capa(false); c.del = capa(true);
     const ks = Object.keys(SPR.cache); if (ks.length > 6) delete SPR.cache[ks[0]];
     return (SPR.cache[k] = c);
   }
@@ -180,7 +191,7 @@
     const T = st.t || 0, ph = st.fase || 0, anim = st.anim, f = clamp(st.agua / 100, 0, 1);
     const hp = SPR.alto * u, s = hp / 560, cv = sprEscalado(hp);
     let dy = 0, rot = 0, sx = 1, sy = 1;
-    if (anim === 'corre') { const c = ph / 3.2 / ((100 * SPR.alto / 560) / 0.6) * Math.PI * 4; dy = -(0.5 + 0.5 * Math.cos(c)) * 0.05 * u; rot = Math.sin(c / 2) * 0.012; sx = 1 + Math.sin(ph * 2) * 0.012; sy = 1 / sx; }
+    if (anim === 'corre') { const c = ph / 3.2 / ((150 * SPR.alto / 560) / 0.62) * Math.PI * 4; dy = -(0.5 + 0.5 * Math.cos(c)) * 0.05 * u; rot = Math.sin(c / 2) * 0.012; }
     else if (anim === 'idle') { sy = 1 + Math.sin(T * 2.2) * 0.012; }
     else if (anim === 'salta') { rot = -0.09; sx = 0.97; sy = 1.04; }
     else if (anim === 'cae') { rot = 0.07; sx = 1.02; sy = 0.98; }
@@ -194,20 +205,19 @@
     let Ah = 0, Af = 0, Lh = 0, Lf = 0;
     if (anim === 'corre' || anim === 'gana') {
       // paso ligado al avance: la pezuña apoyada retrocede exactamente lo que avanza el cuerpo (no patina) y la otra pasa por el aire
-      const S = 100, P = 0.6, D = S * (SPR.alto / 560) / P;          // barrido en px del dibujo, fracción de apoyo y metros por ciclo
+      const S = 150, P = 0.62, D = S * (SPR.alto / 560) / P;          // barrido en px del dibujo, fracción de apoyo y metros por ciclo
       const dist = anim === 'gana' ? T * 1.2 : ph / 3.2, c0 = dist / D;
-      const pie = c => { const v = c - Math.floor(c); if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * 0.17]; };
+      const pie = c => { const v = c - Math.floor(c); if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * 0.12]; };
       [Ah, Lh] = pie(c0); [Af, Lf] = pie(c0 + 0.5);
     }
     else if (anim === 'salta') { Ah = -14; Af = 26; Lh = 0.16; Lf = 0.2; }
     else if (anim === 'cae') { Ah = -18; Af = 16; }
     ctx.drawImage(cv, 0, 0, cv.width, y0, ox, oy, cv.width, y0);
-    const N = 60, cw = cv.width / N;
-    for (let i = 0; i < N; i++) {
-      const x0 = i * cw, xm = (x0 + cw / 2) / s, w = clamp((xm - SPR.cx0) / (SPR.cx1 - SPR.cx0), 0, 1), k = w * w * (3 - 2 * w);
-      const A = (Ah + (Af - Ah) * k) * s, Lz = Lh + (Lf - Lh) * k, e = (k > 0 && k < 1) ? cw * 1.6 : 0.8;
-      ctx.save(); ctx.translate(ox + x0, oy + y0); ctx.transform(1, 0, A / bh, 1 - Lz, 0, 0);
-      ctx.drawImage(cv, x0, y0, Math.min(cw + e, cv.width - x0), bh, 0, 0, Math.min(cw + e, cv.width - x0), bh); ctx.restore();
+    const N = 40, cw = cv.width / N;
+    for (const [lay, A0, L0] of [[cv.tras, Ah, Lh], [cv.del, Af, Lf]]) for (let i = 0; i < N; i++) {
+      const x0 = i * cw, xm = (x0 + cw / 2) / s, fy = (SPR.ay - SPR.cad) / (pieY(xm) - SPR.cad), w = Math.min(cw + 1, cv.width - x0);
+      ctx.save(); ctx.translate(ox + x0, oy + y0); ctx.transform(1, 0, A0 * s / bh, fy * (1 - L0), 0, 0);
+      ctx.drawImage(lay, x0, y0, w, bh, 0, 0, w, bh); ctx.restore();
     }
     // nivel de agua en la ventana de la cantimplora
     const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
