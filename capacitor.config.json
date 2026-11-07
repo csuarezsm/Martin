@@ -1,0 +1,9 @@
+{
+  "appId": "com.itcanarias.martin",
+  "appName": "Martín",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#2a1c18",
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}
