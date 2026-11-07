@@ -155,7 +155,7 @@ function ajustaCanvas() {
   const r = cv.parentNode.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const w = Math.max(160, Math.round(r.width * dpr)), h = Math.max(120, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(asp < 1 ? 7.6 : 10, 15 - (1.4 - asp) * 12);   // cámara cercana: Martín se ve grande; en vertical, aún más
+  const asp = w / h, vw = asp >= 1.4 ? 15 : Math.max(asp < 1 ? 9 : 10, 15 - (1.4 - asp) * 12);   // cámara cercana: Martín se ve grande; en vertical, aún más
   RUN.u = Math.min(w / vw, h / 7.4);
 }
 function dibujar(dt) {

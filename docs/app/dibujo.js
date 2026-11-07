@@ -163,7 +163,7 @@
   }
 
   /* Martín a partir de la ilustración (camello.png, 551×560, mirando a la derecha). Si aún no ha cargado, se usa el dibujo vectorial. */
-  const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.75, win: [184, 315, 19, 32] };
+  const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.4, win: [184, 315, 19, 32], cad: 366, cx0: 172, cx1: 236 };
   if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.png'; }
   function sprEscalado(hp) {
     const k = Math.max(16, Math.round(hp)); if (SPR.cache[k]) return SPR.cache[k];
@@ -189,7 +189,20 @@
     ctx.save(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha;
     ctx.translate(px, py + dy); if (st.dir < 0) ctx.scale(-1, 1);
     ctx.rotate(rot); ctx.scale(sx, sy);
-    ctx.drawImage(cv, -SPR.ax * s, -SPR.ay * s, cv.width, cv.height);
+    // cuerpo fijo y patas animadas: la franja de las patas se dibuja en columnas que se inclinan desde la cadera
+    const ox = -SPR.ax * s, oy = -SPR.ay * s, y0 = Math.round(SPR.cad * s), bh = cv.height - y0;
+    let Ah = 0, Af = 0, Lh = 0, Lf = 0;
+    if (anim === 'corre' || anim === 'gana') { const q = anim === 'gana' ? T * 9 : ph; Ah = Math.sin(q) * 30; Af = -Math.sin(q) * 34; Lh = Math.max(0, Math.cos(q)) * 0.12; Lf = Math.max(0, -Math.cos(q)) * 0.14; }
+    else if (anim === 'salta') { Ah = -14; Af = 26; Lh = 0.16; Lf = 0.2; }
+    else if (anim === 'cae') { Ah = -18; Af = 16; }
+    ctx.drawImage(cv, 0, 0, cv.width, y0, ox, oy, cv.width, y0);
+    const N = 60, cw = cv.width / N;
+    for (let i = 0; i < N; i++) {
+      const x0 = i * cw, xm = (x0 + cw / 2) / s, w = clamp((xm - SPR.cx0) / (SPR.cx1 - SPR.cx0), 0, 1), k = w * w * (3 - 2 * w);
+      const A = (Ah + (Af - Ah) * k) * s, Lz = Lh + (Lf - Lh) * k, e = (k > 0 && k < 1) ? cw * 1.6 : 0.8;
+      ctx.save(); ctx.translate(ox + x0, oy + y0); ctx.transform(1, 0, A / bh, 1 - Lz, 0, 0);
+      ctx.drawImage(cv, x0, y0, Math.min(cw + e, cv.width - x0), bh, 0, 0, Math.min(cw + e, cv.width - x0), bh); ctx.restore();
+    }
     // nivel de agua en la ventana de la cantimplora
     const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
     ctx.fillStyle = '#0d2233'; rr(ctx, X, Y, W, H, r); ctx.fill();
