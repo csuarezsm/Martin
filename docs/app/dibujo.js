@@ -87,7 +87,7 @@
   function suelo(L, x, y) { let best = L.world.kill_y; for (const s of L.solids) if (s.kind !== 'oneway' && s.x0 <= x && s.x1 >= x && s.top <= y + 0.05 && s.top > best) best = s.top; return best; }
 
   /* ================== MARTÍN ================== */
-  const PEL = { luz: '#fcebc4', claro: '#f4d6a0', medio: '#e6bd80', sombra: '#c99358', osc: '#8a5a2c', borde: '#8a5630', hocico: '#f8e3b8' };
+  const PEL = { luz: '#f6d99c', claro: '#e9bd76', medio: '#d3a05a', sombra: '#a8743a', osc: '#7a4a24', borde: '#8a5a2a', hocico: '#f2d9a6' };
 
   /* Trazo cónico (muslo, caña, cuello): primero el contorno, luego el relleno, para que no se vean costuras */
   function conico(ctx, pts, ws, fill, borde, lw) {
@@ -105,7 +105,7 @@
 
   /* Pata de dibujo animado: muslo grueso, rodilla redonda de callo marrón, caña y pezuña grande oscura. sg = lado en que dobla la rodilla */
   function pata(ctx, hx, hy, fx, fy, sg, cerca, anchoMuslo) {
-    const a = 0.46, b = 0.44, dx = fx - hx, dy = fy - hy, dd = Math.hypot(dx, dy) || 1, d = Math.min(dd, a + b - 0.004);
+    const a = 0.44, b = 0.42, dx = fx - hx, dy = fy - hy, dd = Math.hypot(dx, dy) || 1, d = Math.min(dd, a + b - 0.004);
     const ux = dx / dd, uy = dy / dd, p = (d * d + a * a - b * b) / (2 * d), h = Math.sqrt(Math.max(0, a * a - p * p));
     const kx = hx + ux * p - uy * h * sg, ky = hy + uy * p + ux * h * sg, ex = hx + ux * d, ey = hy + uy * d;
     const col = cerca ? PEL.claro : PEL.medio;
@@ -136,15 +136,20 @@
     ctx.bezierCurveTo(-0.2, -0.16, -0.24, -0.08, -0.24, 0.0); ctx.closePath(); ctx.fill(); ctx.stroke();
     // mechones de pelo sobre la frente
     ctx.fillStyle = PEL.sombra; for (const [x, y, l, a] of [[-0.12, 0.2, 0.15, -0.5], [-0.03, 0.25, 0.17, -0.2], [0.07, 0.24, 0.14, 0.15]]) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-0.045, 0); ctx.quadraticCurveTo(0, l * 1.1, 0.045, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
-    // bozal de malla
-    ctx.save(); rr(ctx, 0.22, -0.28, 0.4, 0.3, 0.12); ctx.fillStyle = 'rgba(110,80,50,.35)'; ctx.fill(); ctx.clip();
-    ctx.strokeStyle = 'rgba(70,55,45,.9)'; ctx.lineWidth = 0.014; ctx.beginPath(); for (let k = -5; k <= 7; k++) { ctx.moveTo(0.22 + k * 0.05, -0.3); ctx.lineTo(0.22 + k * 0.05 + 0.3, 0.04); ctx.moveTo(0.22 + k * 0.05 + 0.3, -0.3); ctx.lineTo(0.22 + k * 0.05, 0.04); } ctx.stroke(); ctx.restore();
-    ctx.strokeStyle = '#4a3a30'; ctx.lineWidth = 0.028; rr(ctx, 0.22, -0.28, 0.4, 0.3, 0.12); ctx.stroke();
-    // correas de cuero con anilla
-    ctx.strokeStyle = cuero; ctx.lineWidth = 0.045; ctx.beginPath(); ctx.moveTo(0.22, -0.02); ctx.quadraticCurveTo(0.12, -0.08, -0.04, -0.1); ctx.moveTo(0.16, 0.14); ctx.quadraticCurveTo(0.2, -0.05, 0.16, -0.22); ctx.moveTo(-0.06, 0.2); ctx.quadraticCurveTo(0.02, 0.0, -0.04, -0.12); ctx.stroke();
-    ctx.fillStyle = '#d9a35c'; ctx.beginPath(); ctx.arc(0.16, -0.06, 0.03, 0, TAU); ctx.fill();
+    // boca abierta y sonriente con la lengua rosa
+    ctx.fillStyle = '#7a2428'; ctx.beginPath(); ctx.ellipse(0.43, -0.2, 0.13, 0.065, 0.12, 0, TAU); ctx.fill(); ctx.fillStyle = '#e8737c'; ctx.beginPath(); ctx.ellipse(0.44, -0.225, 0.08, 0.03, 0.1, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff3dc'; ctx.fillRect(0.34, -0.15, 0.05, 0.03); ctx.fillRect(0.4, -0.145, 0.05, 0.03);
+    ctx.fillStyle = 'rgba(140,90,40,.25)'; ctx.beginPath(); ctx.ellipse(0.5, -0.02, 0.025, 0.035, 0.4, 0, TAU); ctx.fill();   // ollar
+    // cabezada de lona beige con costuras rojas y hebillas
+    const lona = (pts) => { ctx.lineCap = 'round'; ctx.strokeStyle = '#7a5a3a'; ctx.lineWidth = 0.075; ctx.beginPath(); pts(); ctx.stroke(); ctx.strokeStyle = '#ecdcb0'; ctx.lineWidth = 0.056; ctx.beginPath(); pts(); ctx.stroke(); ctx.strokeStyle = '#c0453a'; ctx.lineWidth = 0.01; ctx.setLineDash([0.03, 0.025]); ctx.beginPath(); pts(); ctx.stroke(); ctx.setLineDash([]); };
+    lona(() => { ctx.moveTo(0.46, 0.0); ctx.quadraticCurveTo(0.42, -0.1, 0.44, -0.24); });                 // frontalera del hocico
+    lona(() => { ctx.moveTo(0.44, -0.06); ctx.quadraticCurveTo(0.2, -0.04, 0.0, 0.0); });               // carrillera
+    lona(() => { ctx.moveTo(0.0, 0.2); ctx.quadraticCurveTo(0.08, 0.02, 0.0, -0.14); });              // testera
+    lona(() => { ctx.moveTo(0.2, 0.16); ctx.quadraticCurveTo(0.26, 0.04, 0.22, -0.04); });
+    ctx.fillStyle = '#b9bcc0'; ctx.strokeStyle = '#555'; ctx.lineWidth = 0.012; rr(ctx, 0.14, -0.05, 0.06, 0.07, 0.01); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#9a9ea2'; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.arc(0.43, -0.29, 0.035, 0, TAU); ctx.stroke();
     // cuerda que cuelga del bozal
-    const rs = Math.sin(T * 2.3) * 0.03; ctx.strokeStyle = '#ead6a4'; ctx.lineWidth = 0.05; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0.42, -0.3); ctx.quadraticCurveTo(0.34 + rs, -0.6, 0.46 + rs * 2, -0.78); ctx.stroke(); ctx.strokeStyle = '#b89a62'; ctx.lineWidth = 0.014; ctx.stroke();
+    const rs = Math.sin(T * 2.3) * 0.03; ctx.strokeStyle = '#ead6a4'; ctx.lineWidth = 0.05; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0.43, -0.31); ctx.quadraticCurveTo(0.34 + rs, -0.6, 0.5 + rs * 2, -0.8); ctx.stroke(); ctx.strokeStyle = '#b89a62'; ctx.lineWidth = 0.014; ctx.stroke();
     // ojo grande y expresivo
     const parp = (Math.sin(T * 0.9) > 0.985) || st.golpe > 0 || st.anim === 'cae';
     if (parp) { ctx.strokeStyle = '#3a2412'; ctx.lineWidth = 0.035; ctx.beginPath(); ctx.arc(0.1, 0.06, 0.06, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); }
@@ -154,8 +159,7 @@
       ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0.142, 0.08, 0.02, 0, TAU); ctx.arc(0.108, 0.035, 0.01, 0, TAU); ctx.fill();
       ctx.strokeStyle = '#3a2412'; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.moveTo(0.02, 0.1); ctx.quadraticCurveTo(0.1, 0.16, 0.19, 0.1); ctx.moveTo(0.03, 0.12); ctx.lineTo(0.0, 0.16); ctx.stroke();
     }
-    // sonrisa
-    ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 0.025; ctx.beginPath(); ctx.moveTo(0.2, -0.12); ctx.quadraticCurveTo(0.12, -0.16, 0.06, -0.1); ctx.stroke();
+
   }
 
   function dibujaMartin(ctx, u, px, py, st) {
@@ -168,7 +172,7 @@
     const sq = st.golpe > 0 ? 1 - st.golpe * 0.12 : 1, f = clamp(st.agua / 100, 0, 1);
     const cabeceo = anim === 'salta' ? 0.08 : anim === 'cae' ? -0.08 : 0;
     ctx.translate(0, hop); ctx.scale(1 + (1 - sq) * 0.6, sq);
-    const hipY = 0.88 + bob;
+    const hipY = 0.84 + bob;
     const objetivo = (hx, fase, delante) => {
       if (anim === 'salta') return delante ? [hx + 0.34, 0.6] : [hx - 0.3, 0.3];
       if (anim === 'cae') return delante ? [hx + 0.2, 0.12] : [hx - 0.22, 0.1];
@@ -187,8 +191,8 @@
     // cuerpo redondeado
     ctx.beginPath(); ctx.moveTo(-0.9, 1.05 + B);
     ctx.bezierCurveTo(-0.9, 1.3 + B, -0.65, 1.42 + B, -0.4, 1.46 + B);
-    ctx.bezierCurveTo(-0.3, 1.66 + B, -0.1, 1.74 + B, 0.1, 1.7 + B);
-    ctx.bezierCurveTo(0.3, 1.66 + B, 0.36, 1.5 + B, 0.46, 1.46 + B);
+    ctx.bezierCurveTo(-0.44, 1.6 + B, -0.36, 1.94 + B, -0.08, 2.0 + B);
+    ctx.bezierCurveTo(0.2, 2.04 + B, 0.36, 1.8 + B, 0.42, 1.52 + B);
     ctx.bezierCurveTo(0.68, 1.42 + B, 0.92, 1.2 + B, 0.9, 0.98 + B);
     ctx.bezierCurveTo(0.88, 0.76 + B, 0.4, 0.7 + B, -0.1, 0.74 + B);
     ctx.bezierCurveTo(-0.5, 0.76 + B, -0.64, 0.8 + B, -0.76, 0.84 + B);
@@ -206,27 +210,32 @@
     for (let i = 0; i < 5; i++) { const x = 0.8 + (i % 2) * 0.03, y = 1.1 - i * 0.07 + B; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.15, y - 0.12 + Math.sin(T * 2 + i) * 0.01, x + 0.02, y - 0.2); ctx.lineTo(x - 0.04, y - 0.02); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     // cuello alto y grueso en S
     const sway = Math.sin(ph * 0.5) * (corre ? 0.04 : 0.01) + Math.sin(T * 1.7) * 0.012, tip = anim === 'salta' ? 0.06 : anim === 'cae' ? -0.1 : 0;
-    const N = [[0.5, 1.2 + B], [1.02, 1.16 + B], [0.84, 1.78 + B], [1.04, 2.06 + B + tip]];
+    const N = [[0.5, 1.2 + B], [1.14, 1.04 + B], [0.96, 1.7 + B], [1.2, 2.0 + B + tip]];
     const cub = q => { const m = 1 - q; return [m * m * m * N[0][0] + 3 * m * m * q * N[1][0] + 3 * m * q * q * N[2][0] + q * q * q * N[3][0], m * m * m * N[0][1] + 3 * m * m * q * N[1][1] + 3 * m * q * q * N[2][1] + q * q * q * N[3][1]]; };
-    const pts = [], ws = []; for (let i = 0; i <= 14; i++) { const q = i / 14; pts.push(cub(q)); ws.push(0.76 - q * 0.44 + Math.sin(q * Math.PI) * 0.03); }
+    const pts = [], ws = []; for (let i = 0; i <= 14; i++) { const q = i / 14; pts.push(cub(q)); ws.push(0.8 - q * 0.42 + Math.sin(q * Math.PI) * 0.03); }
     conico(ctx, pts, ws, PEL.claro, PEL.borde, 0.035);
     ctx.strokeStyle = 'rgba(255,248,225,.5)'; ctx.lineWidth = 0.07; ctx.beginPath(); for (let i = 3; i <= 11; i++) { const [x, y] = pts[i]; i === 3 ? ctx.moveTo(x - 0.08, y) : ctx.lineTo(x - 0.08, y); } ctx.stroke();
     // cabeza
-    ctx.save(); ctx.translate(pts[14][0] + 0.06, pts[14][1] + 0.0); ctx.rotate(-0.22 - tip * 0.8 + sway); ctx.scale(0.78, 0.78); cabeza(ctx, T, st); ctx.restore();
+    ctx.save(); ctx.translate(pts[14][0] + 0.06, pts[14][1] + 0.0); ctx.rotate(-0.1 - tip * 0.8 + sway); ctx.scale(0.8, 0.8); cabeza(ctx, T, st); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(-0.42, 1.5 + B); ctx.bezierCurveTo(-0.44, 1.6 + B, -0.36, 1.94 + B, -0.08, 2.0 + B); ctx.bezierCurveTo(0.2, 2.04 + B, 0.36, 1.8 + B, 0.42, 1.52 + B); ctx.closePath();
+    ctx.fillStyle = '#e4cf9c'; ctx.fill(); ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 0.045; ctx.stroke();
+    ctx.strokeStyle = 'rgba(122,74,36,.55)'; ctx.lineWidth = 0.012; ctx.setLineDash([0.03, 0.025]); ctx.beginPath(); ctx.moveTo(-0.36, 1.56 + B); ctx.bezierCurveTo(-0.38, 1.7 + B, -0.3, 1.9 + B, -0.08, 1.94 + B); ctx.bezierCurveTo(0.16, 1.98 + B, 0.3, 1.78 + B, 0.36, 1.56 + B); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,250,230,.45)'; ctx.beginPath(); ctx.ellipse(-0.12, 1.84 + B, 0.14, 0.07, -0.3, 0, TAU); ctx.fill();
     // manta crema y silla verde: asiento de cuero, barandilla con barrotes y caballete en aspa
     const verde = '#2f7d49', verdeO = '#1d5a33', cuero = '#8a4a22';
     ctx.beginPath(); ctx.moveTo(-0.55, 1.12 + B); ctx.quadraticCurveTo(-0.62, 1.4 + B, -0.4, 1.52 + B); ctx.lineTo(0.4, 1.52 + B); ctx.quadraticCurveTo(0.58, 1.4 + B, 0.52, 1.12 + B); ctx.closePath();
-    ctx.fillStyle = '#f6ecd6'; ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03; ctx.stroke();
+    ctx.fillStyle = '#ecdcb4'; ctx.fill(); ctx.strokeStyle = PEL.borde; ctx.lineWidth = 0.03; ctx.stroke();
+    for (const x of [-0.34, 0.2]) { ctx.fillStyle = '#d7c08a'; ctx.fillRect(x, 1.14 + B, 0.1, 0.38); ctx.strokeStyle = '#c0453a'; ctx.lineWidth = 0.01; ctx.setLineDash([0.03, 0.025]); ctx.beginPath(); ctx.moveTo(x + 0.05, 1.16 + B); ctx.lineTo(x + 0.05, 1.5 + B); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#b9bcc0'; ctx.fillRect(x - 0.01, 1.28 + B, 0.12, 0.06); }
     ctx.strokeStyle = 'rgba(190,160,110,.5)'; ctx.lineWidth = 0.014; ctx.beginPath(); ctx.moveTo(-0.55, 1.2 + B); ctx.lineTo(0.52, 1.2 + B); ctx.stroke();
     // caballete en aspa (delante) y barandilla (detrás)
-    ctx.lineCap = 'round'; for (const [c, w] of [[verdeO, 0.07], [verde, 0.045]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(0.02, 1.62 + B); ctx.lineTo(0.42, 2.08 + B); ctx.moveTo(0.42, 1.62 + B); ctx.lineTo(0.02, 2.08 + B); ctx.stroke(); }
-    ctx.fillStyle = verde; ctx.strokeStyle = verdeO; ctx.lineWidth = 0.03; ctx.beginPath(); ctx.moveTo(-0.58, 1.5 + B); ctx.lineTo(-0.56, 1.64 + B); ctx.lineTo(0.5, 1.68 + B); ctx.lineTo(0.52, 1.52 + B); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.save(); ctx.translate(-0.04, 1.66 + B); ctx.rotate(0.03); ctx.fillStyle = cuero; rr(ctx, -0.42, 0, 0.84, 0.15, 0.07); ctx.fill(); ctx.strokeStyle = '#4a2a14'; ctx.lineWidth = 0.022; ctx.stroke(); ctx.fillStyle = 'rgba(255,200,140,.3)'; ctx.fillRect(-0.34, 0.09, 0.6, 0.025); ctx.restore();
-    ctx.strokeStyle = verdeO; ctx.lineWidth = 0.05; ctx.beginPath(); ctx.moveTo(-0.58, 1.66 + B); ctx.lineTo(-0.58, 2.0 + B); ctx.quadraticCurveTo(-0.55, 2.06 + B, -0.4, 2.06 + B); ctx.stroke(); ctx.strokeStyle = verde; ctx.lineWidth = 0.028; ctx.stroke();
-    ctx.strokeStyle = verde; ctx.lineWidth = 0.03; for (const x of [-0.53, -0.45, -0.37]) { ctx.beginPath(); ctx.moveTo(x, 1.68 + B); ctx.lineTo(x, 2.02 + B); ctx.stroke(); }
-    ctx.strokeStyle = '#f0e0b0'; ctx.lineWidth = 0.035; ctx.beginPath(); ctx.moveTo(0.2, 1.66 + B); ctx.bezierCurveTo(0.34, 1.62 + B, 0.4, 1.7 + B, 0.3, 1.74 + B); ctx.stroke();   // cuerda del caballete
+    ctx.lineCap = 'round'; for (const [c, w] of [[verdeO, 0.07], [verde, 0.045]]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(0.5, 1.5 + B); ctx.lineTo(0.5, 1.66 + B); ctx.moveTo(0.5, 1.62 + B); ctx.lineTo(0.58, 1.74 + B); ctx.moveTo(0.5, 1.62 + B); ctx.lineTo(0.42, 1.74 + B); ctx.stroke(); }
+    ctx.fillStyle = verde; ctx.strokeStyle = verdeO; ctx.lineWidth = 0.03; ctx.beginPath(); ctx.moveTo(-0.58, 1.38 + B); ctx.lineTo(-0.56, 1.5 + B); ctx.lineTo(0.5, 1.54 + B); ctx.lineTo(0.52, 1.4 + B); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.translate(-0.04, 1.52 + B); ctx.rotate(0.03); ctx.fillStyle = cuero; rr(ctx, -0.42, 0, 0.84, 0.15, 0.07); ctx.fill(); ctx.strokeStyle = '#4a2a14'; ctx.lineWidth = 0.022; ctx.stroke(); ctx.fillStyle = 'rgba(255,200,140,.3)'; ctx.fillRect(-0.34, 0.09, 0.6, 0.025); ctx.restore();
+    ctx.strokeStyle = verdeO; ctx.lineWidth = 0.05; ctx.beginPath(); ctx.moveTo(-0.58, 1.52 + B); ctx.lineTo(-0.58, 1.84 + B); ctx.quadraticCurveTo(-0.55, 1.9 + B, -0.4, 1.9 + B); ctx.stroke(); ctx.strokeStyle = verde; ctx.lineWidth = 0.028; ctx.stroke();
+    ctx.strokeStyle = verde; ctx.lineWidth = 0.03; for (const x of [-0.53, -0.45, -0.37]) { ctx.beginPath(); ctx.moveTo(x, 1.54 + B); ctx.lineTo(x, 1.86 + B); ctx.stroke(); }
+    ctx.strokeStyle = '#f0e0b0'; ctx.lineWidth = 0.035; ctx.beginPath(); ctx.moveTo(0.2, 1.52 + B); ctx.bezierCurveTo(0.34, 1.48 + B, 0.4, 1.56 + B, 0.3, 1.6 + B); ctx.stroke();   // cuerda del caballete
     // correa verde de pecho con hebilla
-    ctx.strokeStyle = verdeO; ctx.lineWidth = 0.075; ctx.beginPath(); ctx.moveTo(0.3, 1.5 + B); ctx.quadraticCurveTo(0.6, 1.3 + B, 0.84, 0.96 + B); ctx.quadraticCurveTo(0.7, 0.8 + B, 0.4, 0.78 + B); ctx.stroke(); ctx.strokeStyle = verde; ctx.lineWidth = 0.05; ctx.stroke();
+    ctx.strokeStyle = verdeO; ctx.lineWidth = 0.075; ctx.beginPath(); ctx.moveTo(0.4, 1.42 + B); ctx.quadraticCurveTo(0.66, 1.26 + B, 0.84, 0.96 + B); ctx.quadraticCurveTo(0.7, 0.8 + B, 0.4, 0.78 + B); ctx.stroke(); ctx.strokeStyle = verde; ctx.lineWidth = 0.05; ctx.stroke();
     ctx.fillStyle = '#d9a35c'; ctx.strokeStyle = '#6a4220'; ctx.lineWidth = 0.02; rr(ctx, 0.5, 1.2 + B, 0.08, 0.1, 0.02); ctx.fill(); ctx.stroke();
     ctx.restore();
     // patas cercanas
