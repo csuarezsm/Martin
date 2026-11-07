@@ -77,7 +77,7 @@ const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
 
 /* ================= Dibujo (www/dibujo.js) ================= */
-const { COL, hash, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost } = window.Dibujo;
+const { COL, hash, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaPrimerPlano, dibujaHero, dibujaMini } = window.Dibujo;
 
 /* ================= Partida en marcha ================= */
 const RUN = { on: false, raf: 0, last: 0, acc: 0, cv: null, ctx: null, L: null, esc: null, s: null, idx: 0, modo: 'nivel', opts: {}, inp: { pila: [], salto: false }, rec: null, cam: { x: 0, y: 0 },
@@ -123,7 +123,7 @@ function evento(e) {
     if (e.resto > 0 && e.resto < 30 && !RUN.avisado) { RUN.avisado = true; Sound.play('aviso'); }
   } else if (e.t === 'caida') { Sound.play('caida'); vibrate(60); RUN.fx.push({ k: 'texto', x: s.x, y: RUN.L.world.kill_y + 3, v: 0, n: 70, txt: '−' + e.cantidad }); }
   else if (e.t === 'control') { Sound.play('control'); const c = RUN.L.cps.find(q => q.id === e.id); if (c) c.alcanzado = true; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: '⚑ Punto de control' }); }
-  else if (e.t === 'meta') Sound.play('exito');
+  else if (e.t === 'meta') { Sound.play('exito'); for (let i = 0; i < 46; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 1.5, v: 0, n: 100, vx: (hash(i * 3) - 0.5) * 9, vy: 4 + hash(i * 5) * 7, rot: 4 + hash(i * 7) * 10, c: ['#f6d65a', '#d8454a', '#2f93d4', '#f4efe6', '#7ac36a'][i % 5] }); }
   else if (e.t === 'fallo') Sound.play('fallo');
   else if (e.t === 'ruta') RUN.rutaVista = e.id;
 }
@@ -171,6 +171,7 @@ function dibujar(dt) {
   if (RUN.camInit !== RUN.idx + ':' + RUN.modo + ':' + RUN.intento) { RUN.camInit = RUN.idx + ':' + RUN.modo + ':' + RUN.intento; RUN.cam.x = objX; RUN.cam.y = idealY; }
   RUN.cam.x += (objX - RUN.cam.x) * Math.min(1, k * 2.4);
   const dz = vh * 0.12; if (idealY - RUN.cam.y > dz) RUN.cam.y += (idealY - dz - RUN.cam.y) * k; else if (RUN.cam.y - idealY > dz) RUN.cam.y += (idealY + dz - RUN.cam.y) * k;
+  for (const d of RUN.esc.deco) if (d.t === 'lagarto') d.px = s.x;
   dibujaEscena(ctx, W, H, u, RUN.cam, L, RUN.esc, RUN.t, RUN.fx);
   const px = (s.x - RUN.cam.x) * u, py = H - (s.y - RUN.cam.y) * u;
   // personaje
@@ -182,6 +183,7 @@ function dibujar(dt) {
     dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
   }
   if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
+  dibujaPrimerPlano(ctx, W, H, u, RUN.cam, RUN.t);
   dibujaFx(ctx, W, H, u, RUN.cam, RUN.fx, RUN.t);
   dibujaPost(ctx, W, H, RUN.esc, s.agua);
   // sin avisos de color solo: contorno en la vista de poca agua
@@ -311,7 +313,7 @@ function renderSetup() {
   const est = totalEstrellas(), tot = NIV.length * 3;
   const sig = NIV.findIndex((n, i) => n.ok && desbloqueado(i) && !progR(i).done);
   let h = `<div class="mp">
-    <div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div>
+    <div class="mp-hero"><canvas id="mpHero" aria-hidden="true"></canvas><div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     <div id="mpDiario">${diarioHtml()}</div>
     <div class="mp-lv">`;
@@ -319,7 +321,7 @@ function renderSetup() {
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
-      <div class="lv-n">${ab ? i + 1 : '🔒'}</div>
+      <div class="lv-n"><canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas><span>${ab ? i + 1 : '🔒'}</span></div>
       <div class="lv-b"><b>${esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : 'Termina el nivel anterior para abrirlo.'}</span>
         ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
@@ -329,9 +331,27 @@ function renderSetup() {
   </div>`;
   $('#app').innerHTML = h;
   document.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => openBriefing(+b.dataset.lv));
+  document.querySelectorAll('.lv-c').forEach(c => dibujaMini(c.getContext('2d'), c.width, c.height, +c.dataset.tema));
+  animaHero();
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
   enlazarDiario();
   retoCargar(false);
+}
+let heroRaf = 0;
+function animaHero() {
+  cancelAnimationFrame(heroRaf);
+  const cv = document.getElementById('mpHero'); if (!cv) return;
+  const ctx = cv.getContext('2d'); let t0 = performance.now(), ult = 0;
+  const f = ts => {
+    const c = document.getElementById('mpHero'); if (!c || c !== cv || RUN.s) return;
+    if (ts - ult > 33 && !document.hidden) {
+      ult = ts; const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+      if (w > 20 && (cv.width !== w || cv.height !== h)) { cv.width = w; cv.height = h; }
+      dibujaHero(ctx, cv.width, cv.height, (ts - t0) / 1000, Math.min(S.prog ? Object.keys(S.prog).length : 0, 5));
+    }
+    heroRaf = requestAnimationFrame(f);
+  };
+  heroRaf = requestAnimationFrame(f);
 }
 function openErrorNivel(i) {
   const n = NIV[i];
