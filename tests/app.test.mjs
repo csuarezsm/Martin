@@ -1,5 +1,5 @@
 // Pruebas automáticas de la app Martín (IT Canarias): interfaz en móvil, horizontal y tablet, controles (también multitáctil),
-// pausa al perder el foco, los 6 niveles terminados de principio a fin, copia de seguridad, idiomas, JSON de nivel inválido y
+// pausa al perder el foco, los 11 niveles terminados de principio a fin, copia de seguridad, idiomas, JSON de nivel inválido y
 // el reto diario contra una copia local del servidor común (juegos-servidor).
 // Se ejecutan en GitHub antes de compilar: si alguna falla, no se publica la versión.
 // Uso local: node tests/app.test.mjs   (la parte del reto busca el servidor en ../juegos-servidor o en JUEGOS_SERVIDOR)
@@ -29,7 +29,7 @@ const URL_APP = `http://localhost:${server.address().port}/`;
 let browser;
 try { browser = await chromium.launch(); } catch (e) { browser = await chromium.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome' }); }
 const BASE_STATE = { onboarded: true, iosHint: true };
-const IDS = ['uga_l01_water_delivery', 'uga_l02_after_the_storm', 'uga_l03_dry_ravine', 'uga_l04_basin_descent', 'uga_l05_two_roads', 'uga_l06_great_delivery'];
+const IDS = ['uga_l01_water_delivery', 'uga_l02_after_the_storm', 'uga_l03_dry_ravine', 'uga_l04_basin_descent', 'uga_l05_two_roads', 'uga_l06_great_delivery', 'norte_l07_el_golfo', 'norte_l08_janubio', 'norte_l09_famara', 'norte_l10_haria', 'norte_l11_mirador'];
 
 async function fresh(state, viewport, online = '', hooks = {}) {
   const ctx = await browser.newContext({ viewport: viewport || { width: 412, height: 860 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', acceptDownloads: true });
@@ -61,17 +61,17 @@ async function juegaConRobot(p, idx, clave, extraOpts = null) {
 console.log('Mapa de Uga');
 {
   const { p, ctx, errors } = await fresh(BASE_STATE, null, '');
-  check('abre en el mapa con los 6 niveles, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 6 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
+  check('abre en el mapa con los 11 niveles, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 11 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
   const abiertos = await p.evaluate(() => [...document.querySelectorAll('[data-lv]')].filter(b => !b.disabled && !b.classList.contains('bloq') && !b.classList.contains('locked')).length);
   check('solo el nivel 1 está abierto al empezar', abiertos === 1, String(abiertos));
   check('el título es Martín', (await p.textContent('#title')).includes('Martín'));
   check('tema volcán por defecto (oscuro cálido)', await p.evaluate(() => (getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '').toLowerCase().startsWith('#')));
   check('sin desbordamiento horizontal', await noHScroll(p));
   check('el reto diario se puede practicar sin conexión', await waitFor(p, () => document.querySelector('#dgPrac')));
-  check('sale el «Mundo 2» como próximamente', /Muy pronto/.test(await p.textContent('#app')));
-  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 6 && window.LUGARES.every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/6/.test(await p.textContent('#app')));
+  check('sale el «Mundo 2» con sus niveles', /Mundo 2 · La costa y el norte/.test(await p.textContent('#app')));
+  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 11 && window.LUGARES.every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/11/.test(await p.textContent('#app')));
   await p.evaluate(() => openCuaderno());
-  check('el cuaderno muestra los 6 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 6));
+  check('el cuaderno muestra los 11 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 11));
   await p.evaluate(() => closeModal());
   await p.click('[data-lv="0"]');
   check('el briefing explica el nivel, las estrellas y los controles', await waitFor(p, () => document.querySelector('#bfGo')) && /Agua para Uga/.test(await p.textContent('#modal')) && /☆|★/.test(await p.textContent('#modal')));
@@ -152,7 +152,7 @@ console.log('Controles');
   // salir al mapa (T20)
   await p.evaluate(() => reanudar()); await p.waitForTimeout(100);
   await p.evaluate(() => abandonar());
-  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 6) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
+  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 11) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
@@ -181,11 +181,11 @@ for (const [nombre, vp] of [['móvil vertical', { width: 390, height: 844 }], ['
   await ctx.close();
 }
 
-/* ================= Los 6 niveles, de principio a fin ================= */
+/* ================= Los 11 niveles, de principio a fin ================= */
 console.log('Niveles completos (partidas grabadas por el robot, repetidas en la app)');
 {
   const { p, ctx, errors } = await fresh(BASE_STATE, null, '', { turbo: 60 });
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < IDS.length; i++) {
     const desb = await p.evaluate(i => desbloqueado(i), i);
     check('nivel ' + (i + 1) + ' abierto al terminar el anterior', desb);
     const rutas = Object.keys(PART).filter(k => k.startsWith(IDS[i]));
@@ -202,7 +202,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('nivel ' + (i + 1) + ': sale la pantalla de «¡Entregado!»', await waitFor(p, () => /¡Entregado!/.test(document.getElementById('mgOv').textContent)));
     await p.evaluate(() => salirAlMapa());
   }
-  check('al terminar los 6, el total de estrellas es 6 o más', (await p.evaluate(() => totalEstrellas())) >= 6);
+  check('al terminar los 11, el total de estrellas es 11 o más', (await p.evaluate(() => totalEstrellas())) >= 11);
   { // 2.2: frutos guardados, fantasma de la mejor carrera y persecución de lava
     const st = await store(p), o1 = (st.prog[IDS[0]] || {}).obj || [];
     check('2.2: los frutos cogidos se guardan con el nivel', o1.length >= 1 && o1.every(id => /^FRU-/.test(id)), JSON.stringify(o1));
@@ -284,7 +284,7 @@ console.log('Idiomas');
 for (const idioma of ['en', 'fr', 'de', 'it']) {
   const { p, ctx, errors } = await fresh(BASE_STATE, null, '', { idioma });
   await p.waitForTimeout(500);
-  for (const i of [0, 1, 2, 3, 4, 5]) { await p.evaluate(i => openBriefing(i), i); await p.waitForTimeout(100); await p.evaluate(() => closeModal()); }
+  for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) { await p.evaluate(i => openBriefing(i), i); await p.waitForTimeout(100); await p.evaluate(() => closeModal()); }
   for (const id of ['mArch', 'mGameRules', 'mTheme', 'mAbout', 'mShareApp']) { await p.click('#menuBtn'); await p.click('#' + id).catch(() => {}); await p.waitForTimeout(150); await p.evaluate(() => { try { closeModal(); } catch (e) {} }); }
   await p.evaluate(() => jugar(0, 'nivel')); await p.waitForTimeout(400);
   const falta = (await p.evaluate(() => Idioma.faltan())).filter(x => x !== 'Martín');

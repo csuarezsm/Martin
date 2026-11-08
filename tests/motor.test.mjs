@@ -179,8 +179,8 @@ console.log('T28 · Resultado reproducible');
     && new Set(Array.from({ length: 60 }, (_, i) => M.retoDelDia('2026-10-' + String(i % 28 + 1).padStart(2, '0') + i, NIV.map(n => n.nivel.level_id)).nivel)).size >= 4); }
 
 console.log('T24 · Niveles: validación y JSON inválido');
-check('los 6 niveles de Uga son válidos', NIV.length === 6 && NIV.every(n => n.ok), NIV.map(n => n.error).filter(Boolean).join('; '));
-check('cada nivel tiene un identificador y una suma de control distintos', new Set(NIV.map(n => n.nivel.level_id)).size === 6 && new Set(NIV.map(n => n.nivel.checksum)).size === 6);
+check('los 11 niveles son válidos', NIV.length === 11 && NIV.every(n => n.ok), NIV.map(n => n.error).filter(Boolean).join('; '));
+check('cada nivel tiene un identificador y una suma de control distintos', new Set(NIV.map(n => n.nivel.level_id)).size === 11 && new Set(NIV.map(n => n.nivel.checksum)).size === 11);
 const malo = (f) => { const x = JSON.parse(TEXTOS[0]); f(x); return M.cargar(JSON.stringify(x)); };
 check('texto que no es JSON → error recuperable (no lanza)', M.cargar('{no es json').ok === false && /./.test(M.cargar('{no es json').error));
 check('sin suelo en la meta → error', !malo(x => { x.goals.finish_x = 9999; x.world.max_x = 10000; }).ok);
@@ -279,6 +279,22 @@ console.log('T31 · Lava, aljibes y frutos (2.2)');
   s = nuevoJ(L); corre(L, s, 2, 3000);
   check('pasada la zona segura, la lava se detiene', s.fase !== 'fallo' && s.x > 150);
   check('Timanfaya (nivel 3) tiene persecución de lava y todos los niveles tienen aljibes y 3 frutos', !!NIV[2].nivel.lava && NIV.every(n => n.nivel.objetos.filter(o => o.kind === 'aljibe').length >= 1 && n.nivel.objetos.filter(o => o.kind !== 'aljibe').length === 3), NIV.map(n => n.nivel.objetos.length).join(','));
+}
+
+console.log('T32 · Salinas que resbalan (2.3)');
+{
+  const mkS = (sal) => { const L = JSON.parse(JSON.stringify(BASE)); L.level_id = 'sal'; L.routes = []; L.hints = []; L.obstacles = []; L.hazards = []; L.items = [];
+    L.solids = [{ id: 'P', kind: 'ground', x0: -5, x1: 200, top: 0, sal }]; L.spawn = { x: 2, y: 0 }; L.checkpoint = { id: 'CP-01', x: 40, y: 0 }; L.checkpoints_extra = [];
+    L.world.min_x = -5; L.world.max_x = 200; L.world.kill_y = -20; L.goals.finish_x = 190; return M.validar(L); };
+  const frena = (L) => { const s = nuevoJ(L); corre(L, s, 2, 90); const x0 = s.x, v = s.vx; corre(L, s, 0, 200); return { d: s.x - x0, v }; };
+  const a = frena(mkS(false)), b = frena(mkS(true));
+  check('en suelo normal Martín frena casi en seco', a.d < 0.5, a.d.toFixed(2));
+  check('sobre la sal resbala más de 2 u al soltar', b.d > 2 && b.d < 4, b.d.toFixed(2));
+  check('sobre la sal llega igual a la velocidad máxima', Math.abs(b.v - M.VMAX) < 1e-9);
+  const arr = (L) => { const s = nuevoJ(L); corre(L, s, 2, 12); return s.vx; };
+  check('sobre la sal se arranca más despacio', arr(mkS(true)) < arr(mkS(false)) * 0.6);
+  check('las salinas de Janubio (nivel 8) tienen suelo de sal', NIV[7] && NIV[7].nivel.solids.some(q => q.sal));
+  check('hay 11 niveles válidos', NIV.length === 11 && NIV.every(n => n.ok));
 }
 
 console.log(`\n${passed} correctas, ${failed} falladas`);

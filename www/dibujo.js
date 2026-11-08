@@ -19,7 +19,13 @@
     { cielo: ['#1d66bf', '#4f93d6', '#b9d2e2', '#f2cf9e'], sol: [0.84, 0.3], solC: '#ffe8b0', haz: 0.1, lejos: '#9a88ad', lejos2: '#80709a', med: '#33292c', geria: '#2a2022', tinte: 'rgba(255,170,90,0.10)', nubes: 0.9 },
     { cielo: ['#43508f', '#8a74a8', '#e5a28f', '#f8c47a'], sol: [0.8, 0.38], solC: '#ffd0a0', haz: 0.18, lejos: '#9a7ea0', lejos2: '#7d6488', med: '#2f2428', geria: '#241b20', tinte: 'rgba(255,130,100,0.12)', nubes: 0.9 },
     { cielo: ['#4a5663', '#7d8794', '#b0b3b6', '#d9c6a8'], sol: [0.7, 0.2], solC: '#f0e8d8', haz: 0.03, lejos: '#8e9199', lejos2: '#767a84', med: '#302b2d', geria: '#262021', tinte: 'rgba(120,130,150,0.12)', nubes: 1.3 },
-    { cielo: ['#2e2f6e', '#a2506b', '#f08a5a', '#ffd27a'], sol: [0.76, 0.42], solC: '#ffe9a8', haz: 0.22, lejos: '#8a5f78', lejos2: '#6d4a64', med: '#2a1f24', geria: '#1f171b', tinte: 'rgba(255,110,60,0.14)', nubes: 0.8 }
+    { cielo: ['#2e2f6e', '#a2506b', '#f08a5a', '#ffd27a'], sol: [0.76, 0.42], solC: '#ffe9a8', haz: 0.22, lejos: '#8a5f78', lejos2: '#6d4a64', med: '#2a1f24', geria: '#1f171b', tinte: 'rgba(255,110,60,0.14)', nubes: 0.8 },
+    // Mundo 2 (2.3): El Golfo, Janubio, Famara, Haría y el Mirador del Río
+    { cielo: ['#0e62b8', '#2c8ad8', '#79bfe9', '#d4ecf6'], sol: [0.8, 0.16], solC: '#fff6d8', haz: 0.05, lejos: '#8e86a8', lejos2: '#746c90', med: '#2c2628', geria: '#272022', tinte: 'rgba(120,200,170,0.05)', nubes: 0.7 },
+    { cielo: ['#2266b8', '#5e9ad8', '#b9d6ec', '#f3e3d0'], sol: [0.7, 0.2], solC: '#fffaf0', haz: 0.08, lejos: '#a08ea8', lejos2: '#86749a', med: '#302a2c', geria: '#2a2224', tinte: 'rgba(255,200,210,0.07)', nubes: 0.6 },
+    { cielo: ['#3f6d9e', '#7aa0c4', '#c3d3df', '#e9e1cf'], sol: [0.6, 0.18], solC: '#fffbe8', haz: 0.12, lejos: '#8c94a0', lejos2: '#727c8a', med: '#2f2b2a', geria: '#272322', tinte: 'rgba(230,220,200,0.08)', nubes: 1.2 },
+    { cielo: ['#1260b8', '#3a8ad4', '#86c2ea', '#d8eef6'], sol: [0.82, 0.14], solC: '#fff8dc', haz: 0.05, lejos: '#7f9a8c', lejos2: '#68826f', med: '#2c2a26', geria: '#24221e', tinte: 'rgba(160,220,140,0.05)', nubes: 0.9 },
+    { cielo: ['#1d4f9a', '#4a86c8', '#9cc6e6', '#e4f0f6'], sol: [0.78, 0.12], solC: '#fffbe6', haz: 0.04, lejos: '#7e8aa6', lejos2: '#66708e', med: '#2a2629', geria: '#221e21', tinte: 'rgba(170,200,255,0.06)', nubes: 1.1 }
   ];
 
   /* ---- Texturas (se crean una vez) ---- */
@@ -67,7 +73,7 @@
     }
     let k = 0;
     for (const g of L.solids) {
-      if (g.kind !== 'ground' || g.bot > -1e8) continue;
+      if (g.kind !== 'ground' || g.bot > -1e8 || g.sal) continue;
       for (let x = g.x0 + 1.6; x < g.x1 - 1.6; x += 1.9) {
         const h = hash(Math.floor(x * 10) + k * 977);
         if (h < 0.62) {
@@ -470,8 +476,14 @@
     { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
     { src: 'paisaje-geria.jpg', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
     { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
-    { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] }],
-    porTema: [0, 1, 2, 3, 4, 5] };
+    { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
+    // Mundo 2: fondos provisionales hasta tener las ilustraciones de cada lugar
+    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
+    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
+    { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
+    { src: 'paisaje-uga.jpg', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
+    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
@@ -680,6 +692,19 @@
     ctx.fillStyle = 'rgba(70,50,40,.9)'; for (const xx of [x0 + u * 0.25, x1 - u * 0.25]) { ctx.beginPath(); ctx.moveTo(xx - u * 0.12, yt + th); ctx.lineTo(xx + u * 0.12, yt + th); ctx.lineTo(xx, yt + th + u * 0.38); ctx.closePath(); ctx.fill(); }
   }
 
+  /* Haría (2.3): el camino alto va por las copas de las palmeras */
+  function dibujaCopa(ctx, s, W, H, u, sx, sy, L, t) {
+    const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), w = x1 - x0, base = sy(suelo(L, (s.x0 + s.x1) / 2, s.top - 0.5));
+    const n = Math.max(1, Math.round((s.x1 - s.x0) / 3.2));
+    for (let i = 0; i < n; i++) { // troncos con anillos
+      const cx = x0 + w * (i + 0.5) / n, tw = u * 0.32;
+      const g = ctx.createLinearGradient(cx - tw, 0, cx + tw, 0); g.addColorStop(0, '#5a4130'); g.addColorStop(0.5, '#8a6a4c'); g.addColorStop(1, '#4a3426'); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(cx - tw * 0.8, yt + u * 0.2); ctx.lineTo(cx + tw * 0.8, yt + u * 0.2); ctx.lineTo(cx + tw, base); ctx.lineTo(cx - tw, base); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(40,26,18,.55)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let y = yt + u * 0.5; y < base; y += u * 0.32) { ctx.beginPath(); ctx.moveTo(cx - tw * 0.9, y); ctx.lineTo(cx + tw * 0.9, y + u * 0.05); ctx.stroke(); }
+    }
+    const m = FLO.m.palmera, ch = m[3] * 0.5, cw = w / n + u * 1.4, dh = Math.min(ch * cw / m[2], u * 2.0); // copas: la mitad alta del dibujo de la palmera, una por tronco
+    for (let i = 0; i < n; i++) { const sw = Math.sin(t * 1.3 + s.x0 + i) * u * 0.04; ctx.drawImage(FLO.img, m[0], m[1], m[2], ch, x0 + w * i / n - u * 0.7 + sw, yt - dh * 0.45, cw, dh); }
+  }
   /* ---- Peligros vivos: piedras que ruedan, géiseres, viento y olas (su estado sale del reloj del motor) ---- */
   function dibujaPeligros(ctx, W, H, u, sx, sy, L, st, t) {
     const MP = window.Martin.peligro;
@@ -860,10 +885,18 @@
       let jit = 0;
       if (s.fragil && st && st.der) { const dv = st.der[s.id]; if (dv === 0) continue; if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
       if (s.kind === 'ground' || s.kind === 'wall') dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX);
+      if (s.sal) { // salina: costra blanca y rosada, con cuadrícula de tajos y destellos de sal
+        const yt = sy(s.top), xa = Math.max(x0, -4), xb = Math.min(x1, W + 4), g = ctx.createLinearGradient(0, yt - u * 0.08, 0, yt + u * 1.1);
+        g.addColorStop(0, '#fdfaf7'); g.addColorStop(0.3, '#f3e3e2'); g.addColorStop(0.55, 'rgba(226,170,180,.85)'); g.addColorStop(1, 'rgba(190,120,135,0)'); ctx.fillStyle = g; ctx.fillRect(xa, yt - u * 0.08, xb - xa, u * 1.18);
+        ctx.strokeStyle = 'rgba(190,140,150,.45)'; ctx.lineWidth = Math.max(1, u * 0.03); ctx.beginPath();
+        for (let wx = Math.ceil(s.x0 / 1.6) * 1.6; wx < s.x1; wx += 1.6) { const px = sx(wx); if (px < -4 || px > W + 4) continue; ctx.moveTo(px, yt); ctx.lineTo(px - u * 0.15, yt + u * 0.3); } ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.95)';
+        for (let wx = Math.ceil(s.x0 * 2) / 2; wx < s.x1; wx += 0.5) { const px = sx(wx); if (px < -4 || px > W + 4) continue; const k = Math.floor(wx * 2), q = Math.sin(t * 2.2 + k * 1.7); if (q > 0.8) { const r = u * 0.05 * (q - 0.8) * 5; ctx.fillRect(px - r, yt - u * 0.02, r * 2, u * 0.03); ctx.fillRect(px - u * 0.012, yt - r, u * 0.024, r * 2); } }
+      }
       else if (s.kind === 'rock') { const r = esc.rocas.find(q => q.id === s.id), base = r ? r.base : s.top - 1;
         if (s.top - base > 1.7) { dibujaSuelo(ctx, { x0: s.x0, x1: s.x1, top: s.top - 1.1, bot: -1e9 }, W, H, u, cam, sx, sy, TX); dibujaRoca(ctx, s, s.top - 1.2, W, H, u, sx, sy); }
         else dibujaRoca(ctx, s, base, W, H, u, sx, sy); }
-      else if (s.kind === 'oneway') dibujaRepisa(ctx, s, W, H, u, sx, sy);
+      else if (s.kind === 'oneway') { if (esc.tema === 9 && s.route && FLO.ok) dibujaCopa(ctx, s, W, H, u, sx, sy, L, t); else dibujaRepisa(ctx, s, W, H, u, sx, sy); }
       if (s.fragil) { // grietas: avisan de que el suelo cede
         const yt = sy(s.top); ctx.strokeStyle = 'rgba(20,8,4,.85)'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.lineCap = 'round';
         for (let k = 0; k < 3; k++) { const cx = x0 + (x1 - x0) * (0.25 + k * 0.25); ctx.beginPath(); ctx.moveTo(cx, yt); ctx.lineTo(cx + u * 0.12, yt + u * 0.22); ctx.lineTo(cx - u * 0.05, yt + u * 0.42); ctx.lineTo(cx + u * 0.1, yt + u * 0.62); ctx.stroke(); }

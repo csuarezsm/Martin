@@ -24,6 +24,11 @@ const PISTAS = {
   hueco_final: 'Mira bien el hueco y salta justo en el borde.',
   barranco: 'Las grietas se saltan desde el mismo borde. Sin prisa.',
   bajada: 'Bajar de un salto desde muy alto derrama agua: baja escalón a escalón.',
+  olas: 'El mar burbujea antes de que reviente la ola: espera a que pase.',
+  sal: 'La sal resbala: Martín tarda en arrancar y patina al frenar.',
+  viento: 'Cuando la manga se levanta, el viento sopla en contra: espera para saltar.',
+  palmeras: 'Dos caminos: por las copas de las palmeras (rápido) o por las huertas (seguro).',
+  subida: 'Una gran subida: salta de escalón en escalón y no te pares en el suelo agrietado.',
   entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.'
 };
 
@@ -96,6 +101,7 @@ const PROG0 = () => ({ done: false, stars: 0, bestMs: 0, bestAgua: 0, plays: 0, 
 const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para escribir (crea la entrada)
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
 const desbloqueado = i => i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done);
+const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }];
 const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars : 0), 0);
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
@@ -370,16 +376,18 @@ function uiNombre(L) { return L.name; }
 function renderSetup() {
   const flexible = NIV.every(n => n.ok);
   if (!flexible && !NIV.some(n => n.ok)) { $('#app').innerHTML = `<div class="sec"><h2>Error</h2><div class="empty">No se han podido cargar los niveles.</div><div class="acts"><button class="btn-gold" id="reintCarga">Reintentar</button></div></div>`; $('#reintCarga').onclick = () => location.reload(); return; }
-  $('#subtitle').textContent = ' · Mundo Uga';
+  $('#subtitle').textContent = ' · Lanzarote';
   const est = totalEstrellas(), tot = NIV.length * 3;
   const sig = NIV.findIndex((n, i) => n.ok && desbloqueado(i) && !progR(i).done);
   let h = `<div class="mp">
-    <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
+    <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Los Caminos del Volcán</b><span>Lleva el agua por toda la isla</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     ${cuadernoBoton()}
     <div id="mpDiario">${diarioHtml()}</div>
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
+    const mu = MUNDOS.find(w => w.desde === i);
+    if (mu) h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span></div>`;
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
@@ -389,7 +397,6 @@ function renderSetup() {
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
   });
   h += `</div>
-    <div class="lv proximo"><div class="lv-n">🌋</div><div class="lv-b"><b>Mundo 2 · El norte</b><span>Famara, Haría y el Mirador del Río. Muy pronto.</span></div></div>
   </div>`;
   $('#app').innerHTML = h;
   document.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => openBriefing(+b.dataset.lv));

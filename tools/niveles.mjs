@@ -11,7 +11,8 @@ const r2 = v => Math.round(v * 100) / 100;
 class N {
   constructor(num, slug) { this.num = num; this.slug = slug; this.x = 0; this.top = 0; this.sol = []; this.obs = []; this.pistas = []; this.cps = []; this.rutas = []; this.n = 0; this.nobs = 0; this.minTop = 0; }
   id(p) { return p + String(++this.n).padStart(2, '0'); }
-  llano(w, ruta) { const s = { id: this.id('G'), kind: 'ground', x0: r2(this.x), x1: r2(this.x + w), top: r2(this.top) }; if (ruta) s.route = ruta; this.sol.push(s); this.x = r2(this.x + w); this.minTop = Math.min(this.minTop, this.top); return this; }
+  llano(w, ruta, extra) { const s = Object.assign({ id: this.id('G'), kind: 'ground', x0: r2(this.x), x1: r2(this.x + w), top: r2(this.top) }, extra || {}); if (ruta) s.route = ruta; this.sol.push(s); this.x = r2(this.x + w); this.minTop = Math.min(this.minTop, this.top); return this; }
+  sal(w) { return this.llano(w, '', { sal: true }); }
   hueco(w, nombre) { this.obs.push({ id: nombre || 'OBS-' + String(++this.nobs).padStart(2, '0'), kind: 'gap', x0: r2(this.x), x1: r2(this.x + w) }); this.x = r2(this.x + w); return this; }
   roca(w, h, ruta) { const s = { id: this.id('R'), kind: 'rock', x0: r2(this.x), x1: r2(this.x + w), top: r2(this.top + h) }; if (ruta) s.route = ruta; this.sol.push(s); this.x = r2(this.x + w); return this; }
   sube(h) { this.top = r2(this.top + h); return this; }
@@ -233,6 +234,104 @@ function l06() {
   return cierra(n, { id: 'uga_l06_great_delivery', nombre: 'El gran encargo', resumen: 'El recorrido más largo de Uga: todo lo aprendido, en un solo viaje.', estrella3: 300, tema: 'uga' });
 }
 
+
+/* ======================= Mundo 2 · La costa y el norte (2.3) ======================= */
+/* ---------- L07 · El Golfo: arena negra, olas y el cráter partido por el mar ---------- */
+function l07() {
+  const n = new N(7, 'golfo');
+  n.llano(30).pista('olas', 14, 60, { hasta_x: 60 });
+  n.roca(1.4, 0.8).llano(14).hueco(2.2).llano(16);
+  rocas(n, [[1.4, 0.8], [1.6, 1.0]], 10); n.baja(1.2).llano(18).control();
+  n.llano(16).hueco(2.6).llano(6).hueco(2.4).llano(18);
+  sube(n, 2, 1.2, 8); n.hueco(2.8).llano(14); baja(n, 2, 1.2, 12);
+  n.llano(18).roca(1.4, 0.9).llano(16).control();
+  n.llano(14).hueco(3.0).llano(16); rocas(n, [[1.2, 0.7], [1.2, 0.9], [1.2, 0.7]], 7);
+  n.llano(18).hueco(2.4).llano(5).hueco(2.6).llano(18);
+  n.sube(1.3).llano(10).hueco(2.6).llano(8).baja(1.3).llano(20).control();
+  rocas(n, [[1.4, 1.0]], 12); n.llano(16).hueco(3.0).llano(18); baja(n, 1, 1.0, 16);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_l07_el_golfo', nombre: 'La laguna verde', resumen: 'Arena negra y olas que revientan contra la orilla. Espera tu momento.', estrella3: 220, tema: 'golfo' });
+}
+
+/* ---------- L08 · Salinas de Janubio: la sal resbala ---------- */
+function l08() {
+  const n = new N(8, 'janubio');
+  n.llano(24).pista('sal', 22, 70, { hasta_x: 70 });
+  n.sal(16).llano(4).hueco(1.6).llano(3).sal(12).llano(6);
+  n.roca(1.4, 0.7).llano(10).control();
+  n.sal(10).hueco(2.0).sal(10).hueco(2.2).sal(8).llano(8);
+  n.sal(14).roca(1.4, 0.7).sal(12).llano(6).baja(1.0).llano(10).control();
+  n.sal(8).hueco(2.4).sal(6).hueco(2.4).sal(6).hueco(2.6).llano(10);
+  n.sube(1.2).llano(6).sal(10).hueco(2.6).sal(10).baja(1.2).llano(12);
+  rocas(n, [[1.4, 0.8], [1.4, 0.8]], 8); n.llano(6).control();
+  n.sal(12).roca(1.2, 0.7).sal(8).roca(1.2, 0.9).sal(10).llano(4).hueco(2.8).llano(8);
+  n.sal(6).hueco(2.2).sal(6).hueco(2.2).sal(6).hueco(2.2).llano(12);
+  n.sal(18).llano(10).hueco(3.0).llano(14);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_l08_janubio', nombre: 'Las salinas', resumen: 'La sal resbala: arranca con calma y frena antes de los bordes.', estrella3: 230, tema: 'janubio' });
+}
+
+/* ---------- L09 · Famara: dunas, viento y piedras que caen del risco ---------- */
+function l09() {
+  const n = new N(9, 'famara');
+  n.llano(28).pista('viento', 18, 70, { hasta_x: 70 });
+  n.sube(0.8).llano(10).baja(0.8).llano(12).hueco(2.4).llano(16);
+  n.sube(1.0).llano(8).sube(1.0).llano(8).hueco(2.6).llano(8).baja(1.0).llano(6).baja(1.0).llano(16).control();
+  n.llano(18).hueco(2.8).llano(18); rocas(n, [[1.4, 0.8], [1.4, 1.0]], 9);
+  n.llano(20).hueco(2.4).llano(6).hueco(2.6).llano(20).control();
+  sube(n, 2, 0.9, 10); n.hueco(3.0).llano(18); baja(n, 2, 0.9, 12);
+  n.llano(22).hueco(2.6).llano(20);
+  n.roca(1.6, 1.0).llano(12).hueco(2.8).llano(22).control();
+  n.llano(20).hueco(3.0).llano(8).sube(1.2).llano(8).hueco(2.6).llano(8).baja(1.2).llano(22);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_l09_famara', nombre: 'Bajo el risco', resumen: 'Viento del norte y piedras que bajan del risco de Famara.', estrella3: 230, tema: 'famara' });
+}
+
+/* ---------- L10 · Haría: el valle de las mil palmeras (dos caminos) ---------- */
+function l10() {
+  const n = new N(10, 'haria');
+  n.llano(28).pista('mover', 0, 36, { hasta_x: 18 });
+  n.roca(1.4, 0.8).llano(12); sube(n, 2, 1.1, 8); n.hueco(2.4).llano(10); baja(n, 1, 1.1, 10).control();
+  n.llano(14).pista('palmeras', n.x - 22, n.x + 4, {});
+  const F = r2(n.x + 4), t = n.top, LONG = 108, U = 1.35;
+  n.llano(4);
+  n.ruta('RUTA-ALTA', F, F + LONG).ruta('RUTA-BAJA', F, F + LONG);
+  // camino bajo: entre los muros de las huertas, con rocas y suelo frágil
+  n.llano(8, 'RUTA-BAJA').roca(1.4, 0.8, 'RUTA-BAJA').llano(10, 'RUTA-BAJA').hueco(1.8).llano(8, 'RUTA-BAJA').roca(1.4, 0.9, 'RUTA-BAJA').llano(8, 'RUTA-BAJA')
+    .hueco(2.0).llano(8, 'RUTA-BAJA').roca(1.4, 0.8, 'RUTA-BAJA').llano(8, 'RUTA-BAJA').roca(1.4, 0.8, 'RUTA-BAJA').llano(F + LONG - n.x, 'RUTA-BAJA');
+  // camino alto: por las copas de las palmeras (repisas cortas con huecos)
+  n.repisa(F, F + 4, t + U, 'RUTA-ALTA').repisa(F + 4, F + 8, t + 2 * U, 'RUTA-ALTA');
+  let x = F + 8; const tramos = [9, 6, 7, 6, 8, 6, 7, 8, 7], brechas = [2.6, 2.8, 2.4, 3.0, 2.6, 2.8, 2.4, 2.6];
+  tramos.forEach((w, i) => { n.repisa(x, x + w, t + 3 * U, 'RUTA-ALTA'); if (i < brechas.length) { n.obs.push({ id: 'PAL-' + (i + 1), kind: 'brecha', x0: r2(x + w), x1: r2(x + w + brechas[i]) }); x += w + brechas[i]; } else x += w; });
+  n.repisa(x, F + LONG - 8, t + 3 * U, 'RUTA-ALTA').repisa(F + LONG - 8, F + LONG - 4, t + 2 * U, 'RUTA-ALTA').repisa(F + LONG - 4, F + LONG, t + U, 'RUTA-ALTA');
+  n.llano(14).hueco(2.6).llano(10).sube(1.2).llano(8).hueco(2.8).llano(8).baja(1.2).llano(14).control();
+  rocas(n, [[1.4, 0.8], [1.4, 1.0], [1.4, 0.8]], 8); huecos(n, [2.4, 2.8], 8);
+  sube(n, 2, 1.2, 6); n.hueco(2.8).llano(8); baja(n, 2, 1.2, 10);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_l10_haria', nombre: 'Las mil palmeras', resumen: 'Por las huertas o saltando de palmera en palmera. Tú eliges.', estrella3: 240, tema: 'haria' });
+}
+
+/* ---------- L11 · Mirador del Río: la subida al risco ---------- */
+function l11() {
+  const n = new N(11, 'mirador');
+  n.llano(28).pista('subida', 14, 60, { hasta_x: 60 });
+  sube(n, 3, 1.2, 7); n.hueco(2.4).llano(8); sube(n, 2, 1.3, 6); n.llano(8).control();
+  n.roca(1.4, 0.8).llano(8).hueco(2.6).llano(6); sube(n, 2, 1.2, 6); n.hueco(2.8).llano(10);
+  n.llano(4).hueco(2.4).llano(4).hueco(2.6).llano(4).hueco(2.8).llano(12).control();
+  sube(n, 3, 1.3, 5); n.roca(1.4, 0.9).llano(8); n.hueco(3.0).llano(8); n.baja(1.0).llano(10);
+  rocas(n, [[1.2, 0.8], [1.2, 1.0]], 6); sube(n, 2, 1.2, 6); n.hueco(2.6).llano(12).control();
+  n.llano(4).hueco(2.6).llano(4).sube(1.0).hueco(2.6).llano(4).sube(1.0).hueco(2.6).llano(10);
+  sube(n, 2, 1.3, 5); n.roca(1.6, 1.0).llano(10); n.hueco(3.2).llano(10).control();
+  n.llano(6).hueco(2.8).llano(5).hueco(2.8).llano(5); sube(n, 2, 1.2, 6); n.hueco(3.0).llano(14);
+  n.llano(54);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_l11_mirador', nombre: 'Lo alto del risco', resumen: 'La gran subida hasta el mirador, con el viento de cara.', estrella3: 300, tema: 'mirador' });
+}
+
 /* ---------- Peligros vivos (2.1): se colocan sobre tramos llanos, lejos del inicio, de los puntos de control y de la meta ---------- */
 function peligros(L, plan) {
   const hz = [], ocup = [], cps = [L.checkpoint].concat(L.checkpoints_extra || []);
@@ -266,7 +365,7 @@ function peligros(L, plan) {
     let n = 0;
     for (const s of L.solids) {
       if (n >= plan.fragiles) break;
-      if ((s.kind === 'ground' || s.kind === 'oneway') && s.x1 - s.x0 <= 4.2 && s.x0 > 30 && s.x1 < fin - 14 && !cps.some(c => c.x >= s.x0 - 1 && c.x <= s.x1 + 1) && h(s.x0) < 0.6) { s.fragil = true; n++; }
+      if ((s.kind === 'ground' || s.kind === 'oneway') && s.x1 - s.x0 <= 4.2 && s.x0 > 30 && s.x1 < fin - 14 && !cps.some(c => c.x >= s.x0 - 1 && c.x <= s.x1 + 1) && h(s.x0) < 0.6 && !(plan.fragilSinViento && hz.some(z => z.kind === 'viento' && s.x0 < z.x1 + 3 && s.x1 > z.x0 - 3))) { s.fragil = true; n++; }
     }
   }
   L.hazards = hz;
@@ -294,14 +393,19 @@ function conLava(L) { // persecución: desde el último punto de control, la lav
   L.hazards = (L.hazards || []).filter(h => !(h.x != null ? h.x > ult.x : h.x1 > ult.x)).concat([lava]);
   return lava;
 }
-const plan = (lista, fragiles) => Object.assign(lista, { fragiles: fragiles || 0 });
+const plan = (lista, fragiles, extra) => Object.assign(lista, { fragiles: fragiles || 0 }, extra || {});
 const niveles = [
   objetos(peligros(l01(), plan(['piedra'])), ['tuno','higo','malvasia']),
   objetos(peligros(l02(), plan(['piedra', 'viento', 'piedra', 'viento'])), ['higo','tuno','higo']),
   (L => { const lv = conLava(L); return objetos(L, ['tuno', 'tuno', 'higo'], lv); })(peligros(l03(), plan(['geiser', 'piedra', 'geiser', 'geiser'], 2))),
   objetos(peligros(l04(), plan(['viento', 'piedra', 'viento'], 3)), ['malvasia','malvasia','malvasia']),
   objetos(peligros(l05(), plan(['ola', 'geiser', 'ola', 'ola'], 2)), ['tuno','higo','tuno']),
-  objetos(peligros(l06(), plan(['piedra', 'viento', 'geiser', 'piedra', 'ola'], 3)), ['malvasia','higo','tuno'])
+  objetos(peligros(l06(), plan(['piedra', 'viento', 'geiser', 'piedra', 'ola'], 3)), ['malvasia','higo','tuno']),
+  objetos(peligros(l07(), plan(['ola', 'ola', 'piedra', 'ola', 'ola'], 1)), ['tuno', 'higo', 'tuno']),
+  objetos(peligros(l08(), plan(['viento', 'ola', 'viento'])), ['higo', 'tuno', 'higo']),
+  objetos(peligros(l09(), plan(['viento', 'piedra', 'viento', 'piedra', 'viento', 'piedra'])), ['malvasia', 'tuno', 'malvasia']),
+  objetos(peligros(l10(), plan(['piedra', 'viento', 'piedra'], 3, { fragilSinViento: true })), ['higo', 'higo', 'tuno']),
+  objetos(peligros(l11(), plan(['viento', 'piedra', 'viento', 'geiser', 'viento'], 4, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo'])
 ];
 const out = '/* Niveles de Uga (JSON validado por Martin.cargar). GENERADO por tools/niveles.mjs: no editar a mano. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst N = [\n' + niveles.map(l => '  ' + JSON.stringify(JSON.stringify(l))).join(',\n') + '\n];\n'

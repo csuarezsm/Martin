@@ -86,6 +86,76 @@
         ['ULPGC: la fundación de la Real Villa de Teguise', 'https://mdc.ulpgc.es/files/original/43a9a683b8da379ee222d524f41d12f339789eb4.pdf'],
         ['ULPGC: Teguise, atalaya de la isla', 'https://mdc.ulpgc.es/files/original/423e912c486f9c0fe7f86a2175a18fcf74f767ab.pdf']
       ]
+    },
+    {
+      lugar: 'El Golfo', titulo: 'La laguna verde', img: 'paisaje-costa.jpg', pos: '40% 45%',
+      texto: [
+        'Junto al pueblo pesquero de El Golfo, en la costa oeste de Yaiza, el mar se ha comido la mitad de un antiguo cono volcánico. En la mitad que queda se ve, como en un corte, cómo se apilaron las capas de ceniza y roca: rojas, ocres y negras.',
+        'Dentro del cráter hay una laguna de agua de mar, el Charco de los Clicos o Charco Verde. Una franja de arena negra la separa del océano. Su color verde viene de algas microscópicas y cambia de tono según la luz.',
+        'Forma parte del Parque Natural de Los Volcanes y está protegida: no se puede bajar a la orilla de la laguna ni bañarse en ella, ni llevarse piedras de la playa.'
+      ],
+      dato: 'Se llama «de los Clicos» por un marisco, el clico, que antes abundaba allí y hoy ha desaparecido. En la arena brillan piedrecitas verdes de olivina.',
+      fuentes: [
+        ['Hola Islas Canarias: Charco de los Clicos', 'https://www.hellocanaryislands.com/nature-areas/lanzarote/timanfaya-national-park/'],
+        ['Hoteles.net: la Laguna de los Clicos', 'https://www.hoteles.net/lanzarote/yaiza/laguna-de-los-clicos-lanzarote.html'],
+        ['Barceló: El Golfo y el Lago Verde', 'https://www.barcelo.com/guia-turismo/es/espana/lanzarote/que-ver/el-golfo-lago-verde/']
+      ]
+    },
+    {
+      lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-costa.jpg', pos: '70% 45%',
+      texto: [
+        'En la costa de Yaiza, junto a la playa de Janubio, se extienden las salinas más grandes de Canarias: unas 168 hectáreas de cuadrículas blancas sobre tierra volcánica. Se empezaron a construir en 1895 y hoy las sigue trabajando la misma familia.',
+        'El agua de mar llega desde la laguna natural de Janubio. Antes la subían molinos de viento. El sol y el viento la evaporan poco a poco en los cocederos hasta que solo queda la sal.',
+        'Durante siglos, la sal fue uno de los productos más importantes de Lanzarote: servía para conservar el pescado que traían los barcos de la isla.'
+      ],
+      dato: 'Algunos estanques se vuelven rosados o rojizos por un pequeño crustáceo, la artemia, y por un alga, Dunaliella salina. Las salinas también son refugio de muchas aves.',
+      fuentes: [
+        ['Barceló: Salinas de Janubio', 'https://www.barcelo.com/guia-turismo/es/espana/lanzarote/que-ver/salinas-de-janubio/'],
+        ['Escapada Rural: las Salinas de Janubio', 'https://www.escapadarural.com/que-hacer/yaiza/las-salinas-de-janubio'],
+        ['La Voz de Lanzarote: la familia de Janubio', 'https://www.lavozdelanzarote.com/en/ekonomus/gourmet/the-family-effort-to-preserve-and-innovate-in-salinas-de-janubio_222296_102.html']
+      ]
+    },
+    {
+      lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje.jpg', pos: '30% 40%',
+      texto: [
+        'El Risco de Famara es un enorme acantilado que recorre durante unos veinte kilómetros el norte de Lanzarote. Por el lado del mar, la pared cae casi en vertical entre 400 y 600 metros.',
+        'Es la parte más antigua de la isla, millones de años anterior a los volcanes de Timanfaya. Su punto más alto, las Peñas del Chache, con unos 671 metros, es también el techo de Lanzarote.',
+        'A sus pies se abre la playa de Famara, de arena dorada y olas atlánticas, junto al pueblo de Caleta de Famara. El viento constante la hace famosa entre surfistas y parapentistas.'
+      ],
+      dato: 'La arena de Famara viaja con el viento hacia el interior y forma El Jable, una franja arenosa que llega hasta el centro de la isla.',
+      fuentes: [
+        ['elDiario.es: el gran acantilado de Famara', 'https://www.eldiario.es/viajes/gran-acantilado-600-metros-altura-arenales-iconicos-lanzarote_1_13429027.html'],
+        ['Wikipedia: Famara', 'https://es.wikipedia.org/wiki/Famara'],
+        ['theCrag: Risco de Famara', 'https://www.thecrag.com/es/escalar/spain/lanzarote/area/5485799178']
+      ]
+    },
+    {
+      lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-uga.jpg', pos: '30% 40%',
+      texto: [
+        'Haría es un pueblo de casas blancas en un valle del norte de Lanzarote. Lo llaman «el valle de las mil palmeras» por su gran palmeral de palmeras canarias, entre huertas, tuneras y otros cactus.',
+        'Desde el Mirador de los Helechos se contempla el palmeral de Haría desde lo alto.',
+        'César Manrique pasó en Haría sus últimos años, de 1988 a 1992. Su casa, la Casa del Palmeral, es hoy una casa-museo rodeada de palmeras.'
+      ],
+      dato: 'Cada sábado por la mañana, la plaza de Haría acoge un mercado de artesanía y productos de agricultura ecológica.',
+      fuentes: [
+        ['Turismo Lanzarote: Haría', 'https://turismolanzarote.com/en/haria/'],
+        ['Fundación César Manrique: Casa-Museo de Haría', 'https://fcmanrique.org/en/casas-museo-visitas/casa-museo-cesar-manrique-haria/'],
+        ['Hoteles.net: la Casa-Museo de César Manrique', 'https://www.hoteles.net/lanzarote/arrieta-haria/casa-museo-cesar-manrique-lanzarote.html']
+      ]
+    },
+    {
+      lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-costa.jpg', pos: '80% 35%',
+      texto: [
+        'En lo alto del Risco de Famara, a unos 475 metros sobre el mar, César Manrique construyó entre 1971 y 1973 el Mirador del Río, con Eduardo Cáceres y Jesús Soto.',
+        'El edificio está casi escondido: lo cubre una piel de piedra volcánica para que se confunda con el risco. Por dentro, grandes ventanales miran al estrecho de El Río, el brazo de mar que separa Lanzarote de La Graciosa.',
+        'Desde allí se ven La Graciosa y los islotes del Archipiélago Chinijo, que con el risco forman un parque natural, y abajo, las Salinas del Río, las más antiguas de la isla.'
+      ],
+      dato: 'Antes del mirador, en ese mismo lugar hubo una batería militar del siglo XIX para vigilar el estrecho: por eso aún se le llama la Batería del Río.',
+      fuentes: [
+        ['Cabildo de Lanzarote: folleto del Mirador del Río', 'https://lanzarotesmart.iotplatform.telefonica.com/sites/default/files/2021-09/folleto_Mirador_del_Rio_es.pdf'],
+        ['CACT Lanzarote: Mirador del Río', 'https://cactlanzarote.com/en/visit/mirador-del-rio'],
+        ['Hoteles.net: el Mirador del Río', 'https://www.hoteles.net/lanzarote/mirador-del-rio-lanzarote-islas-canarias.html']
+      ]
     }
   ];
 })();
