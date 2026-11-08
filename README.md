@@ -2,9 +2,9 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **6 niveles de plataformas** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 1.14.3
+Paquete: `com.itcanarias.martin` · versión 2.0.0
 
-Novedades de la 1.13: un paisaje ilustrado de Lanzarote en cada nivel, plantas y piedras dibujadas y Martín con paso más natural.
+Novedades de la 2.0: **Cuaderno de viaje**. Cada nivel recorre un lugar real de Lanzarote (Uga, los molinos de Tiagua y Teguise, Timanfaya, La Geria, Los Hervideros y Teguise) y, al terminarlo, se abre su ficha divulgativa con un dato curioso y sus fuentes. Los textos están en `www/lugares.js`.
 
 **iPhone y navegadores**: la misma app se publica como versión web instalable en https://csuarezsm.github.io/Martin/app/ (GitHub Pages, carpeta `docs/app`, copia de `www/`). En Safari: Compartir → «Añadir a pantalla de inicio». Tras cambiar `www/`, ejecuta `npm run web`.
 

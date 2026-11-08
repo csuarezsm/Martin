@@ -258,7 +258,7 @@ main:has(.gm){padding-top:8px}
 .lv{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;color:var(--txt);font:inherit}
 .lv:not(:disabled):active{background:var(--card2)}
 .lv.cerrado,.lv.proximo{opacity:.55}.lv.hecho{border-color:var(--gold)}
-.lv-n{flex:none;position:relative;width:60px;height:60px;border-radius:16px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(24px * var(--fs, 1));color:#fff;border:2px solid #ffffff30;box-shadow:0 4px 10px #0006}.lv-n canvas{position:absolute;inset:0;width:100%;height:100%}.lv-n span{position:relative;text-shadow:0 2px 6px #000d}.lv.cerrado .lv-n canvas{filter:grayscale(1) brightness(.6)}.lv.hecho .lv-n{border-color:var(--gold)}
+.lv-n{flex:none;position:relative;width:60px;height:60px;border-radius:16px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(24px * var(--fs, 1));color:#fff;border:2px solid #ffffff30;box-shadow:0 4px 10px #0006}.lv-n canvas,.lv-n .lv-c{position:absolute;inset:0;width:100%;height:100%}.lv-n span{position:relative;text-shadow:0 2px 6px #000d}.lv.cerrado .lv-n canvas,.lv.cerrado .lv-n .lv-c{filter:grayscale(1) brightness(.6)}.lv.hecho .lv-n{border-color:var(--gold)}
 .lv-b{flex:1;min-width:0}.lv-b b{display:block;font-size:calc(16px * var(--fs, 1))}.lv-b span{display:block;color:var(--mut);font-size:calc(13px * var(--fs, 1));margin-top:2px}
 .lv-b small{display:block;color:var(--gold);font-size:calc(12px * var(--fs, 1));margin-top:4px}
 .lv-s{flex:none;color:var(--gold);font-size:calc(18px * var(--fs, 1));letter-spacing:1px}
@@ -319,6 +319,20 @@ body.jugando main{padding:0}
 .rk{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--card);border-radius:10px;margin-bottom:5px}
 .rk.yo{border:1px solid var(--gold)}
 .rk b{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--gold)}
+
+/* Cuaderno de viaje */
+.mp-cuad{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(135deg,#3a2716,#2a1c10);border:1px solid #8a6a3a;border-radius:14px;padding:12px;color:var(--txt);font:inherit}
+.mp-cuad .ic{font-size:calc(30px * var(--fs, 1))}.mp-cuad b{display:block;color:#ffd978}.mp-cuad span{font-size:calc(13px * var(--fs, 1));color:var(--mut)}
+.cu-l{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+.cu-i{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;aspect-ratio:1.35/1;background:#222 center/cover no-repeat;color:#fff;font:inherit;text-align:left;padding:0}
+.cu-i span{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 6px;background:linear-gradient(transparent,#000c);font-size:calc(13px * var(--fs, 1))}.cu-i b{display:block;font-size:calc(14px * var(--fs, 1))}
+.cu-i.cerrado{filter:grayscale(1) brightness(.45)}.cu-i.cerrado span{text-align:center}
+.fi-img{margin:-4px -4px 10px;height:150px;border-radius:12px;background:#222 center/cover no-repeat}
+.fi-l{color:var(--gold);font-weight:800;font-size:calc(12px * var(--fs, 1));text-transform:uppercase;letter-spacing:.06em}
+.fi p{margin:0 0 9px;line-height:1.45}
+.fi-dato{background:#ffd9781a;border-left:3px solid var(--gold);padding:8px 10px;border-radius:8px;margin:4px 0 10px}
+.fi-f{font-size:calc(12px * var(--fs, 1));color:var(--mut)}.fi-f a{color:var(--mut);text-decoration:underline}
+.ov-fi{background:#ffd97822;border:1px solid var(--gold);color:var(--txt);border-radius:12px;padding:8px 10px;font:inherit;font-weight:700}
 </style>
 </head>
 <body>
@@ -333,6 +347,7 @@ body.jugando main{padding:0}
 
 <script src="martin.js"></script>
 <script src="niveles.js"></script>
+<script src="lugares.js"></script>
 <script src="dibujo.js"></script>
 <script src="juego.js"></script>
 <script>window.APP_ID = 'martin';</script>
@@ -407,7 +422,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '1.14.3';
+const APP_VERSION = '2.0.0';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);

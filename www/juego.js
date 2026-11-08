@@ -321,25 +321,27 @@ function renderSetup() {
   let h = `<div class="mp">
     <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
+    ${cuadernoBoton()}
     <div id="mpDiario">${diarioHtml()}</div>
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
-      <div class="lv-n"><canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas><span>${ab ? i + 1 : '🔒'}</span></div>
+      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span>${ab ? i + 1 : '🔒'}</span></div>
       <div class="lv-b"><b>${esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : 'Termina el nivel anterior para abrirlo.'}</span>
         ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
   });
   h += `</div>
-    <div class="lv proximo"><div class="lv-n">🌋</div><div class="lv-b"><b>Mundo 2 · La Geria</b><span>Viento y cambios de altura. Muy pronto.</span></div></div>
+    <div class="lv proximo"><div class="lv-n">🌋</div><div class="lv-b"><b>Mundo 2 · El norte</b><span>Famara, Haría y el Mirador del Río. Muy pronto.</span></div></div>
   </div>`;
   $('#app').innerHTML = h;
   document.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => openBriefing(+b.dataset.lv));
-  document.querySelectorAll('.lv-c').forEach(c => dibujaMini(c.getContext('2d'), c.width, c.height, +c.dataset.tema));
+  document.querySelectorAll('canvas.lv-c').forEach(c => dibujaMini(c.getContext('2d'), c.width, c.height, +c.dataset.tema));
   animaHero();
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
+  const cb = $('#mpCuad'); if (cb) cb.onclick = openCuaderno;
   enlazarDiario();
   retoCargar(false);
 }
@@ -398,6 +400,37 @@ function renderGame() {
   $('#mgPausa').onclick = () => { if (RUN.s.fase === 'jugando') pausar(); else if (RUN.overlay === 'pausa') reanudar(); };
   ponOverlay(); startLoop();
 }
+/* ================= Cuaderno de viaje ================= */
+const LUG = window.LUGARES || [];
+const fichaAbierta = i => !!(NIV[i] && NIV[i].ok && progR(i).done);
+function cuadernoBoton() {
+  if (!LUG.length) return '';
+  const n = LUG.filter((_, i) => fichaAbierta(i)).length;
+  return `<button class="mp-cuad" id="mpCuad"><div class="ic">📖</div><div><b>Cuaderno de viaje · ${n}/${LUG.length}</b><span>${n ? 'Lo que has aprendido de Lanzarote en el camino.' : 'Termina un nivel para conocer su lugar.'}</span></div></button>`;
+}
+function openCuaderno() {
+  let h = `<h3>📖 Cuaderno de viaje</h3><div class="sub">Cada nivel recorre un lugar real de Lanzarote. Termínalo para abrir su ficha.</div><div class="cu-l">`;
+  LUG.forEach((f, i) => {
+    const ok = fichaAbierta(i);
+    h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 Nivel ${i + 1}`}</span></button>`;
+  });
+  h += `</div><div class="acts"><button class="btn-gold" id="cuOk">Cerrar</button></div>`;
+  openModal(h);
+  document.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => openFicha(+b.dataset.fi, true));
+  $('#cuOk').onclick = closeModal;
+}
+function openFicha(i, desdeCuaderno) {
+  const f = LUG[i]; if (!f) return;
+  openModal(`<div class="fi"><div class="fi-img" style="background-image:url('${f.img}');background-position:${f.pos}"></div>
+    <div class="fi-l">Nivel ${i + 1} · ${esc(f.lugar)}</div><h3>${esc(f.titulo)}</h3>
+    ${f.texto.map(p => `<p>${esc(p)}</p>`).join('')}
+    <div class="fi-dato"><b>¿Sabías que…?</b> ${esc(f.dato)}</div>
+    <div class="fi-f">Fuentes: ${f.fuentes.map(([t, u]) => `<a href="#" data-url="${esc(u)}">${esc(t)}</a>`).join(' · ')}</div></div>
+    <div class="acts">${desdeCuaderno ? '<button class="btn-ghost" id="fiVol">‹ Cuaderno</button>' : ''}<button class="btn-gold" id="fiOk">Cerrar</button></div>`);
+  document.querySelectorAll('.fi-f a').forEach(a => a.onclick = e => { e.preventDefault(); openExternal(a.dataset.url); });
+  $('#fiOk').onclick = closeModal; const v = $('#fiVol'); if (v) v.onclick = openCuaderno;
+}
+
 function ponOverlay() {
   const ov = document.getElementById('mgOv'); if (!ov) return;
   const s = RUN.s, n = RUN.L, o = RUN.overlay;
@@ -427,11 +460,13 @@ function ponOverlay() {
       <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
+      ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}
       <button class="btn-gold ov-go" id="ovSig">${RUN.modo === 'nivel' ? (sigOk ? 'Siguiente nivel ›' : 'Volver al mapa') : 'Volver al mapa'}</button>
       <div class="ov-row"><button class="btn-ghost" id="ovRei">↻ Repetir</button>${RUN.modo === 'diario' ? '<button class="btn-ghost" id="ovRank">🏆 Ranking</button>' : '<button class="btn-ghost" id="ovMapa">Mapa</button>'}</div></div>`;
     $('#ovSig').onclick = RUN.modo === 'nivel' ? siguiente : salirAlMapa; $('#ovRei').onclick = reintentar;
     const rk = $('#ovRank'); if (rk) rk.onclick = () => openRanking();
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
+    const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
   }
 }
 
