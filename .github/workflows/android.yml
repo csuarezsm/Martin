@@ -40,7 +40,7 @@ jobs:
       - name: Compilar APK (GitHub) y AAB (Google Play)
         working-directory: android
         env: { ANDROID_KEYSTORE_PASSWORD: "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" }
-        run: chmod +x gradlew && ./gradlew assembleGithubRelease bundlePlayRelease
+        run: chmod +x gradlew && for i in 1 2 3; do ./gradlew assembleGithubRelease bundlePlayRelease && break; [ $i = 3 ] && exit 1; echo "Reintento $i"; sleep 20; done
       - run: |
           cp android/app/build/outputs/apk/github/release/app-github-release.apk martin.apk
           cp android/app/build/outputs/bundle/playRelease/app-play-release.aab martin-play.aab
