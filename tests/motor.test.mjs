@@ -258,5 +258,28 @@ console.log('T30 · Peligros vivos (2.1)');
   check('los 6 niveles traen peligros vivos', NIV.every(n => n.ok && n.nivel.peligros.length >= 1) && NIV.some(n => n.nivel.solids.some(q => q.fragil)));
 }
 
+console.log('T31 · Lava, aljibes y frutos (2.2)');
+{
+  const mkO = (extra) => { const L = JSON.parse(JSON.stringify(BASE)); L.level_id = 'objetos'; L.routes = []; L.hints = []; L.obstacles = [];
+    L.solids = [{ id: 'P', kind: 'ground', x0: -5, x1: 200, top: 0 }]; L.spawn = { x: 2, y: 0 }; L.checkpoint = { id: 'CP-01', x: 40, y: 0 }; L.checkpoints_extra = [];
+    L.world.min_x = -5; L.world.max_x = 200; L.world.kill_y = -20; L.goals.finish_x = 190; Object.assign(L, extra); return M.validar(L); };
+  let L = mkO({ items: [{ id: 'A1', kind: 'aljibe', x: 6, y: 0.9 }, { id: 'F1', kind: 'tuno', x: 12, y: 2.9 }] });
+  let s = nuevoJ(L, { agua: 50 }); s.ag0 = 100; corre(L, s, 2, 120);
+  check('el aljibe repone 20 de agua al pasar', s.agua === 70 && s.obj.A1 === 'aljibe', s.agua);
+  check('el fruto en alto no se coge andando', !s.obj.F1);
+  s = nuevoJ(L, { agua: 95 }); corre(L, s, 2, 120);
+  check('el aljibe no pasa del agua inicial', s.agua === 95);
+  s = nuevoJ(L); s.x = 12; corre(L, s, 4, 25);
+  check('saltando debajo se coge el fruto', !!s.obj.F1 && M.resultado(s).objetos.includes('F1') && !M.resultado(s).objetos.includes('A1'));
+  L = mkO({ hazards: [{ id: 'LAVA', kind: 'lava', desde: 10, ventaja: 6, vel: 3, hasta: 150 }] });
+  s = nuevoJ(L); corre(L, s, 2, 300);
+  check('corriendo sin parar, la lava no alcanza a Martín', s.fase === 'jugando' && s.lava != null && s.x - s.lava > 6, s.x + ' ' + s.lava);
+  corre(L, s, 0, 400);
+  check('si se para, la lava le alcanza y la misión falla', s.fase === 'fallo' && s.causa === 'lava');
+  s = nuevoJ(L); corre(L, s, 2, 3000);
+  check('pasada la zona segura, la lava se detiene', s.fase !== 'fallo' && s.x > 150);
+  check('Timanfaya (nivel 3) tiene persecución de lava y todos los niveles tienen aljibes y 3 frutos', !!NIV[2].nivel.lava && NIV.every(n => n.nivel.objetos.filter(o => o.kind === 'aljibe').length >= 1 && n.nivel.objetos.filter(o => o.kind !== 'aljibe').length === 3), NIV.map(n => n.nivel.objetos.length).join(','));
+}
+
 console.log(`\n${passed} correctas, ${failed} falladas`);
 process.exit(failed ? 1 : 0);

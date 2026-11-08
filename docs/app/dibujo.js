@@ -754,6 +754,86 @@
     }
   }
 
+
+  /* Objetos: aljibes encalados que reponen agua y frutos de la isla escondidos en alto */
+  function fruto(ctx, k, x, y, r) {
+    ctx.lineWidth = Math.max(1.2, r * 0.12); ctx.strokeStyle = 'rgba(40,20,20,.55)';
+    if (k === 'tuno') { // higo pico (tuno): ovalado, rojo púrpura, con puntitos de espinas
+      esfera(ctx, x, y, r, '#ff7a86', '#a3173a'); ctx.save(); ctx.translate(x, y); ctx.scale(0.82, 1);
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.restore(); ctx.stroke();
+      ctx.fillStyle = '#ffd9a0'; for (let i = 0; i < 6; i++) { const a = i * 2.1; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 0.5, y + Math.sin(a) * r * 0.55, r * 0.07, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = '#7a1028'; ctx.beginPath(); ctx.ellipse(x, y - r * 0.92, r * 0.32, r * 0.12, 0, 0, TAU); ctx.fill();
+    } else if (k === 'higo') { // higo: lágrima morada con rabito
+      const g = ctx.createRadialGradient(x - r * 0.3, y, r * 0.1, x, y + r * 0.2, r * 1.1); g.addColorStop(0, '#b07ad0'); g.addColorStop(1, '#3f1650'); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(x, y - r * 1.05); ctx.bezierCurveTo(x + r * 0.5, y - r * 0.7, x + r * 1.05, y + r * 0.1, x + r * 0.85, y + r * 0.55); ctx.arc(x, y + r * 0.35, r * 0.88, 0.25, Math.PI - 0.25); ctx.bezierCurveTo(x - r * 1.05, y + r * 0.1, x - r * 0.5, y - r * 0.7, x, y - r * 1.05); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#4c6a2a'; ctx.lineWidth = Math.max(1.5, r * 0.16); ctx.beginPath(); ctx.moveTo(x, y - r * 1.0); ctx.lineTo(x + r * 0.15, y - r * 1.35); ctx.stroke();
+    } else { // malvasía: racimo dorado verdoso con hoja
+      ctx.fillStyle = '#4f8a2e'; ctx.beginPath(); ctx.ellipse(x + r * 0.45, y - r * 0.95, r * 0.5, r * 0.26, -0.5, 0, TAU); ctx.fill();
+      const pos = [[-0.45, -0.55], [0, -0.6], [0.45, -0.55], [-0.25, -0.1], [0.25, -0.1], [-0.45, 0.35], [0.45, 0.35], [0, 0.35], [-0.2, 0.78], [0.2, 0.78]];
+      for (const [a, b] of pos) esfera(ctx, x + a * r, y + b * r, r * 0.3, '#f0f0a0', '#7f9a2a');
+    }
+  }
+  function dibujaObjetos(ctx, W, H, u, sx, sy, L, st, t) {
+    const tom = (st && st.obj) || {};
+    for (const it of L.objetos) {
+      const x = sx(it.x), y = sy(it.y); if (x < -u * 2 || x > W + u * 2) continue;
+      if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
+        const lleno = !tom[it.id], gy = y + u * 0.9, w = u * 1.3, h = u * 0.95;
+        ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(x, gy, w * 0.62, u * 0.12, 0, 0, TAU); ctx.fill();
+        ctx.fillStyle = lleno ? '#f3efe4' : '#cfc8b8'; rr(ctx, x - w / 2, gy - h, w, h, u * 0.08); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(x, gy - h, w * 0.42, u * 0.38, 0, Math.PI, 0); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(x + w * 0.18, gy - h, w * 0.32, h);
+        ctx.fillStyle = '#2c6e8f'; rr(ctx, x - u * 0.2, gy - u * 0.62, u * 0.4, u * 0.5, u * 0.05); ctx.fill();
+        ctx.strokeStyle = 'rgba(60,50,40,.35)'; ctx.lineWidth = Math.max(1, u * 0.03); ctx.strokeRect(x - w / 2, gy - h, w, h);
+        if (lleno) { const by = gy - h - u * (0.9 + Math.sin(t * 3 + it.x) * 0.1), r = u * 0.22;
+          const g = ctx.createRadialGradient(x, by, 0, x, by, u * 0.7); g.addColorStop(0, 'rgba(120,210,255,.45)'); g.addColorStop(1, 'rgba(120,210,255,0)'); ctx.fillStyle = g; ctx.fillRect(x - u * 0.7, by - u * 0.7, u * 1.4, u * 1.4);
+          ctx.fillStyle = COL.agua; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); ctx.moveTo(x, by - r * 1.5); ctx.quadraticCurveTo(x + r * 1.1, by - r * 0.1, x + r, by + r * 0.2); ctx.arc(x, by + r * 0.2, r, 0, Math.PI); ctx.quadraticCurveTo(x - r * 1.1, by - r * 0.1, x, by - r * 1.5); ctx.fill(); ctx.stroke(); }
+        continue;
+      }
+      if (tom[it.id]) continue;
+      const by = y + Math.sin(t * 2.6 + it.x) * u * 0.1, r = u * 0.36, pul = 0.5 + 0.5 * Math.sin(t * 4 + it.x);
+      const g = ctx.createRadialGradient(x, by, 0, x, by, u * 0.85); g.addColorStop(0, 'rgba(255,236,150,' + (0.35 + pul * 0.25) + ')'); g.addColorStop(1, 'rgba(255,236,150,0)'); ctx.fillStyle = g; ctx.fillRect(x - u, by - u, u * 2, u * 2);
+      fruto(ctx, it.kind, x, by, r);
+      if (pul > 0.92) { ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(x + r * 0.9, by - r * 0.9, u * 0.06, 0, TAU); ctx.fill(); }
+    }
+  }
+  /* Lava: un frente incandescente que avanza por detrás de Martín */
+  function dibujaLava(ctx, W, H, u, sx, sy, L, st, t, cam0) {
+    if (st.lava == null) return;
+    const xe = sx(st.lava);
+    // aviso en el borde si aún no se ve: resplandor rojo que crece según se acerca
+    const dist = st.x - st.lava;
+    if (xe < 0) { const a = Math.max(0, Math.min(0.55, (9 - dist) / 9 * 0.55 + 0.12 * Math.sin(t * 8))); const g = ctx.createLinearGradient(0, 0, u * 2.5, 0); g.addColorStop(0, 'rgba(255,70,20,' + a + ')'); g.addColorStop(1, 'rgba(255,70,20,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, u * 2.5, H); return; }
+    const g0 = ctx.createLinearGradient(xe, 0, xe + u * 3, 0); g0.addColorStop(0, 'rgba(255,120,30,.45)'); g0.addColorStop(1, 'rgba(255,120,30,0)'); ctx.fillStyle = g0; ctx.fillRect(xe, 0, u * 3, H);
+    ctx.beginPath(); ctx.moveTo(-2, -2);
+    const paso = Math.max(4, u * 0.25);
+    for (let y = 0; y <= H + paso; y += paso) { const wy = (H - y) / u; ctx.lineTo(xe + Math.sin(wy * 1.7 + t * 3) * u * 0.25 + Math.sin(wy * 4.3 - t * 5) * u * 0.1, y); }
+    ctx.lineTo(-2, H + 2); ctx.closePath();
+    ctx.save(); ctx.clip();
+    { // lava fundida: naranja que brilla entre placas de costra oscura que se enfría al alejarse del frente
+      const g = ctx.createLinearGradient(xe - u * 6, 0, xe, 0); g.addColorStop(0, '#7a1606'); g.addColorStop(0.5, '#d2380c'); g.addColorStop(0.85, '#ff7a1c'); g.addColorStop(1, '#ffc65a'); ctx.fillStyle = g; ctx.fillRect(-2, -2, xe + u, H + 4);
+      // placas de costra en rejilla hexagonal: entre ellas quedan grietas finas que brillan
+      const R = u * 0.62, dx = R * 1.5, dy = R * 1.732, fy = (t * u * 0.3) % dy, base = Math.floor(t * u * 0.3 / dy);
+      const cols = Math.ceil((xe + u) / dx) + 1, rows = Math.ceil(H / dy) + 2;
+      for (let i = 0; i < cols; i++) {
+        const cerca = Math.min(1, Math.max(0, (i + 0.3) / 1.8));
+        for (let j = -1; j < rows; j++) {
+          const k = i * 131 + (j - base) * 17, cx = xe - R * 0.9 - i * dx + (hash(k) - 0.5) * R * 0.6, cy = j * dy + fy + (i % 2) * dy / 2 + (hash(k + 1) - 0.5) * R * 0.6;
+          const r = R * (0.5 + 0.55 * cerca) * (0.85 + hash(k + 3) * 0.3);
+          ctx.fillStyle = cerca < 0.35 ? 'rgba(120,30,10,.6)' : 'rgb(' + Math.round(70 - 30 * cerca) + ',' + Math.round(26 - 10 * cerca) + ',' + Math.round(18 - 6 * cerca) + ')';
+          ctx.beginPath(); for (let q = 0; q < 6; q++) { const a = q * Math.PI / 3 + hash(k + 2) * 0.3, rq = r * (0.72 + hash(k + q + 5) * 0.45); q ? ctx.lineTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq) : ctx.moveTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq); } ctx.closePath(); ctx.fill();
+          if (cerca > 0.5) { ctx.fillStyle = 'rgba(120,70,55,.18)'; ctx.beginPath(); ctx.ellipse(cx - r * 0.2, cy - r * 0.3, r * 0.5, r * 0.22, 0.3, 0, TAU); ctx.fill(); }
+        }
+      }
+      const gb = ctx.createLinearGradient(xe - u * 1.6, 0, xe, 0); gb.addColorStop(0, 'rgba(255,150,40,0)'); gb.addColorStop(1, 'rgba(255,200,90,.65)'); ctx.fillStyle = gb; ctx.fillRect(xe - u * 1.6, -2, u * 2, H + 4);
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,230,150,.85)'; ctx.lineWidth = Math.max(2, u * 0.07); ctx.beginPath();
+    for (let y = 0; y <= H + paso; y += paso) { const wy = (H - y) / u, xx = xe + Math.sin(wy * 1.7 + t * 3) * u * 0.25 + Math.sin(wy * 4.3 - t * 5) * u * 0.1; if (y) ctx.lineTo(xx, y); else ctx.moveTo(xx, y); } ctx.stroke();
+    ctx.fillStyle = 'rgba(255,220,120,.9)';
+    for (let i = 0; i < 7; i++) { const f = (t * (0.7 + hash(i) * 0.6) + hash(i + 4)) % 1, yy = H * hash(i + 20), xx = xe + u * 0.2 + f * u * 1.4; ctx.globalAlpha = 1 - f; ctx.beginPath(); ctx.arc(xx, yy - f * u * 1.5, u * 0.07, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
   function dibujaEscena(ctx, W, H, u, cam, L, esc, t, fx) {
     const TM = TEMAS[esc.tema || 0], TX = texturas();
     const sx = wx => (wx - cam.x) * u, sy = wy => H - (wy - cam.y) * u;
@@ -792,6 +872,7 @@
     }
     if (st && L.peligros && L.peligros.length && window.Martin) dibujaPeligros(ctx, W, H, u, sx, sy, L, st, t);
     for (const d of esc.deco) { const x = sx(d.x); if (x < -60 || x > W + 60) continue; dibujaDeco(ctx, d, x, sy(d.y), u, t); }
+    if (L.objetos && L.objetos.length) dibujaObjetos(ctx, W, H, u, sx, sy, L, st, t);
     // puntos de control
     for (const c of L.cps) {
       const x = sx(c.x); if (x < -60 || x > W + 60) continue; const y = sy(c.y), ya = c.alcanzado, o = Math.sin(t * 4);
@@ -898,5 +979,6 @@
     ctx.fillStyle = TM.tinte; ctx.fillRect(0, 0, w, h);
   }
 
-  window.Dibujo = { COL, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini };
+  function dibujaLavaVista(ctx, W, H, u, cam, L, st, t) { if (!st || !L.lava) return; dibujaLava(ctx, W, H, u, wx => (wx - cam.x) * u, wy => H - (wy - cam.y) * u, L, st, t, cam.x); }
+  window.Dibujo = { COL, dibujaLavaVista, fruto, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini };
 })();

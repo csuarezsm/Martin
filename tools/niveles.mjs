@@ -272,14 +272,36 @@ function peligros(L, plan) {
   L.hazards = hz;
   return L;
 }
+/* ---------- Objetos (2.2): aljibes que reponen agua y tres frutos escondidos por nivel ---------- */
+function objetos(L, frutos, lava) {
+  const it = [], cps = [L.checkpoint].concat(L.checkpoints_extra || []), fin = L.goals.finish_x;
+  const usado = (x) => (L.hazards || []).some(h => (h.x != null ? Math.abs(h.x - x) < 5 : x > h.x0 - 5 && x < h.x1 + 5)) || it.some(o => Math.abs(o.x - x) < 8);
+  const llanos = L.solids.filter(s => s.kind === 'ground' && !s.route && !s.fragil && s.x1 - s.x0 >= 6 && s.x0 > 20 && s.x1 < fin - 10).sort((a, b) => a.x0 - b.x0);
+  const enX = (q) => { const x = L.goals.finish_x * q; return llanos.filter(s => !usado((s.x0 + s.x1) / 2)).sort((a, b) => Math.abs((a.x0 + a.x1) / 2 - x) - Math.abs((b.x0 + b.x1) / 2 - x))[0]; };
+  // aljibes: a 40 % y 75 % del recorrido, a la altura del cántaro (se recogen andando)
+  // frutos: dos en alto sobre suelo (hay que saltar) y uno sobre un hueco ancho (salto largo y mantenido)
+  const sit = [0.22, 0.6];
+  sit.forEach((q, k) => { const s = enX(q); if (s) it.push({ id: 'FRU-' + (k + 1), kind: frutos[k], x: r2((s.x0 + s.x1) / 2), y: r2(s.top + 2.9) }); });
+  const g = (L.obstacles || []).filter(o => o.kind === 'gap' && o.x1 - o.x0 >= 1.4 && o.x0 > fin * 0.3 && !usado((o.x0 + o.x1) / 2) && !(lava && o.x0 > lava.desde)).sort((a, b) => b.x1 - b.x0 - (a.x1 - a.x0))[0];
+  if (g) { const ant = L.solids.filter(s => s.kind === 'ground' && Math.abs(s.x1 - g.x0) < 0.01)[0]; if (ant) it.push({ id: 'FRU-3', kind: frutos[2], x: r2((g.x0 + g.x1) / 2), y: r2(ant.top + 3.1) }); }
+  [0.42, 0.76].forEach((q, k) => { const s = enX(q); if (s) it.push({ id: 'ALJ-' + (k + 1), kind: 'aljibe', x: r2((s.x0 + s.x1) / 2), y: r2(s.top + 0.9) }); });
+  L.items = it;
+  return L;
+}
+function conLava(L) { // persecución: desde el último punto de control, la lava avanza detrás de Martín hasta la zona de entrega
+  const cps = [L.checkpoint].concat(L.checkpoints_extra || []).sort((a, b) => a.x - b.x), ult = cps[cps.length - 1];
+  const lava = { id: 'LAVA', kind: 'lava', desde: r2(ult.x + 1.5), ventaja: 10, vel: 3.05, hasta: r2(L.goals.finish_x - 30) };
+  L.hazards = (L.hazards || []).filter(h => !(h.x != null ? h.x > ult.x : h.x1 > ult.x)).concat([lava]);
+  return lava;
+}
 const plan = (lista, fragiles) => Object.assign(lista, { fragiles: fragiles || 0 });
 const niveles = [
-  peligros(l01(), plan(['piedra'])),
-  peligros(l02(), plan(['piedra', 'viento', 'piedra', 'viento'])),
-  peligros(l03(), plan(['geiser', 'piedra', 'geiser', 'geiser'], 2)),
-  peligros(l04(), plan(['viento', 'piedra', 'viento'], 3)),
-  peligros(l05(), plan(['ola', 'geiser', 'ola', 'ola'], 2)),
-  peligros(l06(), plan(['piedra', 'viento', 'geiser', 'piedra', 'ola'], 3))
+  objetos(peligros(l01(), plan(['piedra'])), ['tuno','higo','malvasia']),
+  objetos(peligros(l02(), plan(['piedra', 'viento', 'piedra', 'viento'])), ['higo','tuno','higo']),
+  (L => { const lv = conLava(L); return objetos(L, ['tuno', 'tuno', 'higo'], lv); })(peligros(l03(), plan(['geiser', 'piedra', 'geiser', 'geiser'], 2))),
+  objetos(peligros(l04(), plan(['viento', 'piedra', 'viento'], 3)), ['malvasia','malvasia','malvasia']),
+  objetos(peligros(l05(), plan(['ola', 'geiser', 'ola', 'ola'], 2)), ['tuno','higo','tuno']),
+  objetos(peligros(l06(), plan(['piedra', 'viento', 'geiser', 'piedra', 'ola'], 3)), ['malvasia','higo','tuno'])
 ];
 const out = '/* Niveles de Uga (JSON validado por Martin.cargar). GENERADO por tools/niveles.mjs: no editar a mano. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst N = [\n' + niveles.map(l => '  ' + JSON.stringify(JSON.stringify(l))).join(',\n') + '\n];\n'

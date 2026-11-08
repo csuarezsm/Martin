@@ -203,6 +203,21 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     await p.evaluate(() => salirAlMapa());
   }
   check('al terminar los 6, el total de estrellas es 6 o más', (await p.evaluate(() => totalEstrellas())) >= 6);
+  { // 2.2: frutos guardados, fantasma de la mejor carrera y persecución de lava
+    const st = await store(p), o1 = (st.prog[IDS[0]] || {}).obj || [];
+    check('2.2: los frutos cogidos se guardan con el nivel', o1.length >= 1 && o1.every(id => /^FRU-/.test(id)), JSON.stringify(o1));
+    check('2.2: el mapa enseña los frutos de cada nivel (🧺 x/3)', /🧺 \d\/3/.test(await p.textContent('#app')));
+    check('2.2: se guarda la mejor carrera para el fantasma', st.fant && st.fant[IDS[0]] && Array.isArray(st.fant[IDS[0]].runs) && st.fant[IDS[0]].runs.length > 10);
+    await p.evaluate(r => { window.MARTIN_TURBO = 60; window.MARTIN_REPLAY = r; jugar(0, 'nivel'); }, PART[IDS[0] + '|RUTA-BAJA'].runs);
+    check('2.2: al repetir el nivel corre el fantasma a tu lado', await p.evaluate(() => !!__martin.RUN.fan));
+    await p.click('#ovGo'); await waitFor(p, () => __martin.RUN.s.fase === 'meta', null, 60000);
+    check('2.2: el fantasma repite exactamente tu mejor carrera', await waitFor(p, () => __martin.RUN.fan.s.fase === 'meta' || __martin.RUN.fan.s.x > __martin.RUN.L.goals.finish_x - 1, null, 5000));
+    await p.evaluate(() => salirAlMapa());
+    await p.evaluate(() => { window.MARTIN_REPLAY = [2, 30000]; jugar(2, 'nivel'); }); await p.click('#ovGo');
+    await p.evaluate(() => { const L = __martin.RUN.L, s = __martin.RUN.s; s.x = L.lava.desde + 0.5; s.y = 30; s.vy = 0; s.suelo = false; __martin.RUN.replay = [0, 30000]; __martin.RUN.rep = { i: 0, c: 0 }; });
+    check('2.2: en Timanfaya la lava alcanza a Martín si se para', await waitFor(p, () => __martin.RUN.s.fase === 'fallo' && __martin.RUN.s.causa === 'lava', null, 20000) && await waitFor(p, () => /lava/i.test(document.getElementById('mgOv').textContent)));
+    await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
+  }
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }

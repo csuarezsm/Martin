@@ -2,9 +2,11 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **6 niveles de plataformas** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.1.0
+Paquete: `com.itcanarias.martin` · versión 2.2.0
 
-Novedades de la 2.1: **peligros vivos** (piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde), sacudidas, polvo y sonidos nuevos.
+Novedades de la 2.2: **¡la lava te persigue en Timanfaya!**, **aljibes** que reponen agua, **3 frutos escondidos** por nivel (tunos, higos y uvas malvasía) y el **fantasma** de tu mejor carrera para competir contra ti mismo.
+
+De la 2.1: **peligros vivos** (piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde), sacudidas, polvo y sonidos nuevos.
 
 De la 2.0: **Cuaderno de viaje**. Cada nivel recorre un lugar real de Lanzarote (Uga, los molinos de Tiagua y Teguise, Timanfaya, La Geria, Los Hervideros y Teguise) y, al terminarlo, se abre su ficha divulgativa con un dato curioso y sus fuentes. Los textos están en `www/lugares.js`.
 

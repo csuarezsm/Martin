@@ -288,6 +288,12 @@ body.jugando main{padding:0}
 @media (max-width:380px){.mg-bar{width:22vw}.mg-agua{gap:4px;padding:5px 7px}.mg-t{padding:5px 7px}.mg-der{gap:5px}.mg-pausa{width:42px;height:42px}.mg-hud{gap:4px}}
 .mg-hint{position:absolute;left:50%;top:max(72px,calc(env(safe-area-inset-top) + 64px));transform:translateX(-50%);max-width:min(88%,520px);background:linear-gradient(180deg,#2a1d18e6,#150e0ce6);border:1.5px solid #ffffff30;box-shadow:0 6px 18px #0008;color:#fff;border-radius:14px;padding:9px 15px;text-align:center;font-weight:700;font-size:calc(14px * var(--fs, 1));opacity:0;transition:opacity .25s;pointer-events:none}
 .mg-hint.on{opacity:1}
+.mg-fru canvas,.ov-fru canvas,.fi-fru canvas{position:static!important;display:block;flex:none}
+.mg-fru{display:inline-flex;gap:2px;margin-top:5px;padding:3px 8px;border-radius:12px;background:linear-gradient(180deg,#1b2a3acc,#0c1622cc);border:1.5px solid #ffffff3a}
+.mg-lava{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:linear-gradient(180deg,#b3240ce8,#5a0f06e8);border:1.5px solid #ffb06a;color:#fff;border-radius:14px;padding:7px 14px;font-weight:800;font-size:calc(14px * var(--fs, 1));white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 0 18px #ff5a1a88}
+.mg-lava.on{opacity:1;animation:lavaLate .7s ease-in-out infinite alternate}
+@keyframes lavaLate{to{box-shadow:0 0 30px #ff7a2acc}}
+@media (prefers-reduced-motion:reduce){.mg-lava.on{animation:none}}
 .mg-pad{flex:none;height:min(30vh,210px);display:flex;justify-content:space-between;align-items:stretch;gap:14px;padding:14px max(14px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:linear-gradient(180deg,#1a100d,#0d0807);box-shadow:0 -10px 24px #0008;position:relative;z-index:2}
 .mg.inv .mg-pad{flex-direction:row-reverse}
 .mg-lr{display:flex;gap:12px;flex:1.6}
@@ -330,6 +336,9 @@ body.jugando main{padding:0}
 .fi-img{margin:-4px -4px 10px;height:150px;border-radius:12px;background:#222 center/cover no-repeat}
 .fi-l{color:var(--gold);font-weight:800;font-size:calc(12px * var(--fs, 1));text-transform:uppercase;letter-spacing:.06em}
 .fi p{margin:0 0 9px;line-height:1.45}
+.ov-fru,.fi-fru{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 8px;font-weight:700}.ov-fru span:first-child,.fi-fru span:first-child{display:inline-flex;gap:2px}.fi-fru{justify-content:flex-start;font-weight:400}
+.ov-nue{color:var(--gold);white-space:nowrap}.ov-fru>span:nth-child(2){white-space:nowrap}
+.ov-fan{font-size:calc(13px * var(--fs, 1));color:var(--mut);margin-bottom:6px}
 .fi-dato{background:#ffd9781a;border-left:3px solid var(--gold);padding:8px 10px;border-radius:8px;margin:4px 0 10px}
 .fi-f{font-size:calc(12px * var(--fs, 1));color:var(--mut)}.fi-f a{color:var(--mut);text-decoration:underline}
 .ov-fi{background:#ffd97822;border:1px solid var(--gold);color:var(--txt);border-radius:12px;padding:8px 10px;font:inherit;font-weight:700}
@@ -404,6 +413,7 @@ function openThemes() {
   openModal(`<h3>🎨 Aspecto y sonido</h3>
     <label class="f"><span>Botones<em>Dónde va el salto</em></span><span class="kinds" style="flex:none;width:58%;margin:0">${[['normal', 'Salto a la derecha'], ['invertida', 'Salto a la izquierda']].map(([v, l]) => `<button data-mano="${v}" class="${(S.mano || 'normal') === v ? 'on' : ''}">${l}</button>`).join('')}</span></label>
     <label class="f" style="margin-bottom:10px"><span>Sonidos<em>Salto, golpes, puntos de control y entrega</em></span><input type="checkbox" class="tg" id="thSound" ${S.sound !== false ? 'checked' : ''}></label>
+    <label class="f" style="margin-bottom:10px"><span>Fantasma<em>Tu mejor carrera corre a tu lado en cada nivel</em></span><input type="checkbox" class="tg" id="thFan" ${S.fantasma !== false ? 'checked' : ''}></label>
     ${AvisoTurno.opcionHtml()}
     <h3>🔠 Tamaño de letra</h3>
     <div class="kinds" style="margin:6px 0 16px">${FONT_SIZES.map(([v, l]) => `<button data-fs="${v}" class="${String(S.fontScale || '1') === v ? 'on' : ''}" style="font-size:${13 * parseFloat(v)}px">${l}</button>`).join('')}</div>
@@ -417,12 +427,13 @@ function openThemes() {
   document.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => { S.theme = b.dataset.theme; applyTheme(S.theme); save(); openThemes(); });
   document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fontScale = b.dataset.fs; applyFont(); save(); openThemes(); });
   document.querySelectorAll('[data-mano]').forEach(b => b.onclick = () => { S.mano = b.dataset.mano; save(); openThemes(); });
+  $('#thFan').onchange = e => { S.fantasma = e.target.checked; save(); };
   $('#thSound').onchange = e => { S.sound = e.target.checked; save(); if (S.sound) Sound.play('control'); };
   $('#thOk').onclick = closeModal;
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -610,8 +621,8 @@ const WELCOME = [
   ['🐪', 'Bienvenido a Martín', 'Martín es un camello canario joven de Uga. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
   ['👆', 'Cómo se juega', 'Mantén ◀ ▶ para caminar y toca ⬆ para saltar. Mantén el salto para llegar un poco más alto. En ordenador: flechas o A/D, barra espaciadora y Esc para pausa.'],
   ['💧', 'Cuida el agua', 'Tienes 100 de agua. Una caída desde muy alto o un golpe fuerte contra una roca derrama parte. Si se acaba, hay que volver a intentarlo; si te caes por un hueco, vuelves al último punto de control y pierdes 15.'],
-  ['🌋', 'Peligros vivos', 'Piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde. Todos avisan antes: fíjate en el «!», el humo, la manga de viento o las burbujas.'],
-  ['⭐', 'Estrellas y caminos', 'Una estrella por entregar, otra por llegar con mucha agua y otra por hacerlo rápido. A veces hay dos caminos: uno rápido y arriesgado, y otro lento y seguro. Cada día hay además un reto igual para todos.']
+  ['🌋', 'Peligros vivos', 'Piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde. Todos avisan antes: fíjate en el «!», el humo, la manga de viento o las burbujas. Y en Timanfaya… ¡corre, que viene la lava!'],
+  ['⭐', 'Estrellas y caminos', 'Una estrella por entregar, otra por llegar con mucha agua y otra por hacerlo rápido. A veces hay dos caminos: uno rápido y arriesgado, y otro lento y seguro. Busca también los 3 frutos escondidos de cada nivel y gana a tu fantasma. Cada día hay además un reto igual para todos.']
 ];
 function openWelcome(i) {
   i = Math.max(0, Math.min(WELCOME.length - 1, i || 0));
@@ -647,9 +658,14 @@ function openGameRules() {
       <li><b>Olas</b> (−8): el mar burbujea antes de reventar entre las rocas y empujar a Martín hacia atrás.</li>
       <li><b>Suelo agrietado</b>: aguanta un segundo cuando lo pisas y luego se hunde. Vuelve a estar en su sitio si reapareces.</li>
       <li>Si te caes por un hueco: vuelves al <b>último punto de control</b> (⚑) o al principio, y pierdes <b>15</b>. El punto de control no repone el agua.</li>
+      <li><b>Aljibes</b>: los cubos blancos del camino con una gota encima te devuelven <b>20</b> de agua (sin pasar de lo que tenías al empezar). Cada uno sirve una vez por partida.</li>
+      <li><b>¡La lava!</b> En Timanfaya, al pasar el último punto de control empieza a avanzar un río de lava detrás de Martín. Si te alcanza, la misión falla: no te pares.</li>
       <li>Con 0 de agua, la misión falla. Con menos de 30 verás un aviso (con símbolo y borde discontinuo, no solo color).</li></ul>
     <h4>Estrellas</h4><ul><li>★ Entregar el agua. ★★ Llegar con el agua que pida el nivel (normalmente 75 o más). ★★★ Además, dentro del tiempo del nivel.</li>
       <li>Tu mejor tiempo y tu mejor cantidad de agua se guardan por separado.</li></ul>
+    <h4>Frutos escondidos y fantasma</h4><ul>
+      <li>Cada nivel esconde <b>3 frutos</b> de la isla (tunos, higos y uvas malvasía), casi siempre en lo alto o sobre un hueco. Cuentan cuando terminas el nivel y se quedan guardados.</li>
+      <li>Cuando ya has terminado un nivel, un camello transparente repite tu <b>mejor carrera</b>: intenta ganarle. Se puede quitar en 🎨 Aspecto y sonido.</li></ul>
     <h4>Reto diario</h4><ul>
       <li>Cada día hay un nivel y unas condiciones (agua normal, cántaro frágil o poca agua), iguales para todos.</li>
       <li>Ganas el menor tiempo; a igual tiempo, más agua. El servidor repite tu partida con tus pulsaciones para comprobar que el tiempo es posible.</li></ul>
@@ -712,6 +728,7 @@ function mergeBackup(b) {
     p.done = p.done || !!q.done; p.stars = Math.max(p.stars, clampN(q.stars, 0, 3, 0)); p.bestAgua = Math.max(p.bestAgua, clampN(q.bestAgua, 0, 100, 0));
     const ms = clampN(q.bestMs, 0, 54000000, 0); if (ms && (!p.bestMs || ms < p.bestMs)) p.bestMs = ms;
     p.plays = Math.max(p.plays || 0, clampN(q.plays, 0, 99999, 0)); p.fails = Math.max(p.fails || 0, clampN(q.fails, 0, 99999, 0));
+    if (Array.isArray(q.obj)) { const u = new Set(p.obj || []); for (const id of q.obj.slice(0, 20)) if (typeof id === 'string' && SAFE_ID.test(id)) u.add(id); if (u.size) p.obj = [...u].slice(0, 20); }
   }
   if (!S.theme && THEMES[b.theme]) { S.theme = b.theme; applyTheme(S.theme); }
   if (!S.fontScale && FONT_SIZES.some(f => f[0] === String(b.fontScale))) { S.fontScale = String(b.fontScale); applyFont(); }

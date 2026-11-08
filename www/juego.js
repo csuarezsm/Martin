@@ -9,7 +9,9 @@ const ONLINE_URL = 'MARTIN_ONLINE_URL' in window ? window.MARTIN_ONLINE_URL : 'w
 const HTTP_BASE = ONLINE_URL ? ONLINE_URL.replace(/^ws/, 'http').replace(/\/ws$/, '') : '';
 const NIV = (window.MARTIN_NIVELES || []).map(t => M.cargar(t));
 const MODS_TXT = { normal: ['Agua normal', 'Todo como siempre.'], fragil: ['Cántaro frágil', 'Los golpes y las caídas derraman un 50 % más.'], poca: ['Poca agua', 'Sales con solo 70 de agua.'] };
-const CAUSAS = { agua: 'Se ha derramado toda el agua.', caida: 'Martín ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.' };
+const CAUSAS = { agua: 'Se ha derramado toda el agua.', caida: 'Martín ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.', lava: '¡La lava ha alcanzado a Martín!' };
+const TR = x => (window.Idioma && Idioma.tr ? Idioma.tr(x) : x);
+const FRUTOS = { tuno: 'Tuno', higo: 'Higo', malvasia: 'Uva malvasía' };
 const PISTAS = {
   mover: 'Mantén ◀ ▶ para caminar. Si sueltas, Martín se detiene.',
   saltar: 'Toca ⬆ (o la barra espaciadora) para saltar el hueco.',
@@ -64,11 +66,28 @@ const Sound = (() => {
       else if (kind === 'piedra') { ruido(c, t, 0.12, 0.14); tone(c, t, 120, 50, 0.2, 0.08); }
       else if (kind === 'cruje') { for (let i = 0; i < 3; i++) ruido(c, t + i * 0.07, 0.04, 0.06); }
       else if (kind === 'derrumbe') { ruido(c, t, 0.35, 0.1); tone(c, t, 90, 40, 0.3, 0.06); }
+      else if (kind === 'fruto') [784, 988, 1318].forEach((f, i) => tone(c, t + i * 0.06, f, f, 0.12, 0.05, 'sine'));
+      else if (kind === 'aljibe') { [523, 784].forEach((f, i) => tone(c, t + i * 0.08, f, f * 1.02, 0.16, 0.05, 'sine')); ruido(c, t, 0.18, 0.03); }
+      else if (kind === 'lava') { tone(c, t, 70, 45, 1.1, 0.09, 'sawtooth'); ruido(c, t, 0.9, 0.07); [440, 440].forEach((f, i) => tone(c, t + 0.3 + i * 0.25, f, f, 0.12, 0.04, 'square')); }
     } catch (e) {}
   }
   return { play };
 })();
 
+/* ================= Frutos y fantasma ================= */
+const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe');
+const frutosHechos = i => { const n = NIV[i]; if (!n || !n.ok) return 0; const ids = new Set(progR(i).obj || []); return frutosDe(n.nivel).filter(o => ids.has(o.id)).length; };
+const firmaNivel = L => L._firma || (L._firma = M.fnv(JSON.stringify([L.solids.map(q => [q.id, q.x0, q.x1, q.top, q.kind, !!q.fragil]), L.objetos, L.peligros, L.lava, L.goals, L.spawn])));
+function iconoFruto(k, ok, px) {
+  const c = document.createElement('canvas'), d = Math.min(window.devicePixelRatio || 1, 2); c.width = c.height = Math.round(px * d); c.style.width = c.style.height = px + 'px';
+  const g = c.getContext('2d'); if (!ok) g.globalAlpha = 0.6; fruto(g, k, px * d / 2, px * d * 0.58, px * d * 0.36);
+  if (!ok) { g.globalAlpha = 1; g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(150,150,160,.9)'; g.fillRect(0, 0, c.width, c.height); }
+  return c;
+}
+function pintaFrutos(cont, L, tom, px) {
+  if (!cont) return; cont.textContent = '';
+  for (const o of frutosDe(L)) { const ic = iconoFruto(o.kind, !!tom[o.id], px); ic.setAttribute('aria-hidden', 'true'); cont.appendChild(ic); }
+}
 /* ================= Progreso ================= */
 function DEFAULTS() { S.prog = S.prog || {}; S.mano = S.mano || 'normal'; S.best = S.best || {}; }
 
@@ -82,7 +101,7 @@ const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
 
 /* ================= Dibujo (www/dibujo.js) ================= */
-const { COL, hash, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaPrimerPlano, dibujaHero, dibujaMini } = window.Dibujo;
+const { COL, hash, dibujaLavaVista, fruto, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaPrimerPlano, dibujaHero, dibujaMini } = window.Dibujo;
 
 /* ================= Partida en marcha ================= */
 const RUN = { on: false, raf: 0, last: 0, acc: 0, cv: null, ctx: null, L: null, esc: null, s: null, idx: 0, modo: 'nivel', opts: {}, inp: { pila: [], salto: false }, rec: null, cam: { x: 0, y: 0 },
@@ -109,6 +128,11 @@ function paso1() {
   const m = RUN.replay ? replayNext() : maskInput();
   if (s.fase === 'jugando' || s.fase === 'reaparece') RUN.rec.anota(m);
   M.paso(L, s, m);
+  const F = RUN.fan;
+  if (F && (F.s.fase === 'jugando' || F.s.fase === 'reaparece')) {
+    let fm = 0; if (F.rep.i < F.runs.length) { fm = F.runs[F.rep.i]; if (++F.rep.c >= F.runs[F.rep.i + 1]) { F.rep.i += 2; F.rep.c = 0; } }
+    M.paso(L, F.s, fm); F.s.ev.length = 0; F.fase = (F.fase || 0) + Math.abs(F.s.vx) * M.DT * 3.2;
+  }
   for (const e of s.ev) evento(e);
   s.ev.length = 0;
   if (s.fase === 'reaparece') RUN.reapT = s.rt;
@@ -129,10 +153,14 @@ function evento(e) {
     Sound.play(e.tipo === 'vapor' ? 'vapor' : e.tipo === 'ola' ? 'ola' : e.tipo === 'piedra' ? 'piedra' : 'golpe'); vibrate(40); RUN.golpe = 1; RUN.shake = Math.max(RUN.shake || 0, e.cantidad >= 20 ? 1 : 0.6); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.2, v: 0, n: 60, txt: '−' + e.cantidad }); for (let i = 0; i < 6; i++) RUN.fx.push({ k: 'gota', x: s.x, y: s.y + 1.7, v: 0, n: 40, vx: (i - 2.5) * 0.9, vy: 3 + (i % 3) });
     if (e.resto > 0 && e.resto < 30 && !RUN.avisado) { RUN.avisado = true; Sound.play('aviso'); }
   } else if (e.t === 'caida') { Sound.play('caida'); vibrate(60); RUN.fx.push({ k: 'texto', x: s.x, y: RUN.L.world.kill_y + 3, v: 0, n: 70, txt: '−' + e.cantidad }); }
-  else if (e.t === 'control') { Sound.play('control'); const c = RUN.L.cps.find(q => q.id === e.id); if (c) c.alcanzado = true; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: '⚑ Punto de control' }); }
+  else if (e.t === 'control') { Sound.play('control'); const c = RUN.L.cps.find(q => q.id === e.id); if (c) c.alcanzado = true; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: TR('⚑ Punto de control') }); }
   else if (e.t === 'meta') { Sound.play('exito'); for (let i = 0; i < 46; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 1.5, v: 0, n: 100, vx: (hash(i * 3) - 0.5) * 9, vy: 4 + hash(i * 5) * 7, rot: 4 + hash(i * 7) * 10, c: ['#f6d65a', '#d8454a', '#2f93d4', '#f4efe6', '#7ac36a'][i % 5] }); }
   else if (e.t === 'fallo') Sound.play('fallo');
   else if (e.t === 'ruta') RUN.rutaVista = e.id;
+  else if (e.t === 'recoge') {
+    if (e.kind === 'aljibe') { Sound.play('aljibe'); RUN.avisado = s.agua < 30 && RUN.avisado; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: e.mas > 0 ? '💧 +' + e.mas : TR('💧 lleno') }); }
+    else { Sound.play('fruto'); vibrate(15); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.6, v: 0, n: 80, txt: '✨ ' + TR(FRUTOS[e.kind]) }); for (let i = 0; i < 14; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 2.2, v: 0, n: 50, vx: (hash(i * 3 + 1) - 0.5) * 6, vy: 2 + hash(i * 5 + 2) * 4, rot: 6, c: ['#f6d65a', '#fff3b0', '#ffb347'][i % 3] }); }
+  } else if (e.t === 'lava') { Sound.play('lava'); vibrate(80); RUN.shake = Math.max(RUN.shake || 0, 1.2); RUN.lavaAviso = performance.now(); }
 }
 function startLoop() {
   stopLoop(true); RUN.on = true; RUN.last = performance.now(); RUN.acc = 0;
@@ -177,7 +205,8 @@ function dibujar(dt) {
   const W = cv.width, H = cv.height, u = RUN.u, vw = W / u, vh = H / u;
   // cámara: Martín al ~35 % del ancho con un poco de anticipación; vertical suavizado con zona muerta
   const k = 1 - Math.exp(-(dt || 16) / 1000 * 5);
-  let objX = s.x - vw * (W < H ? 0.24 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
+  const huye = s.lava != null && L.lava && s.x < L.lava.hasta;   // con la lava detrás, la cámara deja ver el frente que persigue
+  let objX = s.x - vw * (huye ? (W < H ? 0.6 : 0.5) : W < H ? 0.24 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
   objX = Math.max(L.world.min_x - 0.5, Math.min(L.world.max_x - vw + 0.5, objX));
   const piso = s.fase === 'reaparece' ? s.ry : s.y;
   const idealY = piso - vh * (W < H ? 0.27 : 0.30);
@@ -189,6 +218,12 @@ function dibujar(dt) {
   let shx = 0, shy = 0; if (RUN.shake > 0) { const a = RUN.shake * 0.12; shx = (Math.random() - 0.5) * a; shy = (Math.random() - 0.5) * a; RUN.shake = Math.max(0, RUN.shake - (dt || 16) / 260); RUN.cam.x += shx; RUN.cam.y += shy; }
   dibujaEscena(ctx, W, H, u, RUN.cam, L, RUN.esc, RUN.t, RUN.fx);
   const px = (s.x - RUN.cam.x) * u, py = H - (s.y - RUN.cam.y) * u;
+  const F = RUN.fan;
+  if (F && F.s.fase !== 'lista' && (F.s.fase !== 'reaparece' || F.s.rt < 24) && F.s.fase !== 'fallo') {
+    const fs = F.s, fx = (fs.x - RUN.cam.x) * u, fy = H - (fs.y - RUN.cam.y) * u;
+    if (fx > -u * 3 && fx < W + u * 3) { let fa = 'idle'; if (!fs.suelo) fa = fs.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(fs.vx) > 0.3) fa = 'corre';
+      dibujaMartin(ctx, u, fx, fy, { dir: fs.cara, fase: F.fase, anim: fa, agua: fs.agua, golpe: 0, t: RUN.t, alpha: 0.42 }); }
+  }
   // personaje
   if (s.fase !== 'reaparece' || s.rt < 24) {
     dibujaSombra(ctx, L, s, u, RUN.cam, H);
@@ -198,6 +233,7 @@ function dibujar(dt) {
     dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
   }
   if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
+  dibujaLavaVista(ctx, W, H, u, RUN.cam, L, s, RUN.t);
   dibujaPrimerPlano(ctx, W, H, u, RUN.cam, RUN.t);
   dibujaFx(ctx, W, H, u, RUN.cam, RUN.fx, RUN.t);
   dibujaPost(ctx, W, H, RUN.esc, s.agua);
@@ -222,6 +258,8 @@ function hud() {
   set('mgAgua', s.agua); set('mgTiempo', fmtT(s.t * 1000 / 60));
   const b = document.getElementById('mgBar'); if (b) { b.style.width = s.agua + '%'; b.parentNode.classList.toggle('bajo', s.agua < 30); }
   set('mgBajo', s.agua < 30 ? '⚠' : '');
+  const fv = Object.keys(s.obj || {}).join(','); if (fv !== RUN.fruVista) { RUN.fruVista = fv; pintaFrutos(document.getElementById('mgFru'), RUN.L, s.obj || {}, 24); }
+  const lv = document.getElementById('mgLava'); if (lv) { const on = s.lava != null && s.x < RUN.L.lava.hasta && s.fase === 'jugando'; lv.classList.toggle('on', on); if (on) set('mgLavaD', Math.max(0, Math.round(s.x - s.lava)) + ' m'); }
   const h = pistaActual(); if (h !== RUN.hint) { RUN.hint = h; const el = document.getElementById('mgHint'); if (el) { el.textContent = h; el.classList.toggle('on', !!h); } }
 }
 
@@ -267,6 +305,9 @@ function crearIntento() {
   RUN.rec = M.grabadora(); RUN.fx = []; RUN.golpe = 0; RUN.t = 0; RUN.fase = 0; RUN.tFin = 0; RUN.overlay = 'listo'; RUN.hint = ''; RUN.avisado = false; RUN.rutaVista = '';
   RUN.nuevo = null; RUN.enviado = null; RUN.intento = (RUN.intento || 0) + 1; RUN.acc = 0;
   RUN.rep = { i: 0, c: 0 }; RUN.replay = Array.isArray(window.MARTIN_REPLAY) ? window.MARTIN_REPLAY : null;
+  RUN.fruVista = null; RUN.fan = null;
+  const fa = RUN.modo === 'nivel' && S.fantasma !== false && S.fant && S.fant[n.level_id];
+  if (fa && fa.firma === firmaNivel(n) && Array.isArray(fa.runs)) RUN.fan = { s: M.nuevo(n, {}), runs: fa.runs, rep: { i: 0, c: 0 }, ms: fa.ms };
   soltarTodo();
 }
 function jugar(idx, modo, opts) {
@@ -277,7 +318,7 @@ function jugar(idx, modo, opts) {
 }
 function empezar() {
   if (!RUN.s || RUN.s.fase !== 'lista') return;
-  M.empezar(RUN.s); RUN.overlay = ''; soltarTodo(); ponOverlay(); keepAwake();
+  M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; soltarTodo(); ponOverlay(); keepAwake();
   if (RUN.modo === 'nivel') prog(RUN.idx).plays++;
 }
 function pausar() {
@@ -305,6 +346,10 @@ function terminar() {
       if (res.estrellas > p.stars) { p.stars = res.estrellas; nu.estrellas = true; }
       if (!p.bestMs || res.ms < p.bestMs) { if (p.bestMs) nu.tiempo = true; p.bestMs = res.ms; }
       if (res.agua > p.bestAgua) { if (p.bestAgua) nu.agua = true; p.bestAgua = res.agua; }
+      const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
+      if (nuevos.length) { p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); }
+      const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
+      if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs() }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -340,7 +385,7 @@ function renderSetup() {
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
       <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span>${ab ? i + 1 : '🔒'}</span></div>
       <div class="lv-b"><b>${esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : 'Termina el nivel anterior para abrirlo.'}</span>
-        ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100</small>` : ''}</div>
+        ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100${frutosDe(n.nivel).length ? ` · 🧺 ${frutosHechos(i)}/${frutosDe(n.nivel).length}` : ''}</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
   });
   h += `</div>
@@ -397,10 +442,10 @@ function renderGame() {
     <div class="mg-cv"><canvas id="mgCv" aria-label="Juego"></canvas>
       <div class="mg-hud">
         <div class="mg-izq"><div class="mg-nom">${esc(n.name)}</div>
-          <div class="mg-agua" role="img" aria-label="Agua del cántaro"><span class="mg-ic"><svg viewBox="0 0 24 30" width="20" height="24" aria-hidden="true"><path d="M12 1C12 1 2 13 2 19a10 10 0 0 0 20 0C22 13 12 1 12 1Z" fill="#5cc0f5" stroke="#fff" stroke-width="1.6"/><path d="M7 19a5 5 0 0 0 4 4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/></svg></span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div></div>
+          <div class="mg-agua" role="img" aria-label="Agua del cántaro"><span class="mg-ic"><svg viewBox="0 0 24 30" width="20" height="24" aria-hidden="true"><path d="M12 1C12 1 2 13 2 19a10 10 0 0 0 20 0C22 13 12 1 12 1Z" fill="#5cc0f5" stroke="#fff" stroke-width="1.6"/><path d="M7 19a5 5 0 0 0 4 4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/></svg></span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div>${frutosDe(n).length ? '<div class="mg-fru" id="mgFru" role="img" aria-label="Frutos escondidos"></div>' : ''}</div>
         <div class="mg-der"><div class="mg-t">⏱ <b id="mgTiempo">0:00.0</b></div><button class="mg-pausa" id="mgPausa" aria-label="Pausa"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></button></div>
       </div>
-      <div class="mg-hint" id="mgHint"></div>
+      <div class="mg-hint" id="mgHint"></div>${n.lava ? '<div class="mg-lava" id="mgLava">🌋 ¡Corre! La lava está a <b id="mgLavaD"></b></div>' : ''}
       <div class="mg-ov" id="mgOv"></div>
     </div>
     <div class="mg-pad"><div class="mg-lr"><button class="mg-b" id="mgL" aria-label="Izquierda"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M30 8 14 24 30 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mg-b" id="mgR" aria-label="Derecha"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M18 8 34 24 18 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><button class="mg-b mg-j" id="mgJ" aria-label="Saltar"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M8 32 24 14 40 32" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mg-jt">SALTAR</span></button></div>
@@ -435,8 +480,10 @@ function openFicha(i, desdeCuaderno) {
     <div class="fi-l">Nivel ${i + 1} · ${esc(f.lugar)}</div><h3>${esc(f.titulo)}</h3>
     ${f.texto.map(p => `<p>${esc(p)}</p>`).join('')}
     <div class="fi-dato"><b>¿Sabías que…?</b> ${esc(f.dato)}</div>
+    ${NIV[i] && NIV[i].ok && frutosDe(NIV[i].nivel).length ? `<div class="fi-fru"><span id="fiFru"></span><span>Frutos del camino: <b>${frutosHechos(i)}/${frutosDe(NIV[i].nivel).length}</b>${frutosHechos(i) < frutosDe(NIV[i].nivel).length ? ' · Busca en lo alto y sobre los huecos.' : ''}</span></div>` : ''}
     <div class="fi-f">Fuentes: ${f.fuentes.map(([t, u]) => `<a href="#" data-url="${esc(u)}">${esc(t)}</a>`).join(' · ')}</div></div>
     <div class="acts">${desdeCuaderno ? '<button class="btn-ghost" id="fiVol">‹ Cuaderno</button>' : ''}<button class="btn-gold" id="fiOk">Cerrar</button></div>`);
+  if ($('#fiFru')) { const ids = new Set(progR(i).obj || []), tom = {}; for (const o of frutosDe(NIV[i].nivel)) if (ids.has(o.id)) tom[o.id] = 1; pintaFrutos($('#fiFru'), NIV[i].nivel, tom, 24); }
   document.querySelectorAll('.fi-f a').forEach(a => a.onclick = e => { e.preventDefault(); openExternal(a.dataset.url); });
   $('#fiOk').onclick = closeModal; const v = $('#fiVol'); if (v) v.onclick = openCuaderno;
 }
@@ -457,7 +504,7 @@ function ponOverlay() {
       <button class="btn-gold ov-go" id="ovSig">▶ Seguir</button><button class="btn-ghost" id="ovRei">↻ Empezar de nuevo</button><button class="btn-ghost" id="ovMapa">Salir al mapa</button></div>`;
     $('#ovSig').onclick = reanudar; $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = abandonar;
   } else if (o === 'fallo') {
-    ov.innerHTML = `<div class="ov-c"><div class="ov-t">💧 Misión fallida</div><div class="ov-s">${esc(CAUSAS[s.causa] || '')}</div>
+    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${s.causa === 'lava' ? '🌋' : '💧'} Misión fallida</div><div class="ov-s">${esc(CAUSAS[s.causa] || '')}</div>
       <div class="ov-d"><span>⏱ ${fmtT(s.t * 1000 / 60)}</span><span>Caídas ${s.caidas}</span><span>Golpes ${s.golpes}</span></div>
       <button class="btn-gold ov-go" id="ovRei">↻ Reintentar</button><button class="btn-ghost" id="ovMapa">Volver al mapa</button></div>`;
     $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = salirAlMapa;
@@ -469,6 +516,8 @@ function ponOverlay() {
       <div class="ov-d big"><span>⏱ <b>${fmtT(r.ms)}</b>${nu.tiempo ? ' 🏅' : ''}</span><span>💧 <b>${r.agua}</b>/100${nu.agua ? ' 🏅' : ''}</span></div>
       <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+      ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
+      ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
       ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}
       <button class="btn-gold ov-go" id="ovSig">${RUN.modo === 'nivel' ? (sigOk ? 'Siguiente nivel ›' : 'Volver al mapa') : 'Volver al mapa'}</button>
@@ -477,6 +526,7 @@ function ponOverlay() {
     const rk = $('#ovRank'); if (rk) rk.onclick = () => openRanking();
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
     const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
+    pintaFrutos($('#ovFru'), n, s.obj || {}, 26);
   }
 }
 
