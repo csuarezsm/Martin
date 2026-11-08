@@ -45,7 +45,7 @@
   function relleno(ctx, tex, ox, oy, fallback, esc) {
     if (!tex) return fallback;
     const p = ctx.createPattern(tex, 'repeat');
-    try { if (p && p.setTransform) p.setTransform(new DOMMatrix().translate(ox, oy).scale(esc || 1)); } catch (e) {}
+    try { if (p && p.setTransform) p.setTransform(new DOMMatrix().translate(Math.round(ox), Math.round(oy)).scale(esc || 1)); } catch (e) {}
     return p || fallback;
   }
 
@@ -605,7 +605,7 @@
       let g = ctx.createLinearGradient(0, yt, 0, yt + u * 5); g.addColorStop(0, 'rgba(10,6,6,0)'); g.addColorStop(1, 'rgba(10,6,6,.6)'); ctx.fillStyle = g; ctx.fillRect(a, yt, b - a, yb - yt);
       const th = Math.min(u * 0.7, yb - yt), paso = u * 0.3;
       ctx.save(); ctx.beginPath(); ctx.moveTo(a, yt - 1);
-      for (let x = a; x <= b + paso; x += paso) { const wx = x / u + cam.x; ctx.lineTo(x, yt + th * (0.72 + hash(Math.floor(wx * 3)) * 0.5)); }
+      { const ps = paso / u; let wx = Math.floor((a / u + cam.x) / ps) * ps; ctx.lineTo((wx - cam.x) * u, yt - 1); for (; (wx - cam.x) * u <= b + paso; wx += ps) ctx.lineTo((wx - cam.x) * u, yt + th * (0.72 + hash(Math.round(wx / ps)) * 0.5)); }   // puntos fijos en el mundo (antes se movían con la cámara y el borde temblaba)
       ctx.lineTo(b, yt - 1); ctx.closePath(); ctx.clip();
       ctx.fillStyle = relleno(ctx, TX.tierraP, -cam.x * u, yt, '#a5532f', kT); ctx.fillRect(a, yt - 1, b - a, th * 1.4);
       g = ctx.createLinearGradient(0, yt, 0, yt + th * 1.3); g.addColorStop(0, 'rgba(255,220,160,.18)'); g.addColorStop(0.6, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,10,5,.35)'); ctx.fillStyle = g; ctx.fillRect(a, yt - 1, b - a, th * 1.4);
@@ -690,6 +690,12 @@
     // abismo de los huecos
     for (const h of esc.huecos) {
       const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
+      if (TX.lavaP) { // abismo pintado: la misma lava, más oscura según se hunde
+        const yt = sy(h.top); ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u, yt, '#1a0d0c', u * 2.2 / TX.lavaP.height); ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
+        const g = ctx.createLinearGradient(0, yt, 0, yt + u * 3); g.addColorStop(0, 'rgba(8,4,4,.55)'); g.addColorStop(1, 'rgba(4,2,2,.92)'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
+        const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.3)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
+        continue;
+      }
       const yt = sy(h.top), g = ctx.createLinearGradient(0, yt, 0, H); g.addColorStop(0, '#3a1d18'); g.addColorStop(0.35, '#1a0d0c'); g.addColorStop(1, '#070304'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.35)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       ctx.strokeStyle = 'rgba(90,50,40,.5)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let k = 1; k < 5; k++) { const y = yt + u * k * 1.1; if (y > H) break; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + (k % 2 ? u * 0.1 : -u * 0.1)); ctx.stroke(); }
