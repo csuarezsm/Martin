@@ -14,12 +14,12 @@
 
   /* Temas por nivel: hora del día y ambiente */
   const TEMAS = [
-    { cielo: ['#2a6fb8', '#5fa4d8', '#a9d3ea', '#f7e2b8'], sol: [0.78, 0.2], solC: '#fff3c4', haz: 0.10, lejos: '#9aa3c4', lejos2: '#7f86a8', fuego: '#b95a33', med: '#6f5a63', geria: '#2a2223', tinte: 'rgba(255,230,170,0.06)', nubes: 0.8 },
-    { cielo: ['#1f64b0', '#4f9ad6', '#9ccbea', '#f3e6c4'], sol: [0.5, 0.12], solC: '#fffbe0', haz: 0.05, lejos: '#a5b0cf', lejos2: '#8a94b4', med: '#74606a', geria: '#2c2425', tinte: 'rgba(255,255,255,0.03)', nubes: 1 },
-    { cielo: ['#3a73b5', '#7fa9d2', '#e8cfa6', '#f6b982'], sol: [0.84, 0.3], solC: '#ffe0a0', haz: 0.14, lejos: '#a597b5', lejos2: '#8a7c9e', med: '#6b525a', geria: '#2a2022', tinte: 'rgba(255,170,90,0.10)', nubes: 0.9 },
-    { cielo: ['#43508f', '#8a74a8', '#e5a28f', '#f8c47a'], sol: [0.8, 0.38], solC: '#ffd0a0', haz: 0.18, lejos: '#9a7ea0', lejos2: '#7d6488', med: '#5e4552', geria: '#241b20', tinte: 'rgba(255,130,100,0.12)', nubes: 0.9 },
-    { cielo: ['#4a5663', '#7d8794', '#b0b3b6', '#d9c6a8'], sol: [0.7, 0.2], solC: '#f0e8d8', haz: 0.03, lejos: '#8e9199', lejos2: '#767a84', med: '#5f5558', geria: '#262021', tinte: 'rgba(120,130,150,0.12)', nubes: 1.3 },
-    { cielo: ['#2e2f6e', '#a2506b', '#f08a5a', '#ffd27a'], sol: [0.76, 0.42], solC: '#ffe9a8', haz: 0.22, lejos: '#8a5f78', lejos2: '#6d4a64', med: '#4d3640', geria: '#1f171b', tinte: 'rgba(255,110,60,0.14)', nubes: 0.8 }
+    { cielo: ['#0f5fc4', '#2b84dc', '#6db3ea', '#cfe7f6'], sol: [0.8, 0.14], solC: '#fff8dc', haz: 0.06, lejos: '#8f86b0', lejos2: '#766c98', fuego: '#b4513a', med: '#2f2a2d', geria: '#2a2223', tinte: 'rgba(255,230,170,0.06)', nubes: 0.8 },
+    { cielo: ['#0b58bd', '#2a80da', '#74b8ec', '#d6ebf7'], sol: [0.5, 0.1], solC: '#fffbe6', haz: 0.03, lejos: '#9590b8', lejos2: '#7b74a0', fuego: '#ad4c36', med: '#302a2c', geria: '#2c2425', tinte: 'rgba(255,255,255,0.03)', nubes: 1 },
+    { cielo: ['#1d66bf', '#4f93d6', '#b9d2e2', '#f2cf9e'], sol: [0.84, 0.3], solC: '#ffe8b0', haz: 0.1, lejos: '#9a88ad', lejos2: '#80709a', med: '#33292c', geria: '#2a2022', tinte: 'rgba(255,170,90,0.10)', nubes: 0.9 },
+    { cielo: ['#43508f', '#8a74a8', '#e5a28f', '#f8c47a'], sol: [0.8, 0.38], solC: '#ffd0a0', haz: 0.18, lejos: '#9a7ea0', lejos2: '#7d6488', med: '#2f2428', geria: '#241b20', tinte: 'rgba(255,130,100,0.12)', nubes: 0.9 },
+    { cielo: ['#4a5663', '#7d8794', '#b0b3b6', '#d9c6a8'], sol: [0.7, 0.2], solC: '#f0e8d8', haz: 0.03, lejos: '#8e9199', lejos2: '#767a84', med: '#302b2d', geria: '#262021', tinte: 'rgba(120,130,150,0.12)', nubes: 1.3 },
+    { cielo: ['#2e2f6e', '#a2506b', '#f08a5a', '#ffd27a'], sol: [0.76, 0.42], solC: '#ffe9a8', haz: 0.22, lejos: '#8a5f78', lejos2: '#6d4a64', med: '#2a1f24', geria: '#1f171b', tinte: 'rgba(255,110,60,0.14)', nubes: 0.8 }
   ];
 
   /* ---- Texturas (se crean una vez) ---- */
@@ -356,17 +356,18 @@
 
   let DYN = null;   // mientras se pinta una capa en caché, aquí se anotan los elementos que se mueven (humo, aspas)
   function volcan(ctx, cx, by, ah, aw, lit, dark, t, humo, seed) {
-    // cono con ladera iluminada, cráter y estrías de lapilli
-    const topW = aw * 0.13, ty = by - ah;
-    ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW, ty); ctx.quadraticCurveTo(cx + aw * 0.35, by - ah * 0.5, cx + aw, by); ctx.closePath(); ctx.fillStyle = dark; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW * 0.2, ty); ctx.quadraticCurveTo(cx + aw * 0.02, by - ah * 0.55, cx + aw * 0.1, by); ctx.closePath(); ctx.fillStyle = lit; ctx.fill();
-    ctx.save(); ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.quadraticCurveTo(cx - aw * 0.35, by - ah * 0.5, cx - topW, ty); ctx.lineTo(cx + topW, ty); ctx.quadraticCurveTo(cx + aw * 0.35, by - ah * 0.5, cx + aw, by); ctx.closePath(); ctx.clip();
-    for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? 'rgba(230,150,80,.14)' : 'rgba(10,5,6,.22)'; ctx.fillRect(cx - aw, by - ah * (0.18 + k * 0.2), aw * 2, ah * 0.08); }
+    // cono truncado de Timanfaya: ladera iluminada rojo óxido, sombra morada, cráter ancho y regueros de picón
+    const topW = aw * 0.3, ty = by - ah, perfil = () => { ctx.beginPath(); ctx.moveTo(cx - aw, by); ctx.bezierCurveTo(cx - aw * 0.6, by - ah * 0.2, cx - topW * 1.4, ty + ah * 0.08, cx - topW, ty); ctx.quadraticCurveTo(cx, ty - ah * 0.04, cx + topW, ty); ctx.bezierCurveTo(cx + topW * 1.4, ty + ah * 0.08, cx + aw * 0.6, by - ah * 0.2, cx + aw, by); ctx.closePath(); };
+    perfil(); let g = ctx.createLinearGradient(cx - aw, 0, cx + aw, 0); g.addColorStop(0, lit); g.addColorStop(0.45, lit); g.addColorStop(0.62, '#7a3f45'); g.addColorStop(1, dark); ctx.fillStyle = g; ctx.fill();
+    ctx.save(); perfil(); ctx.clip();
+    g = ctx.createLinearGradient(0, ty, 0, by); g.addColorStop(0, 'rgba(255,170,120,.22)'); g.addColorStop(0.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(40,20,30,.45)'); ctx.fillStyle = g; ctx.fillRect(cx - aw, ty - 2, aw * 2, ah + 4);
+    ctx.strokeStyle = 'rgba(40,18,22,.35)'; ctx.lineWidth = Math.max(1, aw * 0.018); ctx.lineCap = 'round';
+    for (let i = 0; i < 9; i++) { const q = hash(seed + i), x0 = cx + (q - 0.5) * topW * 1.9, x1 = cx + (q - 0.5) * aw * 1.8; ctx.beginPath(); ctx.moveTo(x0, ty + ah * 0.06); ctx.quadraticCurveTo((x0 + x1) / 2 + (hash(seed + i + 5) - 0.5) * aw * 0.1, (ty + by) / 2, x1, by); ctx.stroke(); }
     ctx.restore();
-    ctx.fillStyle = 'rgba(20,8,6,.5)'; ctx.beginPath(); ctx.ellipse(cx, ty, topW * 1.02, Math.max(2, ah * 0.035), 0, 0, TAU); ctx.fill();
-    ctx.strokeStyle = 'rgba(30,12,8,.22)'; ctx.lineWidth = Math.max(1, aw * 0.012);
-    for (let i = 0; i < 6; i++) { const q = hash(seed + i), x0 = cx + (q - 0.5) * topW * 1.6, x1 = cx + (q - 0.5) * aw * 1.7; ctx.beginPath(); ctx.moveTo(x0, ty + ah * 0.05); ctx.lineTo(x1, by); ctx.stroke(); }
-    if (humo) { if (DYN) DYN.push({ k: 'humo', cx, ty, topW, ah, aw, seed }); else humoDyn(ctx, { cx, ty, topW, ah, aw, seed }, t, 0, 0); }
+    // cráter: borde claro y hueco oscuro
+    ctx.fillStyle = '#3a2228'; ctx.beginPath(); ctx.ellipse(cx, ty + ah * 0.01, topW * 0.92, Math.max(2, ah * 0.06), 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(230,150,110,.55)'; ctx.lineWidth = Math.max(1, ah * 0.012); ctx.beginPath(); ctx.ellipse(cx, ty + ah * 0.01, topW * 0.92, Math.max(2, ah * 0.06), 0, Math.PI * 0.05, Math.PI * 0.95); ctx.stroke();
+    if (humo) { if (DYN) DYN.push({ k: 'humo', cx, ty, topW: topW * 0.4, ah, aw, seed }); else humoDyn(ctx, { cx, ty, topW: topW * 0.4, ah, aw, seed }, t, 0, 0); }
   }
   function humoDyn(ctx, it, t, ox, oy) {
     const { topW, ah, aw, seed } = it, cx = it.cx + ox, ty = it.ty + oy;
@@ -386,7 +387,7 @@
   function molino(ctx, x, y, s, t) {
     ctx.fillStyle = '#f1ebdf'; ctx.beginPath(); ctx.moveTo(x - s * 0.5, y); ctx.lineTo(x - s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.5, y); ctx.closePath(); ctx.fill();
     ctx.fillStyle = 'rgba(80,60,60,.2)'; ctx.beginPath(); ctx.moveTo(x + s * 0.1, y); ctx.lineTo(x + s * 0.1, y - s * 1.5); ctx.lineTo(x + s * 0.32, y - s * 1.5); ctx.lineTo(x + s * 0.5, y); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#7a3d2c'; ctx.beginPath(); ctx.moveTo(x - s * 0.4, y - s * 1.5); ctx.lineTo(x, y - s * 2.05); ctx.lineTo(x + s * 0.4, y - s * 1.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c7412f'; ctx.beginPath(); ctx.moveTo(x - s * 0.4, y - s * 1.5); ctx.lineTo(x, y - s * 2.05); ctx.lineTo(x + s * 0.4, y - s * 1.5); ctx.closePath(); ctx.fill();
     if (DYN) DYN.push({ k: 'molino', x, y: y - s * 1.55, s }); else aspasDyn(ctx, { x, y: y - s * 1.55, s }, t, 0, 0);
   }
   function aspasDyn(ctx, it, t, ox, oy) {
@@ -426,11 +427,20 @@
     capaMontes(ctx, W, H, u, cam, 0.04, 0.7, 2.3, TM.lejos, TM.cielo[3], 1.7);
   }
   function pintaVolcanes(ctx, W, H, u, cam, TM) {
-    const per1 = 38, off1 = cam.x * 0.1, i1 = Math.floor(off1 / per1) - 1, by1 = H - (0.35 - cam.y * 0.1) * u;
-    for (let i = i1; i < i1 + Math.ceil(W / u / per1) + 3; i++) { const hk = hash(i * 31 + 5), cx = (i * per1 + hk * 14 - off1) * u; volcan(ctx, cx, by1, u * (4.6 + hk * 3), u * (7.5 + hk * 3.4), TM.fuego || '#a8512e', '#3b2527', 0, hk > 0.45, i * 13); volcan(ctx, cx + u * (9 + hk * 6), by1, u * (2.6 + hk * 2), u * (4.5 + hk * 2), '#8c4a30', '#2f1f22', 0, false, i * 29 + 7); }
+    const per1 = 26, off1 = cam.x * 0.1, i1 = Math.floor(off1 / per1) - 1, by1 = H - (0.35 - cam.y * 0.1) * u;
+    for (let i = i1; i < i1 + Math.ceil(W / u / per1) + 3; i++) { const hk = hash(i * 31 + 5), cx = (i * per1 + hk * 14 - off1) * u; volcan(ctx, cx, by1, u * (2.6 + hk * 1.6), u * (5.6 + hk * 2.4), TM.fuego || '#a8512e', '#4e3348', 0, hk > 0.8, i * 13); volcan(ctx, cx + u * (9 + hk * 6), by1, u * (2.6 + hk * 2), u * (4.5 + hk * 2), '#8c4a30', '#2f1f22', 0, false, i * 29 + 7); }
     ctx.fillStyle = TM.med; ctx.fillRect(0, by1 - 1, W, H - by1 + 2);
   }
-  function pintaMedia(ctx, W, H, u, cam, TM) { capaMontes(ctx, W, H, u, cam, 0.2, 0.15, 1.5, TM.med, TM.geria, 4.2); }
+  function pintaMedia(ctx, W, H, u, cam, TM) {
+    capaMontes(ctx, W, H, u, cam, 0.2, 0.15, 1.1, TM.med, '#1a1517', 4.2);
+    // malpaís: bloques de lava y matas de tabaiba
+    const par = 0.2, off = cam.x * par, by = H - (0.15 - cam.y * par) * u;
+    for (let x = -((off * u) % (u * 0.8)) - u; x < W + u; x += u * 0.8) {
+      const wx = x / u + off, k = Math.floor(wx / 0.8), hk = hash(k * 13 + 1), y = by - (cresta(wx, 4.2) * 1.1 + 1.1) * u + u * (0.6 + hk * 0.9);
+      ctx.fillStyle = hk < 0.5 ? '#3a3336' : '#28222a'; ctx.beginPath(); ctx.ellipse(x, y, u * (0.3 + hk * 0.3), u * (0.16 + hk * 0.12), 0, Math.PI, 0); ctx.fill();
+      if (hk > 0.72) { ctx.fillStyle = '#a7b84a'; ctx.beginPath(); ctx.ellipse(x + u * 0.3, y - u * 0.02, u * 0.22, u * 0.12, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#d3c35a'; ctx.beginPath(); ctx.ellipse(x + u * 0.26, y - u * 0.08, u * 0.1, u * 0.05, 0, Math.PI, 0); ctx.fill(); }
+    }
+  }
   function pintaGeria(ctx, W, H, u, cam, TM) {
     const par = 0.38, off = cam.x * par, by = H - (0.0 - cam.y * par) * u, per = 30;
     const yR = x => by - (0.9 + cresta(x, 8.3) * 0.9) * u;
@@ -444,6 +454,8 @@
       if (hk > 0.7) molino(ctx, x, y, u * 1.5, 0); else if (hk > 0.3) { casa(ctx, x, y, u * 1.4, u * 1.0); casa(ctx, x + u * 1.5, y, u * 1.0, u * 0.75, '#efe7d6'); } else casa(ctx, x, y, u * 1.2, u * 0.9);
       palmera(ctx, x + u * 3.1, y, u * 1.4, 0, i * 7); if (hk > 0.5) palmera(ctx, x - u * 1.2, y, u * 1.1, 0, i * 11);
     }
+    // muro de piedra seca volcánica
+    { const yM = by + u * 0.25; for (let x = -((off * u) % (u * 0.42)) - u; x < W + u; x += u * 0.42) { const k = Math.floor((x / u + off) / 0.42); for (let f = 0; f < 2; f++) { const hk = hash(k * 7 + f * 31), xx = x + (f ? u * 0.21 : 0), yy = yM - f * u * 0.26 - hk * u * 0.04; ctx.fillStyle = hk < 0.33 ? '#2a2427' : hk < 0.66 ? '#3a3236' : '#4a4044'; ctx.beginPath(); ctx.ellipse(xx, yy, u * (0.19 + hk * 0.04), u * (0.14 + hk * 0.03), (hk - 0.5) * 0.4, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,240,220,.12)'; ctx.beginPath(); ctx.ellipse(xx - u * 0.05, yy - u * 0.06, u * 0.08, u * 0.04, 0, 0, TAU); ctx.fill(); } } }
     g = ctx.createLinearGradient(0, by - u * 3.5, 0, by + u * 0.8); g.addColorStop(0, 'rgba(255,225,185,0)'); g.addColorStop(1, 'rgba(255,225,185,.22)'); ctx.fillStyle = g; ctx.fillRect(0, by - u * 3.5, W, u * 4.3);
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, by + u * 0.8, W, H);
   }
@@ -471,6 +483,7 @@
     // capas con paralaje
     for (const [nombre, par, f] of [['lejos', 0.04, pintaLejos], ['volc', 0.1, pintaVolcanes], ['media', 0.2, pintaMedia], ['geria', 0.38, pintaGeria]]) {
       const L = capaCache(c, nombre, par, W, H, u, cam, (g2, Ws, Hs, uu, fc) => f(g2, Ws, Hs, uu, fc, TM));
+      L.dy -= Math.max(0, H * (W < H ? 0.27 : 0.3) - u * 0.7);   // el horizonte de cada capa se apoya en la línea del suelo (si no, en vertical quedaba tapado por la tierra)
       { const sx = Math.max(0, -L.dx), sy = Math.max(0, -L.dy), sw = Math.min(W - Math.max(0, L.dx), L.Ws - sx), sh = Math.min(H - Math.max(0, L.dy), L.Hs - sy);
         if (sw > 0 && sh > 0) ctx.drawImage(L.cv, sx * ESC, sy * ESC, sw * ESC, sh * ESC, sx + L.dx, sy + L.dy, sw, sh); }
       for (const it of L.dyn) { const x = it.k === 'humo' ? it.cx : it.x, y = it.k === 'humo' ? it.ty : it.y; if (x + L.dx < -u * 12 || x + L.dx > W + u * 12) continue; if (it.k === 'humo') humoDyn(ctx, it, t, L.dx, L.dy); else aspasDyn(ctx, it, t, L.dx, L.dy); }
@@ -493,8 +506,11 @@
       }
       ctx.fillStyle = '#d8454a'; ctx.beginPath(); ctx.arc(0.1 * s, -1.42 * s, s * 0.07, 0, TAU); ctx.arc(-0.3 * s, -1.1 * s, s * 0.06, 0, TAU); ctx.fill();
     } else if (d.t === 'cardon') {
-      ctx.fillStyle = '#4f9a58'; ctx.strokeStyle = '#2d6a3c'; ctx.lineWidth = Math.max(1, s * 0.03);
-      for (const [dx, h, w] of [[0, 1.5, 0.16], [-0.26, 1.0, 0.12], [0.26, 1.15, 0.12], [-0.5, 0.65, 0.09]]) { rr(ctx, dx * s - w * s, -h * s, w * s * 2, h * s, w * s); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(30,80,50,.55)'; ctx.beginPath(); ctx.moveTo(dx * s, -h * s + w * s); ctx.lineTo(dx * s, -w * s); ctx.stroke(); ctx.strokeStyle = '#2d6a3c'; }
+      // tabaiba / aulaga: mata baja y redonda de ramitas con rosetas verde-amarillas
+      ctx.strokeStyle = '#6a5a3a'; ctx.lineWidth = Math.max(1, s * 0.04);
+      for (let i = 0; i < 7; i++) { const a = -Math.PI / 2 + (i - 3) * 0.32; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * s * 0.55, Math.sin(a) * s * 0.5); ctx.stroke(); }
+      for (let i = 0; i < 13; i++) { const a = Math.PI + (i / 12) * Math.PI, r = s * (0.42 + hash(i + 3) * 0.14), x = Math.cos(a) * r * 1.05, y = Math.sin(a) * r * 0.85 - s * 0.08;
+        ctx.fillStyle = i % 3 ? '#8fae3a' : '#b7c24a'; ctx.beginPath(); ctx.arc(x, y, s * (0.13 + hash(i) * 0.05), 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(240,230,120,.7)'; ctx.beginPath(); ctx.arc(x - s * 0.03, y - s * 0.04, s * 0.04, 0, TAU); ctx.fill(); }
     } else if (d.t === 'lagarto') {
       const mov = d.px != null && d.px + 2.4 > d.x && d.px < d.x + 3.6, w = mov ? Math.sin(t * 28) : Math.sin(t * 2) * 0.2;
       // lagarto atlántico (Gallotia atlantica): esbelto, cabeza en cuña, cola larguísima y motas azules en el costado

@@ -249,6 +249,7 @@ main:has(.gm){padding-top:8px}
 .mp{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 .mp-hero{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:1.85/1;min-height:190px;border:1px solid var(--line);box-shadow:0 10px 26px #0007}
 .mp-hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mp-hero .mp-img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:62% 35%;background:#2b84dc}
 .mp-top{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:12px 14px;background:linear-gradient(180deg,#0009,#0000)}
 .mp-h b{display:block;font-size:calc(22px * var(--fs, 1));color:#ffd978;text-shadow:0 2px 6px #000c}.mp-h span{font-size:calc(13px * var(--fs, 1));color:#fff;text-shadow:0 1px 4px #000c}
 .mp-est{background:#0009;border:1.5px solid #ffffff3a;border-radius:14px;padding:7px 12px;font-weight:800;color:#ffd978;font-size:calc(16px * var(--fs, 1));white-space:nowrap}
@@ -406,7 +407,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '1.9.3';
+const APP_VERSION = '1.10.0';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -600,7 +601,7 @@ function openWelcome(i) {
   i = Math.max(0, Math.min(WELCOME.length - 1, i || 0));
   const [ic, t, d] = WELCOME[i], last = i === WELCOME.length - 1;
   openModal(`<div style="text-align:center;padding:10px 4px 0">
-      <div style="font-size:calc(64px * var(--fs, 1));line-height:1.2">${ic}</div>
+      <div style="font-size:calc(64px * var(--fs, 1));line-height:1.2">${i === 0 ? '<img src="icons/icon-192.png" alt="" style="width:96px;height:96px;border-radius:24px;box-shadow:0 6px 18px #0006">' : ic}</div>
       <h3 style="margin:10px 0 8px;font-size:calc(22px * var(--fs, 1))">${esc(t)}</h3>
       <div class="mut" style="font-size:calc(16px * var(--fs, 1));line-height:1.5;min-height:7em">${esc(d)}</div>
       <div style="display:flex;justify-content:center;gap:6px;margin:14px 0 4px">${WELCOME.map((_, k) => `<i style="width:${k === i ? 20 : 8}px;height:8px;border-radius:4px;background:${k === i ? 'var(--gold)' : 'var(--line)'}"></i>`).join('')}</div>

@@ -319,7 +319,7 @@ function renderSetup() {
   const est = totalEstrellas(), tot = NIV.length * 3;
   const sig = NIV.findIndex((n, i) => n.ok && desbloqueado(i) && !progR(i).done);
   let h = `<div class="mp">
-    <div class="mp-hero"><canvas id="mpHero" aria-hidden="true"></canvas><div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
+    <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Mundo 1 · Uga</b><span>Aprender el camino y llevar el agua</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     <div id="mpDiario">${diarioHtml()}</div>
     <div class="mp-lv">`;
