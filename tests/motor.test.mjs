@@ -215,5 +215,48 @@ if (!process.env.SALTAR_ROBOT) {
   }
 }
 
+console.log('T30 · Peligros vivos (2.1)');
+{
+  const conPel = (hz, solids) => { const L = JSON.parse(JSON.stringify(BASE)); L.level_id = 'peligros'; L.routes = []; L.hints = []; L.obstacles = [];
+    L.solids = solids || [{ id: 'P', kind: 'ground', x0: -5, x1: 100, top: 0 }]; L.spawn = { x: 2, y: 0 }; L.checkpoint = { id: 'CP-01', x: 40, y: 0 }; L.checkpoints_extra = [];
+    L.world.min_x = -5; L.world.max_x = 100; L.world.kill_y = -20; L.goals.finish_x = 90; L.hazards = hz; return M.validar(L); };
+  // piedra: baja de x1 a x0 y golpea
+  let L = conPel([{ id: 'PIE-1', kind: 'piedra', x0: 2, x1: 20, y: 0, vel: 3.2, periodo: 400, desfase: 0 }]);
+  let s = nuevoJ(L); corre(L, s, 0, 400);
+  check('una piedra que rueda golpea a Martín (−12) y lo echa hacia atrás', s.danos === M.DANO_PIEDRA && s.golpes === 1, s.danos);
+  s = nuevoJ(L); s.t = 0; corre(L, s, 4, 1); hasta(L, s, 4, q => q.t > 330); 
+  const e0 = M.peligro(L.peligros[0], 10), e1 = M.peligro(L.peligros[0], 10);
+  check('el estado de un peligro depende solo del reloj (igual en la app y en el servidor)', JSON.stringify(e0) === JSON.stringify(e1) && e0.x < 20);
+  // géiser: lanza hacia arriba y quita 8
+  L = conPel([{ id: 'GEI-1', kind: 'geiser', x: 2, y: 0, periodo: 120, aviso: 30, activo: 30, fuerza: 9, desfase: 0 }]);
+  s = nuevoJ(L); corre(L, s, 0, 31);
+  check('el géiser lanza a Martín por el aire y quita 8 de agua', s.vy > 5 && !s.suelo && s.danos === M.DANO_VAPOR, s.vy + ' ' + s.danos);
+  s = nuevoJ(L); corre(L, s, 0, 29);
+  check('mientras el géiser solo avisa, no hace nada', s.danos === 0 && s.suelo);
+  // ola: empuja hacia atrás
+  L = conPel([{ id: 'OLA-1', kind: 'ola', x0: 0, x1: 6, y: 0, alto: 1.6, periodo: 120, aviso: 20, activo: 30, desfase: 0 }]);
+  s = nuevoJ(L); corre(L, s, 0, 21);
+  check('la ola empuja hacia atrás y quita 8', s.vx < 0 && s.danos === M.DANO_OLA, s.vx + ' ' + s.danos);
+  // viento en contra: avanza más despacio
+  L = conPel([{ id: 'VIE-1', kind: 'viento', x0: 0, x1: 99, fuerza: -1.8, periodo: 300, activo: 299, desfase: 0 }]);
+  s = nuevoJ(L); corre(L, s, 2, 150);
+  const libre = nuevoJ(plano); corre(plano, libre, 2, 150);
+  check('con viento en contra se avanza menos, pero se avanza', s.x < libre.x - 1 && s.x > 4, s.x + ' vs ' + libre.x);
+  s = nuevoJ(L); corre(L, s, 0, 150);
+  check('quieto, el viento empuja hacia atrás', s.x < 2);
+  // suelo frágil: aguanta 1 s y se hunde; vuelve al reaparecer
+  L = conPel([], [{ id: 'A', kind: 'ground', x0: -5, x1: 10, top: 0 }, { id: 'F', kind: 'ground', x0: 10, x1: 14, top: 0, fragil: true }, { id: 'B', kind: 'ground', x0: 14, x1: 100, top: 0 }]);
+  s = nuevoJ(L); s.x = 12; s.rx = 2; corre(L, s, 0, M.DERRUMBE - 2);
+  check('el suelo agrietado aguanta un momento al pisarlo', s.suelo && s.y === 0);
+  corre(L, s, 0, 40);
+  check('después se hunde y Martín cae', s.der.F === 0 && (s.y < -1 || s.fase === 'reaparece'));
+  hasta(L, s, 0, q => q.fase === 'jugando' && q.caidas === 1, 600);
+  check('al reaparecer, el suelo vuelve a estar', Object.keys(s.der).length === 0 && s.caidas === 1);
+  // validación
+  let err = ''; try { conPel([{ id: 'X', kind: 'meteorito', periodo: 100, desfase: 0 }]); } catch (e) { err = e.message; }
+  check('un peligro desconocido hace el nivel no válido', /peligro desconocido/.test(err));
+  check('los 6 niveles traen peligros vivos', NIV.every(n => n.ok && n.nivel.peligros.length >= 1) && NIV.some(n => n.nivel.solids.some(q => q.fragil)));
+}
+
 console.log(`\n${passed} correctas, ${failed} falladas`);
 process.exit(failed ? 1 : 0);

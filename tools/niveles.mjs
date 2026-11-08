@@ -233,7 +233,54 @@ function l06() {
   return cierra(n, { id: 'uga_l06_great_delivery', nombre: 'El gran encargo', resumen: 'El recorrido más largo de Uga: todo lo aprendido, en un solo viaje.', estrella3: 300, tema: 'uga' });
 }
 
-const niveles = [l01(), l02(), l03(), l04(), l05(), l06()];
+/* ---------- Peligros vivos (2.1): se colocan sobre tramos llanos, lejos del inicio, de los puntos de control y de la meta ---------- */
+function peligros(L, plan) {
+  const hz = [], ocup = [], cps = [L.checkpoint].concat(L.checkpoints_extra || []);
+  const fin = L.goals.finish_x, h = (k) => { let x = Math.sin(k * 127.1 + L.level_id.length * 13.7) * 43758.5453; return x - Math.floor(x); };
+  const libre = (x0, x1) => x0 > 26 && x1 < fin - 14 && !cps.some(c => c.x > x0 - 7 && c.x < x1 + 7) && !ocup.some(([a, b]) => x0 < b + 6 && x1 > a - 6);
+  const llanos = L.solids.filter(s => s.kind === 'ground' && !s.route).sort((a, b) => a.x0 - b.x0);
+  const gaps = (L.obstacles || []).filter(o => o.kind === 'gap').sort((a, b) => a.x0 - b.x0);
+  const tramos = (min) => llanos.filter(s => s.x1 - s.x0 >= min && libre(s.x0, s.x1));
+  const elige = (lista, k) => lista.length ? lista[Math.floor(lista.length * (0.15 + 0.7 * ((k + 0.5) / Math.max(1, plan.length))))] || lista[lista.length - 1] : null;
+  plan.forEach((tipo, k) => {
+    const id = tipo.toUpperCase().slice(0, 3) + '-' + String(k + 1).padStart(2, '0'), des = Math.floor(h(k + 1) * 600);
+    if (tipo === 'piedra') {
+      const s = elige(tramos(14), k); if (!s) return;
+      const x0 = r2(s.x0 + 1), x1 = r2(Math.min(s.x1, s.x0 + 24) - 1), vel = 3.2;
+      hz.push({ id, kind: 'piedra', x0, x1, y: s.top, vel, periodo: Math.ceil((x1 - x0) / vel * 60) + 100, desfase: des }); ocup.push([x0, x1]);
+    } else if (tipo === 'geiser') {
+      const s = elige(tramos(7), k); if (!s) return;
+      const x = r2((s.x0 + s.x1) / 2);
+      hz.push({ id, kind: 'geiser', x, y: s.top, periodo: 170, aviso: 55, activo: 45, fuerza: 8.5, desfase: des }); ocup.push([x - 1, x + 1]);
+    } else if (tipo === 'ola') {
+      const s = elige(tramos(10), k); if (!s) return;
+      const c = (s.x0 + s.x1) / 2, x0 = r2(c - 2), x1 = r2(c + 2);
+      hz.push({ id, kind: 'ola', x0, x1, y: s.top, alto: 1.6, periodo: 210, aviso: 55, activo: 40, desfase: des }); ocup.push([x0, x1]);
+    } else if (tipo === 'viento') {
+      const g = elige(gaps.filter(o => o.x1 - o.x0 >= 2.0 && libre(o.x0 - 8, o.x1 + 6)), k); if (!g) return;
+      const x0 = r2(g.x0 - 8), x1 = r2(g.x1 + 6);
+      hz.push({ id, kind: 'viento', x0, x1, fuerza: -1.8, periodo: 300, activo: 150, desfase: des }); ocup.push([x0, x1]);
+    }
+  });
+  if (plan.fragiles) {
+    let n = 0;
+    for (const s of L.solids) {
+      if (n >= plan.fragiles) break;
+      if ((s.kind === 'ground' || s.kind === 'oneway') && s.x1 - s.x0 <= 4.2 && s.x0 > 30 && s.x1 < fin - 14 && !cps.some(c => c.x >= s.x0 - 1 && c.x <= s.x1 + 1) && h(s.x0) < 0.6) { s.fragil = true; n++; }
+    }
+  }
+  L.hazards = hz;
+  return L;
+}
+const plan = (lista, fragiles) => Object.assign(lista, { fragiles: fragiles || 0 });
+const niveles = [
+  peligros(l01(), plan(['piedra'])),
+  peligros(l02(), plan(['piedra', 'viento', 'piedra', 'viento'])),
+  peligros(l03(), plan(['geiser', 'piedra', 'geiser', 'geiser'], 2)),
+  peligros(l04(), plan(['viento', 'piedra', 'viento'], 3)),
+  peligros(l05(), plan(['ola', 'geiser', 'ola', 'ola'], 2)),
+  peligros(l06(), plan(['piedra', 'viento', 'geiser', 'piedra', 'ola'], 3))
+];
 const out = '/* Niveles de Uga (JSON validado por Martin.cargar). GENERADO por tools/niveles.mjs: no editar a mano. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst N = [\n' + niveles.map(l => '  ' + JSON.stringify(JSON.stringify(l))).join(',\n') + '\n];\n'
   + 'root.MARTIN_NIVELES = N;\nif (typeof module !== "undefined" && module.exports) module.exports = N;\n})(typeof self !== "undefined" ? self : globalThis);\n';

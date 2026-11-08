@@ -33,7 +33,7 @@ function jugar(L, o) {
           const fin = M.repetir(L, runs, { mod: o.mod, agua: o.agua });
           return { ok: !!fin && fin.fase === 'meta', runs, estado: fin, pasos: paso + 1 };
         }
-        const key = Math.round(s.x * 5) + ',' + Math.round(s.y * 5) + ',' + Math.round(s.vx) + ',' + Math.round(s.vy / 3) + ',' + (s.suelo ? 1 : 0) + ',' + s.fase + ',' + (s.agua >> 3);
+        const key = Object.keys(s.der).length + ',' + Math.round(s.x * 5) + ',' + Math.round(s.y * 5) + ',' + Math.round(s.vx) + ',' + Math.round(s.vy / 3) + ',' + (s.suelo ? 1 : 0) + ',' + s.fase + ',' + (s.agua >> 3);
         const p = hijos.get(key);
         if (!p || p.sc < sc) hijos.set(key, { s, padre: nodo, m: a, sc });
       }

@@ -422,7 +422,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -610,6 +610,7 @@ const WELCOME = [
   ['🐪', 'Bienvenido a Martín', 'Martín es un camello canario joven de Uga. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
   ['👆', 'Cómo se juega', 'Mantén ◀ ▶ para caminar y toca ⬆ para saltar. Mantén el salto para llegar un poco más alto. En ordenador: flechas o A/D, barra espaciadora y Esc para pausa.'],
   ['💧', 'Cuida el agua', 'Tienes 100 de agua. Una caída desde muy alto o un golpe fuerte contra una roca derrama parte. Si se acaba, hay que volver a intentarlo; si te caes por un hueco, vuelves al último punto de control y pierdes 15.'],
+  ['🌋', 'Peligros vivos', 'Piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde. Todos avisan antes: fíjate en el «!», el humo, la manga de viento o las burbujas.'],
   ['⭐', 'Estrellas y caminos', 'Una estrella por entregar, otra por llegar con mucha agua y otra por hacerlo rápido. A veces hay dos caminos: uno rápido y arriesgado, y otro lento y seguro. Cada día hay además un reto igual para todos.']
 ];
 function openWelcome(i) {
@@ -640,6 +641,11 @@ function openGameRules() {
       <li>Aterrizar con fuerza media: <b>−12</b>. Con mucha fuerza (caer desde más de unos 3,5 de alto): <b>−25</b>. Un salto normal o bajar escalones no cuesta nada.</li>
       <li>Chocar de lado contra una <b>roca</b> con prisa: <b>−10</b>. Si vas despacio o chocas contra una pared de tierra, no pasa nada.</li>
       <li>Un mismo golpe solo se cuenta una vez, y después hay un instante sin daño.</li>
+      <li><b>Piedras que ruedan</b> (−12): salen de un montón de piedras sueltas; un «!» avisa justo antes. Sáltalas.</li>
+      <li><b>Géiseres de vapor</b> (−8): primero echan humo y brillan; después lanzan a Martín por el aire.</li>
+      <li><b>Rachas de viento</b>: la manga roja y blanca se levanta y el viento frena a Martín; espera a que amaine para saltar.</li>
+      <li><b>Olas</b> (−8): el mar burbujea antes de reventar entre las rocas y empujar a Martín hacia atrás.</li>
+      <li><b>Suelo agrietado</b>: aguanta un segundo cuando lo pisas y luego se hunde. Vuelve a estar en su sitio si reapareces.</li>
       <li>Si te caes por un hueco: vuelves al <b>último punto de control</b> (⚑) o al principio, y pierdes <b>15</b>. El punto de control no repone el agua.</li>
       <li>Con 0 de agua, la misión falla. Con menos de 30 verás un aviso (con símbolo y borde discontinuo, no solo color).</li></ul>
     <h4>Estrellas</h4><ul><li>★ Entregar el agua. ★★ Llegar con el agua que pida el nivel (normalmente 75 o más). ★★★ Además, dentro del tiempo del nivel.</li>

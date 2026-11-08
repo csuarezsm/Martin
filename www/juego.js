@@ -59,6 +59,11 @@ const Sound = (() => {
       else if (kind === 'exito') [523, 659, 784, 1046].forEach((f, i) => tone(c, t + i * 0.11, f, f, 0.26, 0.06));
       else if (kind === 'aviso') tone(c, t, 880, 880, 0.08, 0.04, 'square');
       else if (kind === 'clic') tone(c, t, 500, 500, 0.05, 0.03);
+      else if (kind === 'vapor') { ruido(c, t, 0.5, 0.09); tone(c, t, 140, 60, 0.4, 0.05, 'sawtooth'); }
+      else if (kind === 'ola') { ruido(c, t, 0.7, 0.11); }
+      else if (kind === 'piedra') { ruido(c, t, 0.12, 0.14); tone(c, t, 120, 50, 0.2, 0.08); }
+      else if (kind === 'cruje') { for (let i = 0; i < 3; i++) ruido(c, t + i * 0.07, 0.04, 0.06); }
+      else if (kind === 'derrumbe') { ruido(c, t, 0.35, 0.1); tone(c, t, 90, 40, 0.3, 0.06); }
     } catch (e) {}
   }
   return { play };
@@ -117,9 +122,11 @@ function paso1() {
 function evento(e) {
   const s = RUN.s;
   if (e.t === 'salto') Sound.play('salto');
-  else if (e.t === 'aterriza') { Sound.play('aterriza'); RUN.fx.push({ k: 'polvo', x: s.x, y: s.y, v: 0, n: 18 }); }
+  else if (e.t === 'aterriza') { Sound.play('aterriza'); RUN.fx.push({ k: 'polvo', x: s.x, y: s.y, v: 0, n: 18 }); if (e.v > 8) { RUN.shake = Math.max(RUN.shake || 0, 0.35); RUN.fx.push({ k: 'polvo', x: s.x + 0.6, y: s.y, v: 0, n: 22 }); } }
+  else if (e.t === 'cruje') Sound.play('cruje');
+  else if (e.t === 'derrumbe') { Sound.play('derrumbe'); RUN.shake = Math.max(RUN.shake || 0, 0.5); const c = RUN.L.solids.find(q => q.id === e.id); if (c) for (let i = 0; i < 8; i++) RUN.fx.push({ k: 'gota', piedra: true, x: c.x0 + (c.x1 - c.x0) * (i + 0.5) / 8, y: c.top, v: 0, n: 50, vx: (hash(i) - 0.5) * 2, vy: 1 + hash(i + 3) * 2 }); }
   else if (e.t === 'dano') {
-    Sound.play('golpe'); vibrate(40); RUN.golpe = 1; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.2, v: 0, n: 60, txt: '−' + e.cantidad }); for (let i = 0; i < 6; i++) RUN.fx.push({ k: 'gota', x: s.x, y: s.y + 1.7, v: 0, n: 40, vx: (i - 2.5) * 0.9, vy: 3 + (i % 3) });
+    Sound.play(e.tipo === 'vapor' ? 'vapor' : e.tipo === 'ola' ? 'ola' : e.tipo === 'piedra' ? 'piedra' : 'golpe'); vibrate(40); RUN.golpe = 1; RUN.shake = Math.max(RUN.shake || 0, e.cantidad >= 20 ? 1 : 0.6); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.2, v: 0, n: 60, txt: '−' + e.cantidad }); for (let i = 0; i < 6; i++) RUN.fx.push({ k: 'gota', x: s.x, y: s.y + 1.7, v: 0, n: 40, vx: (i - 2.5) * 0.9, vy: 3 + (i % 3) });
     if (e.resto > 0 && e.resto < 30 && !RUN.avisado) { RUN.avisado = true; Sound.play('aviso'); }
   } else if (e.t === 'caida') { Sound.play('caida'); vibrate(60); RUN.fx.push({ k: 'texto', x: s.x, y: RUN.L.world.kill_y + 3, v: 0, n: 70, txt: '−' + e.cantidad }); }
   else if (e.t === 'control') { Sound.play('control'); const c = RUN.L.cps.find(q => q.id === e.id); if (c) c.alcanzado = true; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: '⚑ Punto de control' }); }
@@ -178,6 +185,8 @@ function dibujar(dt) {
   RUN.cam.x += (objX - RUN.cam.x) * Math.min(1, k * 2.4);
   const dz = vh * 0.12; if (idealY - RUN.cam.y > dz) RUN.cam.y += (idealY - dz - RUN.cam.y) * k; else if (RUN.cam.y - idealY > dz) RUN.cam.y += (idealY + dz - RUN.cam.y) * k;
   for (const d of RUN.esc.deco) if (d.t === 'lagarto') d.px = s.x;
+  RUN.esc.s = s;
+  let shx = 0, shy = 0; if (RUN.shake > 0) { const a = RUN.shake * 0.12; shx = (Math.random() - 0.5) * a; shy = (Math.random() - 0.5) * a; RUN.shake = Math.max(0, RUN.shake - (dt || 16) / 260); RUN.cam.x += shx; RUN.cam.y += shy; }
   dibujaEscena(ctx, W, H, u, RUN.cam, L, RUN.esc, RUN.t, RUN.fx);
   const px = (s.x - RUN.cam.x) * u, py = H - (s.y - RUN.cam.y) * u;
   // personaje
@@ -192,6 +201,7 @@ function dibujar(dt) {
   dibujaPrimerPlano(ctx, W, H, u, RUN.cam, RUN.t);
   dibujaFx(ctx, W, H, u, RUN.cam, RUN.fx, RUN.t);
   dibujaPost(ctx, W, H, RUN.esc, s.agua);
+  RUN.cam.x -= shx; RUN.cam.y -= shy;
   // sin avisos de color solo: contorno en la vista de poca agua
   if (s.agua > 0 && s.agua < 30) { ctx.strokeStyle = 'rgba(255,210,74,.75)'; ctx.lineWidth = 6; ctx.setLineDash([18, 12]); ctx.strokeRect(3, 3, W - 6, H - 6); ctx.setLineDash([]); }
 }
