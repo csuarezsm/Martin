@@ -461,11 +461,15 @@
   }
 
   /* Paisaje ilustrado (paisaje.jpg, 1672×640): se repite en espejo para que empalme sin cortes y se desplaza despacio (paralaje) */
+  // un paisaje por nivel: Uga, tras la tormenta, Timanfaya, La Geria (la hoya), la costa y el atardecer
   const PAI = { w: 1672, h: 640, suelo: null, fotos: [
-    { src: 'paisaje.jpg', cielo: ['#0050c0', '#0e8ce7'] },          // mañana y mediodía
-    { src: 'paisaje-tarde.jpg', cielo: ['#3d78d0', '#669fe9'] },    // tarde
-    { src: 'paisaje-ocaso.jpg', cielo: ['#41629c', '#6c8cc4'] }],   // atardecer
-    porTema: [0, 0, 1, 2, 1, 2] };
+    { src: 'paisaje-uga.jpg', cielo: ['#0070c8', '#0281d4'] },
+    { src: 'paisaje.jpg', cielo: ['#0070e0', '#028dfc'] },
+    { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
+    { src: 'paisaje-geria.jpg', cielo: ['#1a96b8', '#25aac6'] },
+    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
+    { src: 'paisaje-ocaso.jpg', cielo: ['#41629c', '#6b8ccc'] }],
+    porTema: [0, 1, 2, 3, 4, 5] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') { f.img = new Image(); f.img.onload = () => { f.ok = true; }; f.img.src = f.src; }
@@ -484,7 +488,7 @@
     }
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, suelo - 1, W, H - suelo + 1);
-    if (TM.tinte && TEMAS.indexOf(TM) === 4) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
+    if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
   function dibujaFondo(ctx, W, H, u, cam, TM, t) {
     { const F = fotoTema(TEMAS.indexOf(TM)); if (F) return dibujaPaisaje(ctx, W, H, u, cam, TM, t, F); }
