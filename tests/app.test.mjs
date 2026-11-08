@@ -282,12 +282,21 @@ console.log('Copia de seguridad');
 /* ================= T26 · Idiomas ================= */
 console.log('Idiomas');
 for (const idioma of ['en', 'fr', 'de', 'it']) {
-  const { p, ctx, errors } = await fresh(BASE_STATE, null, '', { idioma });
+  const todo = Object.fromEntries(IDS.map(id => [id, { done: true, stars: 2, bestMs: 100000, bestAgua: 90, plays: 1, fails: 0, obj: ['FRU-1'] }]));
+  const { p, ctx, errors } = await fresh({ ...BASE_STATE, prog: todo }, null, '', { idioma });
   await p.waitForTimeout(500);
+  // todas las fichas del Cuaderno, la bienvenida y las pantallas de fallo y de entrega
+  await p.evaluate(() => openCuaderno()); for (const i of IDS.keys()) { await p.evaluate(i => openFicha(i, true), i); await p.waitForTimeout(80); }
+  await p.evaluate(() => closeModal());
+  for (let i = 0; i < 5; i++) { await p.evaluate(i => openWelcome(i), i); await p.waitForTimeout(80); } await p.evaluate(() => closeModal());
+  await p.evaluate(() => { window.MARTIN_REPLAY = [0, 99999]; jugar(0, 'nivel'); empezar(); pausar(); }); await p.waitForTimeout(150);
+  await p.evaluate(() => { reanudar(); const s = __martin.RUN.s; s.fase = 'fallo'; s.causa = 'lava'; terminar(); }); await p.waitForTimeout(150);
+  await p.evaluate(() => { jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
+  await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
   for (const i of [0, 1, 2, 3, 4, 5]) { await p.evaluate(i => openBriefing(i), i); await p.waitForTimeout(100); await p.evaluate(() => closeModal()); }
   for (const id of ['mArch', 'mGameRules', 'mTheme', 'mAbout', 'mShareApp']) { await p.click('#menuBtn'); await p.click('#' + id).catch(() => {}); await p.waitForTimeout(150); await p.evaluate(() => { try { closeModal(); } catch (e) {} }); }
   await p.evaluate(() => jugar(0, 'nivel')); await p.waitForTimeout(400);
-  const falta = (await p.evaluate(() => Idioma.faltan())).filter(x => x !== 'Martín');
+  const falta = (await p.evaluate(() => Idioma.faltan())).filter(x => x !== 'Martín' && x !== 'Español');
   check(idioma + ': todo lo que se ve está traducido (sin textos sueltos en español)', falta.length === 0, falta.slice(0, 6).join(' | '));
   check(idioma + ': el HUD no se desborda con textos más largos', await noHScroll(p));
   check(idioma + ': sin errores', errors.length === 0, errors.join(' | '));

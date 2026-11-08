@@ -2,7 +2,7 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **6 niveles de plataformas** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.2.0
+Paquete: `com.itcanarias.martin` · versión 2.2.1
 
 Novedades de la 2.2: **¡la lava te persigue en Timanfaya!**, **aljibes** que reponen agua, **3 frutos escondidos** por nivel (tunos, higos y uvas malvasía) y el **fantasma** de tu mejor carrera para competir contra ti mismo.
 

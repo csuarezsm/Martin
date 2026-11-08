@@ -477,7 +477,7 @@ function openCuaderno() {
 function openFicha(i, desdeCuaderno) {
   const f = LUG[i]; if (!f) return;
   openModal(`<div class="fi"><div class="fi-img" style="background-image:url('${f.img}');background-position:${f.pos}"></div>
-    <div class="fi-l">Nivel ${i + 1} · ${esc(f.lugar)}</div><h3>${esc(f.titulo)}</h3>
+    <div class="fi-l"><span>Nivel ${i + 1}</span> · <span>${esc(f.lugar)}</span></div><h3>${esc(f.titulo)}</h3>
     ${f.texto.map(p => `<p>${esc(p)}</p>`).join('')}
     <div class="fi-dato"><b>¿Sabías que…?</b> ${esc(f.dato)}</div>
     ${NIV[i] && NIV[i].ok && frutosDe(NIV[i].nivel).length ? `<div class="fi-fru"><span id="fiFru"></span><span>Frutos del camino: <b>${frutosHechos(i)}/${frutosDe(NIV[i].nivel).length}</b>${frutosHechos(i) < frutosDe(NIV[i].nivel).length ? ' · Busca en lo alto y sobre los huecos.' : ''}</span></div>` : ''}
