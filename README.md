@@ -4,6 +4,8 @@ Un camello canario joven de Uga lleva el agua por los caminos que dejó la torme
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
 Paquete: `com.itcanarias.martin` · versión 1.13.1
 
+Novedades de la 1.13: un paisaje ilustrado de Lanzarote en cada nivel, plantas y piedras dibujadas y Martín con paso más natural.
+
 **iPhone y navegadores**: la misma app se publica como versión web instalable en https://csuarezsm.github.io/Martin/app/ (GitHub Pages, carpeta `docs/app`, copia de `www/`). En Safari: Compartir → «Añadir a pantalla de inicio». Tras cambiar `www/`, ejecuta `npm run web`.
 
 © 2026 IT Canarias. Todos los derechos reservados. Martín, Uga y sus caminos son ficción inspirada en Lanzarote; dibujos, sonidos y código propios.
