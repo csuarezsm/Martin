@@ -472,19 +472,28 @@
     porTema: [0, 1, 2, 3, 4, 5] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
-    if (!f.img && typeof Image !== 'undefined') { f.img = new Image(); f.img.onload = () => { f.ok = true; }; f.img.src = f.src; }
+    if (!f.img && typeof Image !== 'undefined') {
+      f.img = new Image();
+      f.img.onload = () => {   // mosaico sin costuras: el final de la imagen se funde con su principio (sin espejo, que duplicaba casas)
+        const w = f.img.naturalWidth, h = f.img.naturalHeight, ov = Math.round(w * 0.3), c = document.createElement('canvas'); c.width = w - ov; c.height = h;
+        const g = c.getContext('2d'); g.drawImage(f.img, 0, 0);
+        const q = document.createElement('canvas'); q.width = ov; q.height = h; const gq = q.getContext('2d'); gq.drawImage(f.img, w - ov, 0, ov, h, 0, 0, ov, h);
+        gq.globalCompositeOperation = 'destination-in'; const gr = gq.createLinearGradient(0, 0, ov, 0); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); gq.fillStyle = gr; gq.fillRect(0, 0, ov, h);
+        g.drawImage(q, 0, 0); f.tile = c; f.ok = true;
+      };
+      f.img.src = f.src;
+    }
     return f.ok ? f : null;
   }
   fotoTema(0);
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F) {
     const suelo = (PAI.suelo != null ? PAI.suelo : H - H * (W < H ? 0.27 : 0.3)) + u * 0.5;   // el dibujo se apoya en el suelo que se ve en pantalla
-    const alto = Math.max(suelo * 0.78, u * 6.5), k = alto / PAI.h, ancho = PAI.w * k, top = suelo - alto;
+    const alto = Math.max(suelo * 0.78, u * 6.5), k = alto / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
     const off = cam.x * u * 0.18, i0 = Math.floor(off / ancho);
     for (let i = i0; ancho * i - off < W; i++) {
       const x = ancho * i - off;
-      if (i % 2 === 0) ctx.drawImage(F.img, x, top, ancho + 1, alto);
-      else { ctx.save(); ctx.translate(x + ancho, top); ctx.scale(-1, 1); ctx.drawImage(F.img, 0, 0, ancho + 1, alto); ctx.restore(); }
+      ctx.drawImage(F.tile, x, top, ancho + 1, alto);
     }
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, suelo - 1, W, H - suelo + 1);
@@ -615,6 +624,9 @@
   }
 
   function dibujaRoca(ctx, s, base, W, H, u, sx, sy) {
+    if (FLO.ok) { const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = sy(base), m = FLO.m.roca, w = x1 - x0, h = yb - yt, sp = u * 0.25;
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x0 + w / 2, yb, w * 0.62, u * 0.13, 0, 0, TAU); ctx.fill();
+      ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], x0 - sp, yt - h * 0.08, w + sp * 2, h * 1.12); return; }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = sy(base), w = x1 - x0, h = yb - yt, sd = Math.floor(s.x0 * 7);
     const P = [[0, 1], [0.0, 0.3], [0.1, 0.08], [0.32, 0.0], [0.58, 0.05], [0.82, 0.02], [1.0, 0.22], [1.0, 1]];
     const pts = P.map(([a, b], i) => [x0 + w * (a + (i > 0 && i < 6 ? (hash(sd + i) - 0.5) * 0.04 : 0)), yt + h * (b + (i > 0 && i < 6 ? hash(sd + i + 9) * 0.03 : 0))]);
@@ -634,6 +646,12 @@
   }
 
   function dibujaRepisa(ctx, s, W, H, u, sx, sy) {
+    if (FLO.ok) { // repisa de piedra seca: tramos del muro ilustrado puestos en fila
+      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), m = FLO.m.muro, th = Math.max(u * 0.7, 8), tw = th * m[2] / m[3] * 0.62;
+      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0 + u * 0.1, yt + th * 0.9, x1 - x0 - u * 0.1, u * 0.18);
+      ctx.save(); ctx.beginPath(); ctx.rect(x0 - u * 0.12, yt - th * 0.25, x1 - x0 + u * 0.24, th * 1.3); ctx.clip();
+      for (let x = x0 - u * 0.12, i = 0; x < x1 + u * 0.12; x += tw * 0.92, i++) { const sxx = m[0] + (i % 2 ? m[2] * 0.3 : 0); ctx.drawImage(FLO.img, sxx, m[1] + m[3] * 0.05, m[2] * 0.62, m[3] * 0.9, x, yt - th * 0.15, tw, th); }
+      ctx.restore(); return; }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), th = Math.max(u * 0.34, 5), w = x1 - x0;
     ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0 + u * 0.1, yt + th, w - u * 0.1, u * 0.2);
     let g = ctx.createLinearGradient(0, yt, 0, yt + th); g.addColorStop(0, '#c7b6a0'); g.addColorStop(0.35, COL.repisa); g.addColorStop(1, '#5d5047'); ctx.fillStyle = g; rr(ctx, x0, yt, w, th, u * 0.08); ctx.fill();
