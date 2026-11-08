@@ -522,7 +522,20 @@
   }
 
   /* ---- Primer plano ---- */
+  /* Plantas y piedras de Lanzarote dibujadas (flora.png): [x, y, ancho, alto] en el atlas y altura en el mundo */
+  const FLO = { ok: false, img: null, m: {"palmera": [0, 0, 203, 179, 3.3], "tabaibal": [205, 0, 227, 164, 1.6], "tunera": [434, 0, 172, 158, 1.5], "pita": [608, 0, 188, 143, 1.25], "vid": [798, 0, 200, 124, 1.0], "aloe": [0, 181, 147, 116, 1.3], "gris": [149, 181, 166, 112, 1.0], "bejeque": [317, 181, 160, 110, 1.05], "aulaga": [479, 181, 156, 110, 1.0], "morada": [637, 181, 143, 106, 0.95], "muro": [782, 181, 210, 106, 0.9], "salado": [0, 299, 145, 104, 0.9], "roca": [147, 299, 151, 104, 1.0], "hierba": [300, 299, 120, 84, 0.8], "piedra": [422, 299, 104, 80, 0.6], "rosas": [528, 299, 120, 80, 0.55], "amarillas": [650, 299, 135, 73, 0.5], "piedras": [787, 299, 112, 64, 0.45], "rojas": [0, 405, 152, 62, 0.45]},
+    por: { tunera: ['tunera', 'tunera', 'bejeque', 'aloe'], cardon: ['tabaibal', 'aulaga', 'morada', 'gris', 'salado', 'bejeque', 'vid', 'palmera'], pita: ['pita', 'aloe'], piedra: ['piedra', 'piedras', 'roca', 'muro'], flor: ['rojas', 'amarillas', 'rosas', 'hierba'] } };
+  if (typeof Image !== 'undefined') { FLO.img = new Image(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.png'; }
+  function decoSprite(ctx, d, x, y, u) {
+    const l = FLO.por[d.t]; if (!l) return false;
+    const n = l[Math.floor(hash(Math.floor(d.x * 7) + 5) * l.length)], m = FLO.m[n];
+    const hh = m[4] * u * (0.85 + clamp((d.s - 0.75) / 1, 0, 1) * 0.35), ww = hh * m[2] / m[3];
+    ctx.save(); ctx.translate(x, y + hh * 0.04); if (hash(Math.floor(d.x * 11)) < 0.5) ctx.scale(-1, 1);
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, -hh * 0.03, ww * 0.42, hh * 0.07, 0, 0, TAU); ctx.fill();
+    ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], -ww / 2, -hh, ww, hh); ctx.restore(); return true;
+  }
   function dibujaDeco(ctx, d, x, y, u, t) {
+    if (FLO.ok && d.t !== 'lagarto' && decoSprite(ctx, d, x, y, u)) return;
     const s = d.s * u, sw = Math.sin(t * 1.3 + d.x) * 0.03;
     if (d.t === 'lagarto' && d.px != null) x += clamp(d.px + 2.4 - d.x, 0, 6) * u;
     ctx.save(); ctx.translate(x, y); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
