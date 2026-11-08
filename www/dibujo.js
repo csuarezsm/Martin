@@ -468,7 +468,7 @@
     { src: 'paisaje-uga.jpg', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
     { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
     { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
-    { src: 'paisaje-geria.jpg', ini: 0.22, cielo: ['#1a96b8', '#25aac6'] },
+    { src: 'paisaje-geria.jpg', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
     { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
     { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] }],
     porTema: [0, 1, 2, 3, 4, 5] };
@@ -489,16 +489,17 @@
   }
   fotoTema(0);
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F) {
-    const suelo = (PAI.suelo != null ? PAI.suelo : H - H * (W < H ? 0.27 : 0.3)) + u * 0.5;   // el dibujo se apoya en el suelo que se ve en pantalla
-    const alto = Math.max(suelo * 0.78, u * 6.5), k = alto / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
+    // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
+    const ref = H - H * (W < H ? 0.27 : 0.3), s0 = PAI.suelo != null ? PAI.suelo : ref, suelo = ref + (s0 - ref) * 0.65 + u * 0.5;
+    const alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
     const off = cam.x * u * 0.18, i0 = Math.floor(off / ancho);
     for (let i = i0; ancho * i - off < W; i++) {
       const x = ancho * i - off;
-      ctx.drawImage(F.tile, x, top, ancho + 1, alto);
+      ctx.drawImage(F.tile, x, top, ancho + 1, dib);
     }
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
-    ctx.fillStyle = '#16100f'; ctx.fillRect(0, suelo - 1, W, H - suelo + 1);
+    ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
   function dibujaFondo(ctx, W, H, u, cam, TM, t) {
@@ -684,7 +685,7 @@
     const sx = wx => (wx - cam.x) * u, sy = wy => H - (wy - cam.y) * u;
     { // altura en pantalla del suelo bajo el centro de la vista (suavizada) para apoyar el paisaje
       const cx = cam.x + W / u / 2; let top = null; for (const s of L.solids) if (s.kind === 'ground' && s.x0 <= cx + 3 && s.x1 >= cx - 3 && (top == null || s.top > top)) top = s.top;
-      if (top != null) { const y = sy(top); PAI.suelo = PAI.suelo == null || Math.abs(PAI.suelo - y) > H * 0.5 ? y : PAI.suelo + (y - PAI.suelo) * 0.06; } }
+      if (top != null) { const y = sy(top); PAI.suelo = PAI.suelo == null || Math.abs(PAI.suelo - y) > H * 0.5 ? y : PAI.suelo + (y - PAI.suelo) * 0.035; } }
     dibujaFondo(ctx, W, H, u, cam, TM, t);
     // abismo de los huecos
     for (const h of esc.huecos) {
