@@ -37,13 +37,15 @@
         g.fillStyle = '#a5532f'; g.fillRect(0, 0, w, h);
         for (let i = 0; i < 160; i++) { const x = hash(i * 5 + 1) * w, y = hash(i * 5 + 2) * h; g.fillStyle = hash(i * 5 + 3) < 0.5 ? 'rgba(255,190,120,.18)' : 'rgba(60,20,10,.22)'; g.fillRect(x, y, 1 + hash(i) * 3, 1 + hash(i + 9) * 2); }
       });
+      // texturas pintadas sacadas de los paisajes (mismo estilo que el fondo)
+      for (const [k, src] of [['tierraP', 'suelo-tierra.jpg'], ['lavaP', 'suelo-lava.jpg']]) { const im = new Image(); im.onload = () => { TEX[k] = im; }; im.src = src; }
     } catch (e) { TEX = {}; }
     return TEX;
   }
-  function relleno(ctx, tex, ox, oy, fallback) {
+  function relleno(ctx, tex, ox, oy, fallback, esc) {
     if (!tex) return fallback;
     const p = ctx.createPattern(tex, 'repeat');
-    try { if (p && p.setTransform) p.setTransform(new DOMMatrix().translate(ox, oy)); } catch (e) {}
+    try { if (p && p.setTransform) p.setTransform(new DOMMatrix().translate(ox, oy).scale(esc || 1)); } catch (e) {}
     return p || fallback;
   }
 
@@ -463,21 +465,21 @@
   /* Paisaje ilustrado (paisaje.jpg, 1672×640): se repite en espejo para que empalme sin cortes y se desplaza despacio (paralaje) */
   // un paisaje por nivel: Uga, tras la tormenta, Timanfaya, La Geria (la hoya), la costa y el atardecer
   const PAI = { w: 1672, h: 640, suelo: null, fotos: [
-    { src: 'paisaje-uga.jpg', cielo: ['#0070c8', '#0281d4'] },
-    { src: 'paisaje.jpg', cielo: ['#0070e0', '#028dfc'] },
+    { src: 'paisaje-uga.jpg', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
+    { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
     { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
-    { src: 'paisaje-geria.jpg', cielo: ['#1a96b8', '#25aac6'] },
+    { src: 'paisaje-geria.jpg', ini: 0.22, cielo: ['#1a96b8', '#25aac6'] },
     { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
-    { src: 'paisaje-ocaso.jpg', cielo: ['#41629c', '#6b8ccc'] }],
+    { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] }],
     porTema: [0, 1, 2, 3, 4, 5] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
       f.img = new Image();
       f.img.onload = () => {   // mosaico sin costuras: el final de la imagen se funde con su principio (sin espejo, que duplicaba casas)
-        const w = f.img.naturalWidth, h = f.img.naturalHeight, ov = Math.round(w * 0.3), c = document.createElement('canvas'); c.width = w - ov; c.height = h;
-        const g = c.getContext('2d'); g.drawImage(f.img, 0, 0);
-        const q = document.createElement('canvas'); q.width = ov; q.height = h; const gq = q.getContext('2d'); gq.drawImage(f.img, w - ov, 0, ov, h, 0, 0, ov, h);
+        const x0 = Math.round(f.img.naturalWidth * (f.ini || 0)), w = Math.round(f.img.naturalWidth * (f.fin || 1)) - x0, h = f.img.naturalHeight, ov = Math.round(w * 0.22), c = document.createElement('canvas'); c.width = w - ov; c.height = h;   // se recorta la palmera grande del borde (al repetirse dejaba un fantasma)
+        const g = c.getContext('2d'); g.drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
+        const q = document.createElement('canvas'); q.width = ov; q.height = h; const gq = q.getContext('2d'); gq.drawImage(f.img, x0 + w - ov, 0, ov, h, 0, 0, ov, h);
         gq.globalCompositeOperation = 'destination-in'; const gr = gq.createLinearGradient(0, 0, ov, 0); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); gq.fillStyle = gr; gq.fillRect(0, 0, ov, h);
         g.drawImage(q, 0, 0); f.tile = c; f.ok = true;
       };
@@ -595,6 +597,22 @@
   }
 
   function dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX) {
+    if (TX.tierraP && TX.lavaP) {
+      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4, a = Math.max(x0, -6), b = Math.min(x1, W + 6); if (b <= a) return;
+      const kL = u * 2.2 / TX.lavaP.height, kT = u * 0.95 / TX.tierraP.height;
+      ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u * 1, yt, '#2a2122', kL); ctx.fillRect(a, yt, b - a, yb - yt);
+      let g = ctx.createLinearGradient(0, yt, 0, yt + u * 5); g.addColorStop(0, 'rgba(10,6,6,0)'); g.addColorStop(1, 'rgba(10,6,6,.6)'); ctx.fillStyle = g; ctx.fillRect(a, yt, b - a, yb - yt);
+      const th = Math.min(u * 0.7, yb - yt), paso = u * 0.3;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(a, yt - 1);
+      for (let x = a; x <= b + paso; x += paso) { const wx = x / u + cam.x; ctx.lineTo(x, yt + th * (0.72 + hash(Math.floor(wx * 3)) * 0.5)); }
+      ctx.lineTo(b, yt - 1); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = relleno(ctx, TX.tierraP, -cam.x * u, yt, '#a5532f', kT); ctx.fillRect(a, yt - 1, b - a, th * 1.4);
+      g = ctx.createLinearGradient(0, yt, 0, yt + th * 1.3); g.addColorStop(0, 'rgba(255,220,160,.18)'); g.addColorStop(0.6, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,10,5,.35)'); ctx.fillStyle = g; ctx.fillRect(a, yt - 1, b - a, th * 1.4);
+      ctx.restore();
+      ctx.fillStyle = 'rgba(255,225,170,.35)'; ctx.fillRect(a, yt - 1, b - a, Math.max(1, u * 0.03));
+      for (const [xx, dir] of [[x0, 1], [x1, -1]]) { if (xx < -u || xx > W + u) continue; g = ctx.createLinearGradient(xx, 0, xx + dir * u * 0.55, 0); g.addColorStop(0, 'rgba(0,0,0,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(dir > 0 ? xx : xx - u * 0.55, yt, u * 0.55, yb - yt); }
+      return;
+    }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4;
     const a = Math.max(x0, -6), b = Math.min(x1, W + 6); if (b <= a) return;
     // cuerpo de lapilli con degradado de profundidad y textura
@@ -712,6 +730,7 @@
 
   /* Primer plano: siluetas oscuras que pasan más deprisa que el suelo (profundidad) */
   function dibujaPrimerPlano(ctx, W, H, u, cam, t) {
+    if (FLO.ok) return;   // las siluetas planas no casaban con el estilo pintado
     const per = 4.1, off = cam.x * 1.4, i0 = Math.floor(off / per) - 1;
     for (let i = i0; i < i0 + Math.ceil(W / u / per) + 3; i++) {
       const hk = hash(i * 23 + 7), x = (i * per + hk * 2.5 - off) * u, tipo = hk < 0.55 ? 0 : hk < 0.8 ? 1 : 2, sw = Math.sin(t * 1.4 + i) * 0.04;
