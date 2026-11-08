@@ -490,7 +490,7 @@
   fotoTema(0);
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F) {
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
-    const ref = H - H * (W < H ? 0.27 : 0.3), s0 = PAI.suelo != null ? PAI.suelo : ref, suelo = ref + (s0 - ref) * 0.65 + u * 0.5;
+    const ref = H - H * (W < H ? 0.27 : 0.3), suelo = ref + u * 0.5;   // fijo en vertical: seguir al suelo daba saltos
     const alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
     const off = cam.x * u * 0.18, i0 = Math.floor(off / ancho);

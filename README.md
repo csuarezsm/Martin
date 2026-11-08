@@ -2,7 +2,7 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **6 niveles de plataformas** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 1.14.1
+Paquete: `com.itcanarias.martin` · versión 1.14.2
 
 Novedades de la 1.13: un paisaje ilustrado de Lanzarote en cada nivel, plantas y piedras dibujadas y Martín con paso más natural.
 
