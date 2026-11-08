@@ -24,7 +24,7 @@ Orden recomendado: 1-partida, 2-camino, 3-mapa, 4-final, 5-reto.
 Martín: Los Caminos del Volcán
 
 **Descripción breve** (máx. 80)
-Un camello canario lleva el agua por los caminos de Lanzarote. 6 niveles y reto diario.
+Un camello canario lleva el agua por los caminos de Lanzarote. 11 niveles y reto diario.
 
 **Descripción completa**
 

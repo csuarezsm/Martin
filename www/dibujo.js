@@ -477,12 +477,12 @@
     { src: 'paisaje-geria.jpg', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
     { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
     { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
-    // Mundo 2: fondos provisionales hasta tener las ilustraciones de cada lugar
-    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
-    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
-    { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
-    { src: 'paisaje-uga.jpg', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
-    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] }],
+    // Mundo 2: El Golfo, Janubio, Famara, Haría y el Mirador del Río
+    { src: 'paisaje-golfo.jpg', ini: 0.12, cielo: ['#007cf0', '#008bfd'] },
+    { src: 'paisaje-janubio.jpg', ini: 0.14, cielo: ['#007cf0', '#0089fe'] },
+    { src: 'paisaje-famara.jpg', cielo: ['#0070e8', '#007ffb'] },
+    { src: 'paisaje-haria.jpg', ini: 0.36, fin: 0.72, cielo: ['#0070e8', '#0080fd'] },
+    { src: 'paisaje-mirador.jpg', ini: 0.16, cielo: ['#006ae8', '#0078fb'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];

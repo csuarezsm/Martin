@@ -88,7 +88,7 @@
       ]
     },
     {
-      lugar: 'El Golfo', titulo: 'La laguna verde', img: 'paisaje-costa.jpg', pos: '40% 45%',
+      lugar: 'El Golfo', titulo: 'La laguna verde', img: 'paisaje-golfo.jpg', pos: '35% 60%',
       texto: [
         'Junto al pueblo pesquero de El Golfo, en la costa oeste de Yaiza, el mar se ha comido la mitad de un antiguo cono volcánico. En la mitad que queda se ve, como en un corte, cómo se apilaron las capas de ceniza y roca: rojas, ocres y negras.',
         'Dentro del cráter hay una laguna de agua de mar, el Charco de los Clicos o Charco Verde. Una franja de arena negra la separa del océano. Su color verde viene de algas microscópicas y cambia de tono según la luz.',
@@ -102,7 +102,7 @@
       ]
     },
     {
-      lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-costa.jpg', pos: '70% 45%',
+      lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-janubio.jpg', pos: '45% 70%',
       texto: [
         'En la costa de Yaiza, junto a la playa de Janubio, se extienden las salinas más grandes de Canarias: unas 168 hectáreas de cuadrículas blancas sobre tierra volcánica. Se empezaron a construir en 1895 y hoy las sigue trabajando la misma familia.',
         'El agua de mar llega desde la laguna natural de Janubio. Antes la subían molinos de viento. El sol y el viento la evaporan poco a poco en los cocederos hasta que solo queda la sal.',
@@ -116,7 +116,7 @@
       ]
     },
     {
-      lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje.jpg', pos: '30% 40%',
+      lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje-famara.jpg', pos: '40% 40%',
       texto: [
         'El Risco de Famara es un enorme acantilado que recorre durante unos veinte kilómetros el norte de Lanzarote. Por el lado del mar, la pared cae casi en vertical entre 400 y 600 metros.',
         'Es la parte más antigua de la isla, millones de años anterior a los volcanes de Timanfaya. Su punto más alto, las Peñas del Chache, con unos 671 metros, es también el techo de Lanzarote.',
@@ -130,7 +130,7 @@
       ]
     },
     {
-      lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-uga.jpg', pos: '30% 40%',
+      lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-haria.jpg', pos: '60% 50%',
       texto: [
         'Haría es un pueblo de casas blancas en un valle del norte de Lanzarote. Lo llaman «el valle de las mil palmeras» por su gran palmeral de palmeras canarias, entre huertas, tuneras y otros cactus.',
         'Desde el Mirador de los Helechos se contempla el palmeral de Haría desde lo alto.',
@@ -144,7 +144,7 @@
       ]
     },
     {
-      lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-costa.jpg', pos: '80% 35%',
+      lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-mirador.jpg', pos: '70% 40%',
       texto: [
         'En lo alto del Risco de Famara, a unos 475 metros sobre el mar, César Manrique construyó entre 1971 y 1973 el Mirador del Río, con Eduardo Cáceres y Jesús Soto.',
         'El edificio está casi escondido: lo cubre una piel de piedra volcánica para que se confunda con el risco. Por dentro, grandes ventanales miran al estrecho de El Río, el brazo de mar que separa Lanzarote de La Graciosa.',
