@@ -12,6 +12,7 @@
         'Hoy en Uga viven unos 400 dromedarios. Cada mañana salen en fila india hacia el Echadero de los Camellos de Timanfaya, a hora y media de camino, donde pasean a los visitantes desde los años cincuenta.'
       ],
       dato: 'De los paseos en camello por Timanfaya viven unas cuarenta familias de Uga. El dromedario llegó a la isla para el trabajo del campo.',
+      extra: ['En verano el trabajo se multiplica: por el sendero del Echadero pueden pasar hasta 150 camellos al día.', ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']],
       fuentes: [
         ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/'],
         ['Ayuntamiento de Yaiza: los paseos a camello en Timanfaya', 'https://yaiza.es/yaiza-promueve-la-declaracion-de-los-paseos-a-camello-en-timanfaya-como-patrimonio-de-interes-social-y-cultural/'],
@@ -26,6 +27,7 @@
         'Junto a estos molinos de torre se levantaron también las molinas, más ligeras. Aún pueden verse en Teguise, en Tiagua, donde la finca de El Patio conserva su molino, y en San Bartolomé.'
       ],
       dato: 'En San Bartolomé, el molino de José María Gil es Bien de Interés Cultural y todavía muele gofio.',
+      extra: ['El molino de José María Gil, en San Bartolomé, se construyó en 1870. Por dentro tiene tres pisos: arriba se echaba el grano y en medio salía el gofio.', ['Ayuntamiento de San Bartolomé: patrimonio cultural', 'https://eadmin.sanbartolome.es/transparencia/indice/indicador/GCAN/6']],
       fuentes: [
         ['Turismo de Teguise (Ayuntamiento): el molino', 'https://turismoteguise.com/es/molino.php'],
         ['Ayuntamiento de Teguise: el antiguo molino de La Villa', 'https://teguise.es/teguise-avanza-en-su-estrategia-de-recuperacion-del-patrimonio-de-uno-de-los-conjuntos-historicos-con-mas-proyeccion-de-canarias/'],
@@ -40,6 +42,7 @@
         'En 1974 el corazón de aquel paisaje se declaró Parque Nacional de Timanfaya, con 5.107 hectáreas. Bajo el suelo el volcán sigue caliente: a 13 metros de profundidad la roca está a unos 600 °C.'
       ],
       dato: 'Tres siglos después, las coladas de lava siguen enfriándose y «encogen» unos 0,6 cm al año.',
+      extra: ['En el restaurante El Diablo, en plenas Montañas del Fuego, se cocina con el calor que sale del volcán.', ['Gobierno de Canarias: historia volcánica de Lanzarote', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Historia_volc%C3%A1nica_de_Lanzarote']],
       fuentes: [
         ['MITECO: historia del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/en/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/historia.html'],
         ['MITECO: guía de visita del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/content/dam/miteco/es/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/guia-timanfaya_tcm30-67887.pdf'],
@@ -54,6 +57,7 @@
         'El picón guarda la humedad en una isla donde casi no llueve. Así nació la malvasía volcánica, la uva más cultivada de La Geria. Se protegió en 1987 y hoy es Paisaje Protegido, con más de 5.200 hectáreas.'
       ],
       dato: 'En algunos puntos la capa de picón llega a los 3 metros de espesor, y en una hectárea caben hasta 350 hoyos.',
+      extra: ['En plena Geria está el Volcán del Cuervo, el primero que entró en erupción en 1730. Hoy se puede entrar a pie en su cráter por un sendero señalizado.', ['Lanzarote Film Commission (Turismo Lanzarote): ruta de Timanfaya', 'https://film.turismolanzarote.com/en/film-destination/cinema-routes/timanfaya-a-volcano-of-film/']],
       fuentes: [
         ['Gobierno de Canarias: La Geria', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=La_Geria'],
         ['Cabildo de Lanzarote: ficha técnica del cultivo de la vid', 'https://www.cabildodelanzarote.com/documents/35307/78425/ficha_tecnica_del_cultivo_de_la_vid.pdf/3928871f-28d8-f2f2-d7a5-c9505b2afa16?t=1620735957625'],
@@ -68,6 +72,7 @@
         'Con oleaje, las olas entran en las cuevas y salen a presión entre las rocas. El agua parece hervir, y de ahí viene su nombre.'
       ],
       dato: 'Las lavas de Timanfaya que llegaron al mar hicieron crecer la isla hacia el oeste.',
+      extra: ['La última erupción de Lanzarote fue en 1824, casi cien años después de la de Timanfaya.', ['Turismo Lanzarote: Yaiza', 'https://turismolanzarote.com/en/yaiza/']],
       fuentes: [
         ['Ayuntamiento de Yaiza: lugares de interés', 'https://yaiza.es/lugares-de-interes/'],
         ['Hola Islas Canarias: Mirador de Los Hervideros', 'https://www.hellocanaryislands.com/viewpoints/lanzarote/los-hervideros-viewpoint/'],
@@ -82,6 +87,7 @@
         'Su casco histórico, de casas blancas y casonas nobles, está declarado conjunto histórico-artístico.'
       ],
       dato: 'Cada domingo por la mañana, el casco histórico de Teguise se llena con su mercadillo.',
+      extra: ['Los artesanos de la Villa de Teguise ayudaron a llevar el timple, la pequeña guitarra canaria, al resto de las islas. En la plaza hay una casa-museo dedicada a él.', ['Turismo Lanzarote: Teguise, la historia a la sombra del Risco', 'https://turismolanzarote.com/en/teguise-history-in-the-shadow-of-the-risco/']],
       fuentes: [
         ['Turismo Lanzarote: Teguise', 'https://turismolanzarote.com/en/teguise/'],
         ['Ayuntamiento de Teguise: el Conjunto Histórico', 'https://teguise.es/wp-content/uploads/2015/09/teguise-conjunto-historico-artistico.pdf'],
@@ -96,6 +102,7 @@
         'Forma parte del Parque Natural de Los Volcanes y es reserva natural: está prohibido bañarse en la laguna.'
       ],
       dato: 'Se llama «de los Clicos» por un marisco, el clico, que antes abundaba allí y hoy ha desaparecido.',
+      extra: ['El Charco de los Clicos ha salido como decorado en más de una decena de películas.', ['Lanzarote Film Commission (Turismo Lanzarote): ruta de Timanfaya', 'https://film.turismolanzarote.com/en/film-destination/cinema-routes/timanfaya-a-volcano-of-film/']],
       fuentes: [
         ['Ayuntamiento de Yaiza: el Charco de los Clicos', 'https://yaiza.es/lugares-de-interes/'],
         ['Gobierno de Canarias: El Golfo', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=El_Golfo'],
@@ -110,6 +117,7 @@
         'Durante siglos, la sal fue uno de los productos más importantes de Lanzarote: servía para conservar el pescado que traían los barcos de la isla.'
       ],
       dato: 'Algunos estanques se vuelven rosados o rojizos por un pequeño crustáceo, la artemia, y por un alga, Dunaliella salina. Las salinas también son refugio de muchas aves.',
+      extra: ['En Lanzarote se han visto más de 190 especies de aves migratorias, y las salinas de Janubio son uno de los mejores sitios de Canarias para observar aves de orilla.', ['Ayuntamiento de Yaiza: datos generales', 'https://yaiza.es/datos-generales/']],
       fuentes: [
         ['Gobierno de Canarias: Salinas del Janubio', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Salinas_del_Janubio'],
         ['Ayuntamiento de Yaiza: Sitio de Interés Científico del Janubio', 'https://yaiza.es/lugares-de-interes/'],
@@ -124,6 +132,7 @@
         'A sus pies se extiende la playa de Famara, de casi 6 km, junto al pueblo de Caleta de Famara. El viento constante la hace famosa entre los surfistas.'
       ],
       dato: 'La arena viaja con el viento hacia el interior y forma El Jable, un gran arenal entre el Risco de Famara y el centro de la isla.',
+      extra: ['El director de cine Pedro Almodóvar rodó en Famara algunas escenas de su película «Los abrazos rotos».', ['Turismo Lanzarote: Teguise, la historia a la sombra del Risco', 'https://turismolanzarote.com/en/teguise-history-in-the-shadow-of-the-risco/']],
       fuentes: [
         ['Gobierno de Canarias: Isla de Lanzarote', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Isla_de_Lanzarote'],
         ['Gobierno de Canarias: historia volcánica de Lanzarote', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Historia_volc%C3%A1nica_de_Lanzarote'],
@@ -138,6 +147,7 @@
         'César Manrique pasó en Haría sus últimos años, hasta 1992. Su casa, en medio del palmeral, es casa-museo desde 2013.'
       ],
       dato: 'Cada sábado por la mañana, la plaza de Haría acoge un mercado de artesanía.',
+      extra: ['Hace mucho, en Haría y sus valles llegó a haber unas 10.000 palmeras. Hoy quedan unas 3.000.', ['Ayuntamiento de Haría: la palmera en Haría', 'https://www.ayuntamientodeharia.com/haria/el-mirador-de-guatifay-4/']],
       fuentes: [
         ['Turismo Lanzarote: Haría, del palmeral al malpaís', 'https://turismolanzarote.com/en/haria-from-the-leafy-palm-grove-to-the-volcanic-badlands/'],
         ['Ayuntamiento de Haría: la palmera en Haría', 'https://www.ayuntamientodeharia.com/haria/el-mirador-de-guatifay-4/'],
@@ -152,6 +162,7 @@
         'Desde allí se ven La Graciosa y los islotes del Archipiélago Chinijo, que con el risco forman un parque natural, y abajo, al pie del risco, las Salinas del Río.'
       ],
       dato: 'Manrique aprovechó una antigua batería de artillería de costa: por eso el lugar se llama la Batería del Río. Hoy el mirador es Bien de Interés Cultural.',
+      extra: ['En la entrada, Manrique puso una escultura de hierro con un pez y un pájaro: el agua y el aire que rodean el mirador.', ['CACT Lanzarote (Cabildo): Mirador del Río', 'https://www.cactlanzarote.com/en/cact/mirador-del-rio/']],
       fuentes: [
         ['CACT Lanzarote (Cabildo): Mirador del Río', 'https://cactlanzarote.com/centro/mirador-del-rio-2/'],
         ['Turismo Lanzarote: César Manrique, 100 años', 'https://turismolanzarote.com/en/cesar-manrique-100-years-since-his-birth/'],

@@ -240,7 +240,6 @@
       const [a1, a2] = P(467, 156), [c1, c2] = P(455 + sw, 330), [d1, d2] = P(300 + sw * 0.4, 300), [e1, e2] = P(262, 222);
       ctx.lineCap = 'round'; for (const [col, lw] of [['#7a5a32', 7.5], ['#ead6a4', 5]]) { ctx.strokeStyle = col; ctx.lineWidth = lw * s; ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); }
       ctx.strokeStyle = 'rgba(150,115,60,.6)'; ctx.lineWidth = 1.4 * s; ctx.setLineDash([4 * s, 3 * s]); ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); ctx.setLineDash([]); }
-    if (st.adorno) dibujaAdorno(ctx, st.adorno, s, T, anim === 'corre' ? ph : 0);
     // nivel de agua en la ventana de la cantimplora
     const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
     ctx.fillStyle = '#0d2233'; rr(ctx, X, Y, W, H, r); ctx.fill();
@@ -251,37 +250,6 @@
     ctx.restore();
   }
 
-  // adornos que se ganan con los frutos (en coordenadas del dibujo del camello)
-  function dibujaAdorno(ctx, id, s, T, ph) {
-    const P = (x, y) => [(x - SPR.ax) * s, (y - SPR.ay) * s];
-    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    if (id === 'borlas') {   // collar de cuero con borlas de lana de colores, como en las fiestas
-      const A = [346, 186], B = [434, 196], C = [392, 214], pt = q => [(1 - q) * (1 - q) * A[0] + 2 * (1 - q) * q * C[0] + q * q * B[0], (1 - q) * (1 - q) * A[1] + 2 * (1 - q) * q * C[1] + q * q * B[1]];
-      const banda = () => { ctx.beginPath(); const [a1, a2] = P(...A), [c1, c2] = P(...C), [b1, b2] = P(...B); ctx.moveTo(a1, a2); ctx.quadraticCurveTo(c1, c2, b1, b2); };
-      banda(); ctx.strokeStyle = '#5a2a14'; ctx.lineWidth = 11 * s; ctx.stroke(); banda(); ctx.strokeStyle = '#b8332a'; ctx.lineWidth = 8 * s; ctx.stroke();
-      banda(); ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = 2 * s; ctx.setLineDash([5 * s, 5 * s]); ctx.stroke(); ctx.setLineDash([]);
-      const cols = ['#e63946', '#f4a261', '#2a9d8f', '#457b9d', '#e76fae', '#f6d55c'];
-      for (let i = 0; i < 5; i++) {
-        const q = 0.12 + i * 0.19, [x, y] = pt(q), sw = Math.sin(T * 3 + i * 1.3 + ph * 0.8) * (ph ? 8 : 3), [x1, y1] = P(x, y + 4), [x2, y2] = P(x + sw, y + 34);
-        ctx.strokeStyle = '#3a2416'; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.arc(x2, y2 + 7 * s, 11 * s, 0, TAU); ctx.fill();
-        ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1.2 * s; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(x2 + k * 3.2 * s, y2 + 10 * s); ctx.lineTo(x2 + k * 4 * s, y2 + 21 * s); ctx.stroke(); }
-        ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(x2 - 4 * s, y2 + 3 * s, 3.5 * s, 0, TAU); ctx.fill();
-      }
-    } else if (id === 'flores') {   // corona de buganvillas, la flor de las casas blancas de Lanzarote
-      const pos = [[338, 50], [352, 32], [369, 20], [388, 13], [407, 15], [424, 24]];
-      ctx.strokeStyle = '#3e6b2f'; ctx.lineWidth = 4 * s; ctx.beginPath(); pos.forEach(([x, y], i) => { const [a, b] = P(x, y + 6); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke();
-      pos.forEach(([x, y], i) => { const [a, b] = P(x + 6, y + 9); ctx.fillStyle = i % 2 ? '#4f8a3a' : '#3e7330'; ctx.beginPath(); ctx.ellipse(a, b, 7 * s, 3.5 * s, 0.5, 0, TAU); ctx.fill(); });
-      pos.forEach(([x, y], i) => {
-        const [a, b] = P(x, y), r = (i % 2 ? 13 : 15.5) * s, rot = i * 0.7 + Math.sin(T * 1.5 + i) * 0.05;
-        ctx.fillStyle = i % 3 === 1 ? '#c0186b' : i % 3 === 2 ? '#e0409a' : '#d4237f';
-        for (let k = 0; k < 3; k++) { const an = rot + k * TAU / 3; ctx.beginPath(); ctx.ellipse(a + Math.cos(an) * r * 0.45, b + Math.sin(an) * r * 0.45, r * 0.62, r * 0.45, an, 0, TAU); ctx.fill(); }
-        ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(a - r * 0.25, b - r * 0.3, r * 0.22, 0, TAU); ctx.fill();
-        ctx.fillStyle = '#fbf3d0'; ctx.beginPath(); ctx.arc(a, b, r * 0.16, 0, TAU); ctx.fill();
-      });
-    }
-    ctx.restore();
-  }
   function dibujaMartin(ctx, u, px, py, st) {
     if (SPR.ok) return dibujaMartinSprite(ctx, u, px, py, st);
     // (px,py) = pies; u = px por unidad. st: {dir, fase, anim, agua, golpe, t, alpha}
@@ -540,22 +508,34 @@
     for (let i = 0; i < n; i++) { const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
       a[i] = (b >= r + 25 && b >= g - 15 && b > 90) ? 1 : (Math.min(r, g, b) > 205 && b >= r - 8) ? 1 : 0; }
     // bordes suaves (para que no se note el recorte) y la franja se funde arriba con el horizonte
-    const t = new Float32Array(n), R = 3;
-    for (let y = 0; y < y1 - y0; y++) for (let x = 0; x < w; x++) { let sm = 0, k = 0; for (let j = -R; j <= R; j++) { const xx = x + j; if (xx >= 0 && xx < w) { sm += a[y * w + xx]; k++; } } t[y * w + x] = sm / k; }
-    for (let y = 0; y < y1 - y0; y++) for (let x = 0; x < w; x++) { let sm = 0, k = 0; for (let j = -R; j <= R; j++) { const yy = y + j; if (yy >= 0 && yy < y1 - y0) { sm += t[yy * w + x]; k++; } } const al = Math.min(1, (sm / k) * 1.4 - 0.2); d[(y * w + x) * 4 + 3] = Math.max(0, al) * 255 * Math.min(1, y / ((y1 - y0) * 0.08)); }
+    const t = new Float32Array(n), R = 3, hh = y1 - y0;   // desenfoque en caja con sumas acumuladas (rápido: no frena al empezar el nivel)
+    for (let y = 0; y < hh; y++) { const o = y * w; let sm = 0, k = 0; for (let j = 0; j < R && j < w; j++) { sm += a[o + j]; k++; }
+      for (let x = 0; x < w; x++) { const e = x + R, b = x - R - 1; if (e < w) { sm += a[o + e]; k++; } if (b >= 0) { sm -= a[o + b]; k--; } t[o + x] = sm / k; } }
+    for (let x = 0; x < w; x++) { let sm = 0, k = 0; for (let j = 0; j < R && j < hh; j++) { sm += t[j * w + x]; k++; }
+      for (let y = 0; y < hh; y++) { const e = y + R, b = y - R - 1; if (e < hh) { sm += t[e * w + x]; k++; } if (b >= 0) { sm -= t[b * w + x]; k--; }
+        const al = Math.min(1, (sm / k) * 1.4 - 0.2); d[(y * w + x) * 4 + 3] = Math.max(0, al) * 255 * Math.min(1, y / (hh * 0.08)); } }
     const o = document.createElement('canvas'); o.width = w; o.height = h; o.getContext('2d').putImageData(src, 0, y0);
     o.y0 = y0; o.y1 = y1; return o;
   }
+  // el oleaje cuesta: como mucho ~40 tiras, y si el móvil va justo de fotogramas se desactiva solo (el juego va primero)
+  const OLAS = { ms: 0, n: 0, off: false };
   function dibujaOlas(ctx, A, x, top, k, t, W) {
-    const y0 = A.y0, y1 = A.y1, alto = y1 - y0, paso = 4;
+    if (OLAS.off) return;
+    const t0 = performance.now(), y0 = A.y0, y1 = A.y1, alto = y1 - y0, paso = Math.max(6, Math.ceil(alto / 40));
     const a0 = Math.max(0, Math.floor(-x / k) - 4), a1 = Math.min(A.width, Math.ceil((W - x) / k) + 4), w = a1 - a0;   // solo la parte visible
     if (w <= 0) return;
+    try { olasTiras(ctx, A, x, top, k, t, y0, y1, alto, paso, a0, w); } finally {
+      const d = performance.now() - t0; OLAS.ms = OLAS.n ? OLAS.ms * 0.95 + d * 0.05 : d; OLAS.n++;
+      if (OLAS.n > 90 && OLAS.ms > 3.5) OLAS.off = true;
+    }
+  }
+  function olasTiras(ctx, A, x, top, k, t, y0, y1, alto, paso, a0, w) {
     for (let y = y0; y < y1; y += paso) {
       const p = (y - y0) / alto, f = 0.15 + p,                       // más cerca de la orilla, olas más grandes y más separadas
         fase = Math.pow(p, 1.5) * 7 * Math.PI * 2 - t * 1.7,
-        dy = Math.sin(fase) * 3.2 * f, dx = Math.sin(fase * 0.6 + t * 0.8) * 2.2 * f;
+        dy = Math.sin(fase) * 3.6 * f, dx = Math.sin(fase * 0.6 + t * 0.8) * 2.2 * f;
       const sy = Math.max(0, Math.min(A.height - paso, y + dy));
-      ctx.drawImage(A, a0, sy, w, paso, x + (a0 + dx) * k, top + y * k, w * k, paso * k + 0.6);
+      ctx.drawImage(A, a0, sy, w, paso, x + (a0 + dx) * k, top + y * k, w * k, paso * k + 1);
     }
   }
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo) {

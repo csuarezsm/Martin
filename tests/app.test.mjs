@@ -218,13 +218,16 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('2.2: en Timanfaya la lava alcanza a Martín si se para', await waitFor(p, () => __martin.RUN.s.fase === 'fallo' && __martin.RUN.s.causa === 'lava', null, 20000) && await waitFor(p, () => /lava/i.test(document.getElementById('mgOv').textContent)));
     await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
   }
-  { // 2.3.5: al completar los frutos de un mundo, Martín gana un adorno
-    await p.evaluate(() => { S.adorno = ''; for (let i = 0; i < 6; i++) prog(i).obj = frutosDe(__martin.NIV[i].nivel).map(o => o.id).filter(id => !(i === 2 && id === 'FRU-1')); save(); salirAlMapa(); });
-    check('adornos: el mapa enseña el progreso del mundo y el premio', /🧺 17\/18/.test(await p.textContent('#app')) && /Collar de borlas/.test(await p.textContent('#app')));
-    await p.evaluate(() => { jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
-    check('adornos: con el último fruto del mundo 1 se gana el collar y Martín se lo pone', /Nuevo adorno/.test(await p.textContent('#mgOv')) && (await store(p)).adorno === 'borlas');
-    await p.evaluate(() => { salirAlMapa(); openThemes(); });
-    check('adornos: en Aspecto y sonido se puede quitar o poner, y el del mundo 2 solo si tiene todos sus frutos', await p.evaluate(() => { const ab = MartinAdornos.abierto(MartinAdornos.ADORNOS[1]); return !!document.querySelector('[data-ado="borlas"]') && !!document.querySelector('[data-ado=""]') && !!document.querySelector('[data-ado="flores"]') === ab && (ab || /Mundo 2/.test(document.querySelector('#modal').textContent)); }));
+  { // 2.3.6: con los 3 frutos de un nivel se gana su sello y otra curiosidad en el cuaderno
+    await p.evaluate(() => { prog(2).obj = frutosDe(__martin.NIV[2].nivel).map(o => o.id).filter(id => id !== 'FRU-1'); save(); openFicha(2); });
+    check('sellos: sin los 3 frutos, la ficha dice cómo ganar el sello', /ganarás su sello/.test(await p.textContent('#modal')) && !(await p.$('#fiSello')));
+    await p.evaluate(() => { closeModal(); jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
+    check('sellos: al coger el último fruto del nivel avisa del nuevo sello', /Nuevo sello/.test(await p.textContent('#mgOv')));
+    await p.evaluate(() => { salirAlMapa(); openFicha(2); }); await p.waitForTimeout(300);
+    check('sellos: la ficha enseña el sello, la curiosidad extra y su fuente oficial', await p.evaluate(() => { const c = document.getElementById('fiSello'), t = document.getElementById('modal').textContent, f = LUGARES[2];
+      return !!c && c.getContext('2d').getImageData(c.width / 2, c.height * 0.3, 1, 1).data[3] > 0 && t.includes(f.extra[0]) && [...document.querySelectorAll('.fi-f a')].some(a => a.dataset.url === f.extra[1][1]); }));
+    await p.evaluate(() => { closeModal(); openCuaderno(); });
+    check('sellos: el cuaderno cuenta los sellos y marca el lugar', /Sellos: \d+\/11/.test(await p.textContent('#modal')) && !!(await p.$('[data-fi="2"] .cu-b')));
     await p.evaluate(() => closeModal());
   }
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));
@@ -301,8 +304,10 @@ for (const idioma of ['en', 'fr', 'de', 'it']) {
   for (let i = 0; i < 5; i++) { await p.evaluate(i => openWelcome(i), i); await p.waitForTimeout(80); } await p.evaluate(() => closeModal());
   await p.evaluate(() => { window.MARTIN_REPLAY = [0, 99999]; jugar(0, 'nivel'); empezar(); pausar(); }); await p.waitForTimeout(150);
   await p.evaluate(() => { reanudar(); const s = __martin.RUN.s; s.fase = 'fallo'; s.causa = 'lava'; terminar(); }); await p.waitForTimeout(150);
-  await p.evaluate(() => { for (let i = 0; i < 6; i++) prog(i).obj = frutosDe(__martin.NIV[i].nivel).map(o => o.id).filter(id => !(i === 2 && id === 'FRU-1')); jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
-  await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
+  await p.evaluate(() => { prog(2).obj = frutosDe(__martin.NIV[2].nivel).map(o => o.id).filter(id => id !== 'FRU-1'); openFicha(2); }); await p.waitForTimeout(80);
+  await p.evaluate(() => { closeModal(); jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
+  await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); openCuaderno(); openFicha(2, true); }); await p.waitForTimeout(150);
+  await p.evaluate(() => closeModal());
   for (const id of ['mArch', 'mGameRules', 'mTheme', 'mAbout', 'mShareApp']) { await p.click('#menuBtn'); await p.click('#' + id).catch(() => {}); await p.waitForTimeout(150); await p.evaluate(() => { try { closeModal(); } catch (e) {} }); }
   await p.evaluate(() => jugar(0, 'nivel')); await p.waitForTimeout(400);
   const falta = (await p.evaluate(() => Idioma.faltan())).filter(x => x !== 'Martín' && x !== 'Español');

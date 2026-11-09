@@ -101,12 +101,6 @@ const PROG0 = () => ({ done: false, stars: 0, bestMs: 0, bestAgua: 0, plays: 0, 
 const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para escribir (crea la entrada)
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
 const desbloqueado = i => i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done);
-// Adornos de Martín: se ganan al recoger todos los frutos de un mundo
-const ADORNOS = [{ id: 'borlas', mundo: 0, nombre: '🧶 Collar de borlas' }, { id: 'flores', mundo: 1, nombre: '🌺 Corona de buganvillas' }];
-function frutosMundo(m) { const a = MUNDOS[m].desde, b = m + 1 < MUNDOS.length ? MUNDOS[m + 1].desde : NIV.length; let h = 0, t = 0; for (let i = a; i < b; i++) { const n = NIV[i]; if (!n || !n.ok) continue; t += frutosDe(n.nivel).length; h += frutosHechos(i); } return { h, t }; }
-const adornoAbierto = a => { const f = frutosMundo(a.mundo); return f.t > 0 && f.h >= f.t; };
-const adornoPuesto = () => { const a = ADORNOS.find(x => x.id === S.adorno); return a && adornoAbierto(a) ? a.id : ''; };
-window.MartinAdornos = { ADORNOS, abierto: adornoAbierto, mundo: frutosMundo };
 const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }];
 const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars : 0), 0);
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
@@ -192,7 +186,7 @@ function startLoop() {
       else RUN.t += dt / 1000;
       dibujar(dt); hud();
       RUN.ema = RUN.ema == null ? dt : RUN.ema * 0.95 + dt * 0.05; RUN.nf = (RUN.nf || 0) + 1;
-      if (RUN.nf > 90 && RUN.ema > 22 && RUN.dprMax > 1.25) { RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }
+      if (RUN.nf > 90 && RUN.ema > 22) { if (!window.SIN_OLAS) window.SIN_OLAS = true; else if (RUN.dprMax > 1.25) RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }   // si va lento: primero fuera el oleaje, luego menos resolución
       if ((s.fase === 'meta' || s.fase === 'fallo') && RUN.tFin && !RUN.overlay && performance.now() - RUN.tFin > (s.fase === 'meta' ? 900 : 700) / Math.max(1, turbo() > 1 ? 4 : 1)) terminar();
     }
     if (RUN.on) RUN.raf = requestAnimationFrame(bucle);
@@ -242,7 +236,7 @@ function dibujar(dt) {
     let anim = 'idle';
     if (s.fase === 'meta') anim = 'gana'; else if (!s.suelo) anim = s.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(s.vx) > 0.3) anim = 'corre';
     const parpadeo = s.fase === 'reaparece' ? 0.4 + 0.6 * ((24 - s.rt) / 24) : (s.frio > 0 && s.fase === 'jugando' && Math.floor(s.frio / 3) % 2 === 0 ? 0.55 : 1);
-    dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo, adorno: adornoPuesto() });
+    dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
   }
   if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
   dibujaLavaVista(ctx, W, H, u, RUN.cam, L, s, RUN.t);
@@ -359,8 +353,7 @@ function terminar() {
       if (!p.bestMs || res.ms < p.bestMs) { if (p.bestMs) nu.tiempo = true; p.bestMs = res.ms; }
       if (res.agua > p.bestAgua) { if (p.bestAgua) nu.agua = true; p.bestAgua = res.agua; }
       const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
-      if (nuevos.length) { const ya = ADORNOS.filter(adornoAbierto).map(a => a.id); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean);
-        const gana = ADORNOS.find(a => !ya.includes(a.id) && adornoAbierto(a)); if (gana) { nu.adorno = gana; S.adorno = gana.id; } }
+      if (nuevos.length) { const sa = selloAbierto(RUN.idx); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs() }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
@@ -394,8 +387,7 @@ function renderSetup() {
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
     const mu = MUNDOS.find(w => w.desde === i);
-    if (mu) { const m = MUNDOS.indexOf(mu), f = frutosMundo(m), ad = ADORNOS.find(a => a.mundo === m);
-      h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span>${ad && f.t ? `<small class="mp-ado ${f.h >= f.t ? 'ok' : ''}"><i>🧺 ${f.h}/${f.t}</i> <i>${f.h >= f.t ? '✅' : '🎁'}</i> <i>${esc(ad.nombre)}</i></small>` : ''}</div>`; }
+    if (mu) h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span></div>`;
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
@@ -473,16 +465,40 @@ function renderGame() {
 /* ================= Cuaderno de viaje ================= */
 const LUG = window.LUGARES || [];
 const fichaAbierta = i => !!(NIV[i] && NIV[i].ok && progR(i).done);
+// Sellos del cuaderno: con los 3 frutos de un nivel se gana el sello del lugar y una curiosidad más
+const selloAbierto = i => { const n = NIV[i]; if (!n || !n.ok || !LUG[i] || !LUG[i].extra) return false; const t = frutosDe(n.nivel).length; return t > 0 && frutosHechos(i) >= t; };
+const sellosHechos = () => LUG.filter((_, i) => selloAbierto(i)).length;
+function pintaSello(cv, i) {   // sello de correos: ilustración del lugar, borde dentado, nombre y número
+  const f = LUG[i], g = cv.getContext('2d'), W = cv.width, H = cv.height, r = W * 0.035, m = W * 0.07;
+  const dibuja = img => {
+    g.clearRect(0, 0, W, H); g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, W, H);
+    g.save(); g.globalCompositeOperation = 'destination-out';
+    for (let x = r * 1.4; x < W; x += r * 2.8) for (const y of [0, H]) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+    for (let y = r * 1.4; y < H; y += r * 2.8) for (const x of [0, W]) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    const iw = W - m * 2, ih = H * 0.66;
+    if (img) { const [px, py] = (f.pos || '50% 50%').split(' ').map(v => parseFloat(v) / 100), k = Math.max(iw / img.width, ih / img.height), sw = iw / k, sh = ih / k;
+      g.drawImage(img, (img.width - sw) * px, (img.height - sh) * py, sw, sh, m, m, iw, ih); }
+    g.strokeStyle = 'rgba(60,40,20,.5)'; g.lineWidth = Math.max(1, W * 0.008); g.strokeRect(m, m, iw, ih);
+    g.fillStyle = '#7a2e12'; g.textAlign = 'center'; g.font = `800 ${Math.round(W * 0.085)}px system-ui, sans-serif`;
+    let t = Idioma.tr(f.lugar).toUpperCase(); while (g.measureText(t).width > iw && t.length > 4) t = t.slice(0, -2) + '…';
+    g.fillText(t, W / 2, m + ih + H * 0.11);
+    g.fillStyle = '#6b5a45'; g.font = `600 ${Math.round(W * 0.06)}px system-ui, sans-serif`; g.fillText('LANZAROTE · ' + (i + 1), W / 2, m + ih + H * 0.19);
+  };
+  dibuja(null); const img = new Image(); img.onload = () => dibuja(img); img.src = f.img;
+}
 function cuadernoBoton() {
   if (!LUG.length) return '';
   const n = LUG.filter((_, i) => fichaAbierta(i)).length;
-  return `<button class="mp-cuad" id="mpCuad"><div class="ic">📖</div><div><b>Cuaderno de viaje · ${n}/${LUG.length}</b><span>${n ? 'Lo que has aprendido de Lanzarote en el camino.' : 'Termina un nivel para conocer su lugar.'}</span></div></button>`;
+  const se = sellosHechos();
+  return `<button class="mp-cuad" id="mpCuad"><div class="ic">📖</div><div><b>Cuaderno de viaje · ${n}/${LUG.length}</b>${se ? `<small class="mp-se">🏅 ${se}/${LUG.length}</small>` : ''}<span>${n ? 'Lo que has aprendido de Lanzarote en el camino.' : 'Termina un nivel para conocer su lugar.'}</span></div></button>`;
 }
 function openCuaderno() {
-  let h = `<h3>📖 Cuaderno de viaje</h3><div class="sub">Cada nivel recorre un lugar real de Lanzarote. Termínalo para abrir su ficha.</div><div class="cu-l">`;
+  let h = `<h3>📖 Cuaderno de viaje</h3><div class="sub">Cada nivel recorre un lugar real de Lanzarote. Termínalo para abrir su ficha.</div>
+    <div class="cu-se"><b>🏅 Sellos: ${sellosHechos()}/${LUG.length}</b><span>Encuentra los 3 frutos de un nivel y gana el sello de ese lugar.</span></div><div class="cu-l">`;
   LUG.forEach((f, i) => {
     const ok = fichaAbierta(i);
-    h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 Nivel ${i + 1}`}</span></button>`;
+    h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 Nivel ${i + 1}`}</span>${selloAbierto(i) ? '<i class="cu-b" aria-label="Sello">🏅</i>' : ''}</button>`;
   });
   h += `</div><div class="acts"><button class="btn-gold" id="cuOk">Cerrar</button></div>`;
   openModal(h);
@@ -496,9 +512,13 @@ function openFicha(i, desdeCuaderno) {
     ${f.texto.map(p => `<p>${esc(p)}</p>`).join('')}
     <div class="fi-dato"><b>¿Sabías que…?</b> ${esc(f.dato)}</div>
     ${NIV[i] && NIV[i].ok && frutosDe(NIV[i].nivel).length ? `<div class="fi-fru"><span id="fiFru"></span><span>Frutos del camino: <b>${frutosHechos(i)}/${frutosDe(NIV[i].nivel).length}</b>${frutosHechos(i) < frutosDe(NIV[i].nivel).length ? ' · Busca en lo alto y sobre los huecos.' : ''}</span></div>` : ''}
-    <div class="fi-f">Fuentes: ${f.fuentes.map(([t, u]) => `<a href="#" data-url="${esc(u)}">${esc(t)}</a>`).join(' · ')}</div></div>
+    ${f.extra && NIV[i] && NIV[i].ok && frutosDe(NIV[i].nivel).length ? (selloAbierto(i)
+      ? `<div class="fi-se"><canvas id="fiSello" width="240" height="280" aria-label="Sello de ${esc(f.lugar)}"></canvas><div><b>🏅 ¡Sello conseguido!</b><p><b>Otra curiosidad:</b> ${esc(f.extra[0])}</p></div></div>`
+      : `<div class="fi-se cerrado"><div class="se-v">🔒</div><span>Encuentra los 3 frutos de este nivel y ganarás su sello y otra curiosidad.</span></div>`) : ''}
+    <div class="fi-f">Fuentes: ${[...f.fuentes, ...(f.extra && selloAbierto(i) ? [f.extra[1]] : [])].map(([t, u]) => `<a href="#" data-url="${esc(u)}">${esc(t)}</a>`).join(' · ')}</div></div>
     <div class="acts">${desdeCuaderno ? '<button class="btn-ghost" id="fiVol">‹ Cuaderno</button>' : ''}<button class="btn-gold" id="fiOk">Cerrar</button></div>`);
   if ($('#fiFru')) { const ids = new Set(progR(i).obj || []), tom = {}; for (const o of frutosDe(NIV[i].nivel)) if (ids.has(o.id)) tom[o.id] = 1; pintaFrutos($('#fiFru'), NIV[i].nivel, tom, 24); }
+  if ($('#fiSello')) pintaSello($('#fiSello'), i);
   document.querySelectorAll('.fi-f a').forEach(a => a.onclick = e => { e.preventDefault(); openExternal(a.dataset.url); });
   $('#fiOk').onclick = closeModal; const v = $('#fiVol'); if (v) v.onclick = openCuaderno;
 }
@@ -532,7 +552,7 @@ function ponOverlay() {
       <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
-      ${nu.adorno ? `<div class="ov-ado"><b>🎁 ¡Nuevo adorno para Martín!</b><span>${esc(nu.adorno.nombre)}</span><small>Ya lo lleva puesto. Puedes cambiarlo en Aspecto y sonido.</small></div>` : ''}
+      ${nu.sello ? '<div class="ov-se"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></div>' : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
       ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}
