@@ -2714,7 +2714,9 @@ window.I18N["en:martin"] = Object.assign(window.I18N["en:martin"] || {}, {
 "🧒 Modo peque": "🧒 Little ones mode",
 "🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.": "🧒 Little ones mode: you lose half as much water and the lava is slower.",
 "Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.": "You lose half as much water and the lava is slower. The daily challenge is the same for everyone.",
-"No": "No"
+"No": "No",
+"🗺️ Tu viaje por Lanzarote": "🗺️ Your journey across Lanzarote",
+"Mapa: © OpenStreetMap": "Map: © OpenStreetMap"
 });
 window.I18N["en:poker"] = Object.assign(window.I18N["en:poker"] || {}, {
 "Carta alta": "High card",

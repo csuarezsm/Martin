@@ -2713,7 +2713,9 @@ window.I18N["it:martin"] = Object.assign(window.I18N["it:martin"] || {}, {
 "🧒 Modo peque": "🧒 Modalità piccoli",
 "🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.": "🧒 Modalità piccoli: perdi metà acqua e la lava va più piano.",
 "Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.": "Perdi metà acqua e la lava va più piano. La sfida del giorno è uguale per tutti.",
-"No": "No"
+"No": "No",
+"🗺️ Tu viaje por Lanzarote": "🗺️ Il tuo viaggio per Lanzarote",
+"Mapa: © OpenStreetMap": "Mappa: © OpenStreetMap"
 });
 window.I18N["it:poker"] = Object.assign(window.I18N["it:poker"] || {}, {
 "Carta alta": "Carta alta",

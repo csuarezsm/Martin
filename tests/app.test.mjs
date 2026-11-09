@@ -218,6 +218,13 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('2.2: en Timanfaya la lava alcanza a Martín si se para', await waitFor(p, () => __martin.RUN.s.fase === 'fallo' && __martin.RUN.s.causa === 'lava', null, 20000) && await waitFor(p, () => /lava/i.test(document.getElementById('mgOv').textContent)));
     await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
   }
+  { // mapa de Lanzarote: un punto por nivel en su sitio, y se puede entrar desde el mapa
+    await p.evaluate(() => salirAlMapa());
+    check('mapa: Lanzarote con los 11 niveles', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 11 && !!document.querySelector('.mp-map path')));
+    await p.click('.mp-map [data-lvm="0"]', { force: true });
+    check('mapa: tocar un nivel abierto lo abre', await waitFor(p, () => /Agua para Uga/.test(document.body.textContent) && (!!__martin.RUN.L || !document.getElementById('modal').classList.contains('hidden')), null, 3000));
+    await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); });
+  }
   { // modo peque: menos agua perdida y lava más lenta, solo en los niveles
     await p.evaluate(() => { salirAlMapa(); }); await p.click('#mpPeq');
     check('modo peque: el interruptor del mapa lo activa', (await store(p)).peque === true && /Sí/.test(await p.textContent('#mpPeq')));

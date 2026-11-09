@@ -385,6 +385,7 @@ function renderSetup() {
     ${cuadernoBoton()}
     <button class="mp-peq ${S.peque ? 'on' : ''}" id="mpPeq" aria-pressed="${S.peque ? 'true' : 'false'}"><span>🧒 Modo peque</span><b>${S.peque ? 'Sí' : 'No'}</b></button>
     <div id="mpDiario">${diarioHtml()}</div>
+    ${mapaIsla(sig)}
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
     const mu = MUNDOS.find(w => w.desde === i);
@@ -404,6 +405,7 @@ function renderSetup() {
   document.querySelectorAll('canvas.lv-c').forEach(c => dibujaMini(c.getContext('2d'), c.width, c.height, +c.dataset.tema));
   animaHero();
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
+  document.querySelectorAll('[data-lvm]').forEach(g => { const ir = () => openBriefing(+g.dataset.lvm); g.addEventListener('click', ir); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } }); });
   const cb = $('#mpCuad'); if (cb) cb.onclick = openCuaderno;
   const pq = $('#mpPeq'); if (pq) pq.onclick = () => { S.peque = !S.peque; save(); renderSetup(); if (S.peque) toast('🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.'); };
   enlazarDiario();
@@ -488,6 +490,37 @@ function pintaSello(cv, i) {   // sello de correos: ilustración del lugar, bord
     g.fillStyle = '#6b5a45'; g.font = `600 ${Math.round(W * 0.06)}px system-ui, sans-serif`; g.fillText('LANZAROTE · ' + (i + 1), W / 2, m + ih + H * 0.19);
   };
   dibuja(null); const img = new Image(); img.onload = () => dibuja(img); img.src = f.img;
+}
+/* Mapa de Lanzarote: cada nivel en su sitio real, unidos por el camino de Martín (dibujo fijo: no se repinta durante la partida) */
+function mapaIsla(sig) {
+  const Z = window.MAPA_LZ; if (!Z) return '';
+  const P = Z.puntos, n = Math.min(P.length, NIV.length);
+  let camino = ''; for (let i = 0; i < n; i++) { const [x, y] = P[i]; if (!i) { camino += `M${x} ${y}`; continue; } const [a, b] = P[i - 1], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; camino += `Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
+  let hecho = ''; for (let i = 1; i < n; i++) if (progR(i - 1).done && desbloqueado(i)) { const [a, b] = P[i - 1], [x, y] = P[i], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; hecho += `M${a} ${b}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
+  let mk = '';
+  for (let i = 0; i < n; i++) {
+    const [px, py] = P[i], [x, y] = (Z.etiquetas || P)[i], nv = NIV[i], ab = nv && nv.ok && desbloqueado(i), p = progR(i), es = i === sig;
+    if (px !== x || py !== y) mk += `<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#f3dcae" stroke-width="1.5"/><circle cx="${px}" cy="${py}" r="3" fill="#f3dcae"/>`;
+    const col = !ab ? '#6b625c' : p.done ? '#f4c13d' : '#ffffff', txt = !ab ? '#d8d0c8' : '#2a1a10';
+    mk += `<g class="mk ${ab ? '' : 'cerrado'}" ${ab ? `data-lvm="${i}" tabindex="0" role="button"` : ''} aria-label="Nivel ${i + 1}" transform="translate(${x} ${y})">
+      ${es ? `<circle class="mk-pulso" r="12" fill="none" stroke="#ffffff" stroke-width="3"/>` : ''}
+      <circle r="13" fill="rgba(0,0,0,.35)" cy="2"/><circle class="fondo" r="12" fill="${col}" stroke="${p.done ? '#7a4a12' : '#3a2a20'}" stroke-width="2"/>
+      <text text-anchor="middle" dy="4.5" font-size="13" font-weight="800" fill="${txt}" font-family="system-ui,sans-serif">${ab ? i + 1 : '🔒'}</text>
+      ${p.done ? `<text text-anchor="middle" y="24" font-size="9" fill="#ffd968" stroke="#2a1a10" stroke-width="2.5" paint-order="stroke" font-family="system-ui,sans-serif">${'★'.repeat(p.stars)}${'☆'.repeat(3 - p.stars)}</text>` : ''}
+      ${selloAbierto(i) ? '<text x="10" y="-8" font-size="11">🏅</text>' : ''}</g>`;
+  }
+  const olas = [[40, 120], [300, 90], [60, 420], [320, 380], [210, 500], [30, 260]].map(([x, y]) => `<path d="M${x} ${y}q8 -6 16 0t16 0" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round"/>`).join('');
+  return `<div class="mp-map"><h4>🗺️ Tu viaje por Lanzarote</h4>
+    <svg viewBox="0 0 ${Z.w} ${Z.h}" role="img" aria-label="Mapa de Lanzarote con los niveles">
+      <defs><radialGradient id="mzMar" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#2f8fd0"/><stop offset="1" stop-color="#11507f"/></radialGradient>
+        <linearGradient id="mzTierra" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9a066"/><stop offset=".55" stop-color="#b9743f"/><stop offset="1" stop-color="#7d4a2b"/></linearGradient></defs>
+      <rect width="${Z.w}" height="${Z.h}" fill="url(#mzMar)"/>${olas}
+      ${[Z.isla, ...Z.islotes].map(d => `<path d="${d}" transform="translate(2.5 3.5)" fill="rgba(0,20,40,.35)"/>`).join('')}
+      ${[Z.isla, ...Z.islotes].map(d => `<path d="${d}" fill="url(#mzTierra)" stroke="#f3dcae" stroke-width="2.2" stroke-linejoin="round"/>`).join('')}
+      <path d="${camino}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+      ${hecho ? `<path d="${hecho}" fill="none" stroke="#ffd968" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>` : ''}
+      ${mk}
+    </svg><small>Mapa: © OpenStreetMap</small></div>`;
 }
 function cuadernoBoton() {
   if (!LUG.length) return '';
