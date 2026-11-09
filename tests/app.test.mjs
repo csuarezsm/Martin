@@ -235,7 +235,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     await p.evaluate(() => pausar()); await p.waitForTimeout(100);
     check('música: se para al pausar', await p.evaluate(() => Musica.estado() === ''));
     await p.evaluate(() => { salirAlMapa(); jugar(7, 'nivel'); empezar(); }); await p.waitForTimeout(300);
-    check('música: en el Mundo 2 cambia (acordes y olas)', await p.evaluate(() => Musica.estado() === 'costa'));
+    check('música: en el Mundo 2 cambia (olas y gaviotas)', await p.evaluate(() => Musica.estado() === 'costa'));
     await p.evaluate(() => { S.musica = false; }); await p.waitForTimeout(200);
     check('música: se puede quitar en ajustes', await p.evaluate(() => Musica.estado() === ''));
     await p.evaluate(() => { S.musica = true; salirAlMapa(); }); await p.waitForTimeout(100);

@@ -58,7 +58,7 @@ Martín es un camello canario joven de Uga. Tras una tormenta, los caminos han q
 • Pausa automática si sales de la app.
 
 ✨ A TU GUSTO
-• Sonido de fondo suave (viento y pájaros en el sur, guitarra y olas en la costa), temas de colores y tamaño de letra.
+• Sonido de fondo suave (viento y pájaros en el sur, olas y gaviotas en la costa), temas de colores y tamaño de letra.
 • Funciona en vertical, en horizontal y en tablet, también en móviles sencillos, y en español, inglés, francés, alemán e italiano.
 
 🔒 SIN ANUNCIOS Y SIN CUENTAS

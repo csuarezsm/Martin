@@ -83,7 +83,7 @@ const Sound = (() => {
 
 /* ================= Música de fondo (sintetizada, muy suave) =================
    Se programan las notas con medio segundo de adelanto desde un temporizador (no desde el bucle de dibujo):
-   apenas gasta. Mundo 1: ambiente (viento, pájaros y alguna nota de guitarra); Mundo 2: folía con guitarra y olas; cueva: zumbido y gotas. */
+   apenas gasta. Mundo 1: ambiente (viento, pájaros y alguna nota de guitarra); Mundo 2: olas, viento y gaviotas; cueva: zumbido y gotas. */
 const Musica = (() => {
   let on = false, estilo = '', timer = 0, tNext = 0, paso = 0, ruidoBuf = null;
   const H = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -108,6 +108,14 @@ const Musica = (() => {
     vol *= 0.6; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + dur);
     s.connect(f); f.connect(g); g.connect(Sound.out(c)); s.start(t, Math.random()); s.stop(t + dur + 0.05);
   }
+  function gaviota(c, t, h) {   // dos o tres graznidos que bajan
+    const n = 2 + Math.floor(h * 2), f0 = 1500 + h * 400;
+    for (let k = 0; k < n; k++) { const o = c.createOscillator(), fl = c.createBiquadFilter(), g = c.createGain(), u = t + k * 0.32; o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f0, u); o.frequency.exponentialRampToValueAtTime(f0 * 0.62, u + 0.24);
+      fl.type = 'bandpass'; fl.frequency.value = f0 * 1.2; fl.Q.value = 3;
+      g.gain.setValueAtTime(0.0001, u); g.gain.linearRampToValueAtTime(0.01 * 0.6, u + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, u + 0.26);
+      o.connect(fl); fl.connect(g); g.connect(Sound.out(c)); o.start(u); o.stop(u + 0.3); }
+  }
   function pajaro(c, t, h) {   // dos a cuatro silbidos cortos que suben
     const n = 2 + Math.floor(h * 3), f0 = 2400 + h * 1400;
     for (let k = 0; k < n; k++) { const o = c.createOscillator(), g = c.createGain(), u = t + k * 0.13; o.type = 'sine';
@@ -123,34 +131,17 @@ const Musica = (() => {
     o.connect(fl); fl.connect(g); g.connect(Sound.out(c)); o.start(t); o.stop(t + dur + 0.05);
   }
   const AC = { D: [62, 66, 69], G: [55, 59, 62], A7: [57, 61, 64, 67], Am: [57, 60, 64], E7: [52, 56, 59, 62], C: [48, 52, 55], G7: [55, 59, 62, 65] };
-  // la segunda voz va una tercera por debajo dentro de la escala, como cantan las parrandas
-  const ESC = { D: [61, 62, 64, 66, 67, 69, 71], Am: [56, 57, 59, 60, 62, 64, 65], C: [59, 60, 62, 64, 65, 67, 69] };
-  function tercera(m, esc) { const pc = ((m % 12) + 12) % 12, e = esc.map(x => x % 12), k = e.indexOf(pc); if (k < 0) return m - 4; const d = e[(k + 5) % 7]; let r = m - ((pc - d + 12) % 12); if (m - r < 3) r -= 12; return r; }
-  // melodía propia en el estilo de la folía: [nota, corcheas] por compás (0 = silencio)
-  const FOLIA = [['Am', [[72, 3], [71, 1], [69, 2]]], ['E7', [[68, 2], [71, 2], [74, 2]]], ['Am', [[72, 2], [76, 2], [72, 2]]], ['E7', [[71, 6]]],
-    ['C', [[76, 2], [79, 2], [76, 1], [74, 1]]], ['G7', [[74, 2], [71, 2], [74, 2]]], ['C', [[72, 4], [76, 2]]], ['E7', [[71, 4], [68, 2]]]];
-  const sin = fr => fr.map(([ac]) => [ac, [[0, 6]]]);
-  const FOL = [...FOLIA, ...sin(FOLIA), ...FOLIA, ...sin(FOLIA)];
-  const escDe = ac => (ac === 'Am' || ac === 'E7' ? ESC.Am : ac === 'C' || ac === 'G7' ? ESC.C : ESC.D);
-  function melodia(c, t, fr, e, pulso, vol, trem) {
-    let o = 0; for (const [m, d] of fr[1]) { if (o === e && m) { const esc = escDe(fr[0]);
-        // la bandurria sostiene las notas largas con trémolo
-        const golpes = trem && d >= 2 ? d * 2 : 1, dt = pulso * d / golpes;
-        for (let k = 0; k < golpes; k++) { const v = vol * (k ? 0.7 : 1); pulsa(c, t + k * dt, N(m), dt + 0.12, v, 5); pulsa(c, t + k * dt, N(tercera(m, esc)), dt + 0.12, v * 0.7, 4); } }
-      o += d; }
-  }
   const EST = {
     // sur: solo ambiente — viento del malpaís, algún pájaro y de vez en cuando unas notas sueltas de guitarra
     sur: { pulso: 0.5, toca(c, t, p) {
       if (p % 12 === 0) viento(c, t, 7.5, 0.03 + H(p) * 0.015, 380 + H(p + 1) * 420);
       if (H(p * 1.7) > 0.86) pajaro(c, t, H(p + 3));
       if (p % 16 === 8 && H(p * 2.3) > 0.35) { const ac = [AC.D, AC.G, AC.A7, AC.D][Math.floor(p / 16) % 4]; ac.slice(0, 3).forEach((m, i) => pulsa(c, t + i * 0.42, N(m), 2.2, 0.022, 2.5)); } } },
-    // costa: folía (más lenta, en menor y mayor), guitarra arpegiada y el rumor de las olas
-    costa: { pulso: 0.34, toca(c, t, p) { const bar = Math.floor(p / 6), e = p % 6, fr = FOL[bar % FOL.length], ac = AC[fr[0]];
-      if (e === 0) pulsa(c, t, N(ac[0] - 12), 1.4, 0.055, 3);
-      else { const m = ac[[1, 2, 1, 2, 1][e - 1]] + (e === 3 ? 12 : 0); pulsa(c, t, N(m), 0.9, 0.022, 4); }
-      if (e === 0 && bar % 4 === 0) ola(c, t + 0.4, 5, 0.03);
-      melodia(c, t, fr, e, this.pulso, 0.028, true); } },
+    // costa: solo ambiente — las olas rompiendo, alguna gaviota y el viento del mar
+    costa: { pulso: 0.5, toca(c, t, p) {
+      if (p % 9 === 0) ola(c, t, 5.5 + H(p) * 1.5, 0.03 + H(p + 2) * 0.012);
+      if (p % 14 === 5) viento(c, t, 7, 0.018, 500 + H(p + 1) * 300);
+      if (H(p * 1.9) > 0.93) gaviota(c, t, H(p + 4)); } },
     // cueva: zumbido grave y gotas con eco
     cueva: { pulso: 0.8, toca(c, t, p) { if (p % 8 === 0) nota(c, t, N(38), 7, 0.035, 'sine', 1.2);
       if (H(p) > 0.62) { const f = 1100 + H(p + 7) * 900; nota(c, t, f, 0.18, 0.02, 'sine', 0.003); nota(c, t + 0.28, f * 0.98, 0.18, 0.008, 'sine', 0.003); } } }
