@@ -25,7 +25,8 @@ for r in anillos:
 # lugares de cada nivel (lat, lon aproximados del sitio real)
 LUG = [('Uga', 28.951, -13.764), ('Tiagua', 29.044, -13.639), ('Timanfaya', 29.004, -13.752), ('La Geria', 28.986, -13.712),
        ('Los Hervideros', 28.954, -13.832), ('Teguise', 29.061, -13.560), ('El Golfo', 28.980, -13.835), ('Janubio', 28.933, -13.823),
-       ('Famara', 29.115, -13.565), ('Haría', 29.145, -13.499), ('Mirador del Río', 29.214, -13.481)]
+       ('Famara', 29.115, -13.565), ('Haría', 29.145, -13.499), ('Mirador del Río', 29.214, -13.481),
+       ('Cueva de los Verdes', 29.157, -13.438), ('La Graciosa', 29.232, -13.505)]   # secretos
 puntos = [[round(v, 1) for v in pr(lon, lat)] for (_, lat, lon) in LUG]
 # donde los lugares están muy juntos (Hervideros, El Golfo, Janubio), el círculo sale al mar unido por una línea a su punto
 DESP = {4: (-30, 2), 6: (-28, -24), 7: (-22, 26)}

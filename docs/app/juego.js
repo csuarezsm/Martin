@@ -29,6 +29,8 @@ const PISTAS = {
   viento: 'Cuando la manga se levanta, el viento sopla en contra: espera para saltar.',
   palmeras: 'Dos caminos: por las copas de las palmeras (rápido) o por las huertas (seguro).',
   subida: 'Una gran subida: salta de escalón en escalón y no te pares en el suelo agrietado.',
+  cueva: 'Dentro del tubo de lava: atento a las piedras que caen del techo.',
+  graciosa: 'Calles de arena, olas en la orilla y viento del norte: salta con calma.',
   entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.'
 };
 
@@ -100,7 +102,13 @@ const lid = i => (NIV[i] && NIV[i].ok ? NIV[i].nivel.level_id : 'nivel-' + i);
 const PROG0 = () => ({ done: false, stars: 0, bestMs: 0, bestAgua: 0, plays: 0, fails: 0 });
 const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para escribir (crea la entrada)
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
-const desbloqueado = i => i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done);
+// niveles secretos (secretos.js): van detrás de los normales y se abren con todos los frutos de su mundo
+const NBASE = NIV.length - (window.MARTIN_SECRETOS || []).length;
+const secretoDe = i => i >= NBASE ? ((window.MARTIN_SECRETOS || [])[i - NBASE] || {}).mundo : -1;
+const nomNivel = i => secretoDe(i) >= 0 ? 'Nivel secreto' : `Nivel ${i + 1}`;
+function frutosMundo(m) { let h = 0, t = 0; for (let i = 0; i < NBASE; i++) { if ((i >= MUNDOS[1].desde ? 1 : 0) !== m || !NIV[i].ok) continue; t += frutosDe(NIV[i].nivel).length; h += frutosHechos(i); } return { h, t }; }
+const mundoCompleto = m => { const f = frutosMundo(m); return f.t > 0 && f.h >= f.t; };
+const desbloqueado = i => { const m = secretoDe(i); if (m >= 0) return mundoCompleto(m); return i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done); };
 const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }];
 const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars : 0), 0);
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
@@ -338,7 +346,7 @@ function reanudar() {
 function reintentar() { crearIntento(); render(); }
 function salirAlMapa() { stopLoop(); RUN.s = null; RUN.overlay = ''; RUN.replay = null; render(); }
 function abandonar() { if (RUN.s && RUN.s.fase !== 'meta' && RUN.s.fase !== 'fallo' && RUN.s.fase !== 'lista') { if (RUN.modo === 'nivel') prog(RUN.idx).fails++; } salirAlMapa(); }
-function siguiente() { const i = RUN.idx + 1; if (i < NIV.length && desbloqueado(i)) jugar(i, 'nivel'); else salirAlMapa(); }
+function siguiente() { const i = RUN.idx + 1; if (i < NBASE && desbloqueado(i)) jugar(i, 'nivel'); else salirAlMapa(); }
 
 function terminar() {
   const s = RUN.s, L = RUN.L; if (!s) return;
@@ -353,7 +361,7 @@ function terminar() {
       if (!p.bestMs || res.ms < p.bestMs) { if (p.bestMs) nu.tiempo = true; p.bestMs = res.ms; }
       if (res.agua > p.bestAgua) { if (p.bestAgua) nu.agua = true; p.bestAgua = res.agua; }
       const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
-      if (nuevos.length) { const sa = selloAbierto(RUN.idx); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; }
+      if (nuevos.length) { const sa = selloAbierto(RUN.idx), abiertos = [0, 1].map(mundoCompleto); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; const m = [0, 1].find(k => !abiertos[k] && mundoCompleto(k)); if (m != null) nu.secreto = m; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs(), mod: s.mod !== 'normal' ? s.mod : undefined }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
@@ -381,20 +389,22 @@ function renderSetup() {
   const sig = NIV.findIndex((n, i) => n.ok && desbloqueado(i) && !progR(i).done);
   let h = `<div class="mp">
     <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Los Caminos del Volcán</b><span>Lleva el agua por toda la isla</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
-    ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
+    ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · ${nomNivel(sig)}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     ${cuadernoBoton()}
     <button class="mp-peq ${S.peque ? 'on' : ''}" id="mpPeq" aria-pressed="${S.peque ? 'true' : 'false'}"><span>🧒 Modo peque</span><b>${S.peque ? 'Sí' : 'No'}</b></button>
     <div id="mpDiario">${diarioHtml()}</div>
     ${mapaIsla(sig)}
     <div class="mp-lv">`;
-  NIV.forEach((n, i) => {
-    const mu = MUNDOS.find(w => w.desde === i);
-    if (mu) h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span></div>`;
-    if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
+  const ORDEN = []; for (let i = 0; i < NBASE; i++) { ORDEN.push(i); const m = i >= MUNDOS[1].desde ? 1 : 0; if (i === NBASE - 1 || i + 1 === MUNDOS[1].desde) for (let k = NBASE; k < NIV.length; k++) if (secretoDe(k) === m) ORDEN.push(k); }
+  ORDEN.forEach(i => {
+    const n = NIV[i], mu = MUNDOS.find(w => w.desde === i), sm = secretoDe(i);
+    if (mu) { const m = MUNDOS.indexOf(mu), f = frutosMundo(m);
+      h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span>${NIV.some((_, k) => secretoDe(k) === m) && f.t ? `<small class="mp-sec ${f.h >= f.t ? 'ok' : ''}"><i>🧺 ${f.h}/${f.t}</i> <i>${f.h >= f.t ? '✨ ¡Nivel secreto abierto!' : '✨ Todos los frutos abren un nivel secreto'}</i></small>` : ''}</div>`; }
+    if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>${nomNivel(i)}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
-    h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
-      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span>${ab ? i + 1 : '🔒'}</span></div>
-      <div class="lv-b"><b>${esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : 'Termina el nivel anterior para abrirlo.'}</span>
+    h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''} ${sm >= 0 ? 'secreto' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
+      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span>${sm >= 0 ? (ab ? '✨' : '?') : ab ? i + 1 : '🔒'}</span></div>
+      <div class="lv-b"><b>${sm >= 0 && !ab ? 'Nivel secreto' : esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : sm >= 0 ? `Encuentra todos los frutos del Mundo ${sm + 1} para abrirlo.` : 'Termina el nivel anterior para abrirlo.'}</span>
         ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100${frutosDe(n.nivel).length ? ` · 🧺 ${frutosHechos(i)}/${frutosDe(n.nivel).length}` : ''}</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
   });
@@ -434,7 +444,7 @@ function openErrorNivel(i) {
 }
 function openBriefing(i) {
   const n = NIV[i].nivel, p = progR(i), g = n.goals;
-  openModal(`<h3>Nivel ${i + 1} · ${esc(n.name)}</h3><div class="sub">${esc(n.brief)}</div>
+  openModal(`<h3>${nomNivel(i)} · ${esc(n.name)}</h3><div class="sub">${esc(n.brief)}</div>
     <div class="rules"><h4>Objetivos</h4><ul>
       <li>${p.stars >= 1 ? '★' : '☆'} Llega al punto de entrega con agua en el cántaro.</li>
       <li>${p.stars >= 2 ? '★' : '☆'} Termina con ${g.star_2_integrity} de agua o más.</li>
@@ -494,18 +504,18 @@ function pintaSello(cv, i) {   // sello de correos: ilustración del lugar, bord
 /* Mapa de Lanzarote: cada nivel en su sitio real, unidos por el camino de Martín (dibujo fijo: no se repinta durante la partida) */
 function mapaIsla(sig) {
   const Z = window.MAPA_LZ; if (!Z) return '';
-  const P = Z.puntos, n = Math.min(P.length, NIV.length);
+  const P = Z.puntos, n = Math.min(P.length, NBASE), nt = Math.min(P.length, NIV.length);
   let camino = ''; for (let i = 0; i < n; i++) { const [x, y] = P[i]; if (!i) { camino += `M${x} ${y}`; continue; } const [a, b] = P[i - 1], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; camino += `Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
   let hecho = ''; for (let i = 1; i < n; i++) if (progR(i - 1).done && desbloqueado(i)) { const [a, b] = P[i - 1], [x, y] = P[i], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; hecho += `M${a} ${b}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
   let mk = '';
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < nt; i++) {
     const [px, py] = P[i], [x, y] = (Z.etiquetas || P)[i], nv = NIV[i], ab = nv && nv.ok && desbloqueado(i), p = progR(i), es = i === sig;
     if (px !== x || py !== y) mk += `<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#f3dcae" stroke-width="1.5"/><circle cx="${px}" cy="${py}" r="3" fill="#f3dcae"/>`;
-    const col = !ab ? '#6b625c' : p.done ? '#f4c13d' : '#ffffff', txt = !ab ? '#d8d0c8' : '#2a1a10';
-    mk += `<g class="mk ${ab ? '' : 'cerrado'}" ${ab ? `data-lvm="${i}" tabindex="0" role="button"` : ''} aria-label="Nivel ${i + 1}" transform="translate(${x} ${y})">
+    const sm = secretoDe(i), col = sm >= 0 ? (ab ? (p.done ? '#f4c13d' : '#c9a4ff') : '#4a3a66') : !ab ? '#6b625c' : p.done ? '#f4c13d' : '#ffffff', txt = !ab ? '#d8d0c8' : '#2a1a10';
+    mk += `<g class="mk ${ab ? '' : 'cerrado'}" ${ab ? `data-lvm="${i}" tabindex="0" role="button"` : ''} aria-label="${nomNivel(i)}" transform="translate(${x} ${y})">
       ${es ? `<circle class="mk-pulso" r="12" fill="none" stroke="#ffffff" stroke-width="3"/>` : ''}
       <circle r="13" fill="rgba(0,0,0,.35)" cy="2"/><circle class="fondo" r="12" fill="${col}" stroke="${p.done ? '#7a4a12' : '#3a2a20'}" stroke-width="2"/>
-      <text text-anchor="middle" dy="4.5" font-size="13" font-weight="800" fill="${txt}" font-family="system-ui,sans-serif">${ab ? i + 1 : '🔒'}</text>
+      <text text-anchor="middle" dy="4.5" font-size="13" font-weight="800" fill="${txt}" font-family="system-ui,sans-serif">${sm >= 0 ? (ab ? '✨' : '?') : ab ? i + 1 : '🔒'}</text>
       ${p.done ? `<text text-anchor="middle" y="24" font-size="9" fill="#ffd968" stroke="#2a1a10" stroke-width="2.5" paint-order="stroke" font-family="system-ui,sans-serif">${'★'.repeat(p.stars)}${'☆'.repeat(3 - p.stars)}</text>` : ''}
       ${selloAbierto(i) ? '<text x="10" y="-8" font-size="11">🏅</text>' : ''}</g>`;
   }
@@ -533,7 +543,7 @@ function openCuaderno() {
     <div class="cu-se"><b>🏅 Sellos: ${sellosHechos()}/${LUG.length}</b><span>Encuentra los 3 frutos de un nivel y gana el sello de ese lugar.</span></div><div class="cu-l">`;
   LUG.forEach((f, i) => {
     const ok = fichaAbierta(i);
-    h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 Nivel ${i + 1}`}</span>${selloAbierto(i) ? '<i class="cu-b" aria-label="Sello">🏅</i>' : ''}</button>`;
+    h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 ${nomNivel(i)}`}</span>${selloAbierto(i) ? '<i class="cu-b" aria-label="Sello">🏅</i>' : ''}</button>`;
   });
   h += `</div><div class="acts"><button class="btn-gold" id="cuOk">Cerrar</button></div>`;
   openModal(h);
@@ -543,7 +553,7 @@ function openCuaderno() {
 function openFicha(i, desdeCuaderno) {
   const f = LUG[i]; if (!f) return;
   openModal(`<div class="fi"><div class="fi-img" style="background-image:url('${f.img}');background-position:${f.pos}"></div>
-    <div class="fi-l"><span>Nivel ${i + 1}</span> · <span>${esc(f.lugar)}</span></div><h3>${esc(f.titulo)}</h3>
+    <div class="fi-l"><span>${nomNivel(i)}</span> · <span>${esc(f.lugar)}</span></div><h3>${esc(f.titulo)}</h3>
     ${f.texto.map(p => `<p>${esc(p)}</p>`).join('')}
     <div class="fi-dato"><b>¿Sabías que…?</b> ${esc(f.dato)}</div>
     ${NIV[i] && NIV[i].ok && frutosDe(NIV[i].nivel).length ? `<div class="fi-fru"><span id="fiFru"></span><span>Frutos del camino: <b>${frutosHechos(i)}/${frutosDe(NIV[i].nivel).length}</b>${frutosHechos(i) < frutosDe(NIV[i].nivel).length ? ' · Busca en lo alto y sobre los huecos.' : ''}</span></div>` : ''}
@@ -587,6 +597,7 @@ function ponOverlay() {
       <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
+      ${nu.secreto != null ? `<div class="ov-se"><b>✨ ¡Has abierto un nivel secreto!</b><span>Búscalo en el mapa, al final del Mundo ${nu.secreto + 1}.</span></div>` : ''}
       ${nu.sello ? '<div class="ov-se"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></div>' : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
@@ -605,7 +616,7 @@ function ponOverlay() {
 const RETO = { info: null, estado: 'nada', ranking: null, err: '' };
 const diaLocal = () => { try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Atlantic/Canary' }).format(new Date()); } catch (e) { return new Date().toISOString().slice(0, 10); } };
 function retoInfoLocal() {
-  const dia = diaLocal(), r = M.retoDelDia(dia, NIV.map(n => (n.ok ? n.nivel.level_id : '')));
+  const dia = diaLocal(), r = M.retoDelDia(dia, NIV.slice(0, NBASE).map(n => (n.ok ? n.nivel.level_id : '')));   // los secretos no entran (igual que en el servidor)
   return { dia, nivel: r.nivel, mod: r.mod, local: true };
 }
 async function pide(ruta, cuerpo) {

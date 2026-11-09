@@ -168,6 +168,37 @@
         ['Turismo Lanzarote: César Manrique, 100 años', 'https://turismolanzarote.com/en/cesar-manrique-100-years-since-his-birth/'],
         ['Gobierno de Canarias: El Mirador del Río', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=El_Mirador_del_R%C3%ADo']
       ]
+    },
+    // Niveles secretos (se abren con todos los frutos de su mundo)
+    {
+      lugar: 'Cueva de los Verdes', titulo: 'Un túnel hecho por la lava', img: 'paisaje-cueva.jpg', pos: '50% 40%',
+      texto: [
+        'La Cueva de los Verdes está en el norte de Lanzarote, en el municipio de Haría, bajo el Malpaís de La Corona.',
+        'Se formó cuando el volcán de La Corona entró en erupción: la lava corrió hacia el mar, se enfrió por fuera y siguió fluyendo por dentro. Al vaciarse, dejó un tubo hueco de más de siete kilómetros.',
+        'En los siglos XVI y XVII la gente de la isla se escondía en sus galerías para huir de los piratas. Se cree que su nombre viene de una familia apellidada Verdes que guardaba su ganado cerca.'
+      ],
+      dato: 'El último tramo del tubo sigue por debajo del mar: se llama el Túnel de la Atlántida.',
+      extra: ['La cueva se abrió a las visitas en 1964, preparada por el artista Jesús Soto. Dentro hay hasta un auditorio donde se dan conciertos.', ['CACT Lanzarote (Cabildo): viaje al corazón de los volcanes', 'https://cactlanzarote.com/la-cueva-de-los-verdes-viaje-al-corazon-de-los-volcanes/']],
+      fuentes: [
+        ['CACT Lanzarote (Cabildo): Cueva de los Verdes', 'https://cactlanzarote.com/en/visit/cueva-de-los-verdes'],
+        ['Gobierno de Canarias: Cueva de los Verdes', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Cueva_de_los_Verdes'],
+        ['Gobierno de Canarias: Malpaís de La Corona', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Malpa%C3%ADs_de_La_Corona']
+      ]
+    },
+    {
+      lugar: 'La Graciosa', titulo: 'La octava isla', img: 'paisaje-mirador.jpg', pos: '78% 45%',
+      texto: [
+        'La Graciosa está al norte de Lanzarote, al otro lado de El Río, un brazo de mar de apenas un kilómetro. Mide unos 27 km² y pertenece al municipio de Teguise.',
+        'Es uno de los pocos lugares habitados de Europa sin carreteras asfaltadas: sus calles son de arena y se puede andar descalzo.',
+        'Hasta 2018 se la consideraba un islote. Ese año se reconoció como la octava isla habitada de Canarias.'
+      ],
+      dato: 'Solo se puede llegar en barco, desde el puerto de Órzola, en el norte de Lanzarote.',
+      extra: ['Su punto más alto, Agujas Grandes, mide 266 metros. Casi toda la isla, menos Caleta de Sebo y Pedro Barba, es Patrimonio Nacional.', ['Gobierno de Canarias: La Graciosa, la octava isla', 'https://www3.gobiernodecanarias.org/medusa/ecoescuela/recursosdigitales/files/formidable/6/cd-03-0000026-infografia-simple-doble-formato-islas-_la-graciosa.pdf']],
+      fuentes: [
+        ['Gobierno de Canarias: La Graciosa', 'https://www3.gobiernodecanarias.org/medusa/ecoescuela/recursosdigitales/2023/06/02/la-graciosa/'],
+        ['Gobierno de Canarias: Isla de La Graciosa', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Isla_de_La_Graciosa'],
+        ['Turismo Lanzarote: folleto del Archipiélago Chinijo', 'https://turismolanzarote.com/wp-content/uploads/2017/01/Folleto-La-Graciosa-Archipi%C3%A9lago-Chinijo-Teguise.pdf']
+      ]
     }
   ];
 })();

@@ -2,7 +2,7 @@
 /* Graba con el robot una partida completa de cada nivel (y de cada ruta) para las pruebas de la app: tests/partidas.json
    Uso: node tools/generar-partidas.cjs   (tarda unos minutos; solo hace falta si cambian los niveles o el motor) */
 const fs = require('fs'), path = require('path');
-const M = require('../www/martin.js'), T = require('../www/niveles.js'), { jugar } = require('./bot.cjs');
+const M = require('../www/martin.js'), T = require('../www/niveles.js'), _s = require('../www/secretos.js'), { jugar } = require('./bot.cjs');
 const out = {};
 T.forEach((t, i) => {
   const L = M.cargar(t).nivel, rutas = (L.routes || []).map(r => r.id);

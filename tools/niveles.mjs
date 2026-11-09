@@ -332,6 +332,37 @@ function l11() {
   return cierra(n, { id: 'norte_l11_mirador', nombre: 'Lo alto del risco', resumen: 'La gran subida hasta el mirador, con el viento de cara.', estrella3: 300, tema: 'mirador' });
 }
 
+/* ======================= Niveles secretos (se abren con todos los frutos de su mundo) ======================= */
+/* Van en www/secretos.js, aparte: el servidor del reto diario no los carga y su lista de niveles no cambia. */
+/* ---------- S1 · Cueva de los Verdes: dentro del tubo volcánico ---------- */
+function s01() {
+  const n = new N(12, 'cueva');
+  n.llano(26).pista('cueva', 10, 56, { hasta_x: 56 });
+  n.llano(10).hueco(2.2).llano(10); rocas(n, [[1.4, 0.8]], 10); n.baja(1.0).llano(14).control();
+  n.llano(8).hueco(2.4).llano(5).hueco(2.4).llano(12); sube(n, 2, 1.0, 7); n.hueco(2.6).llano(10); baja(n, 2, 1.0, 10);
+  n.llano(16).roca(1.4, 0.9).llano(14).control();
+  n.llano(6).hueco(2.6).llano(4).hueco(2.6).llano(4).hueco(2.8).llano(14);
+  n.baja(1.2).llano(12).hueco(2.4).llano(10).sube(1.2).llano(14).control();
+  rocas(n, [[1.2, 0.8], [1.4, 1.0]], 8); n.llano(10).hueco(3.0).llano(16);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'secreto_s1_cueva_verdes', nombre: 'La cueva de lava', resumen: 'Nivel secreto: el túnel de lava de la Cueva de los Verdes. Cuidado con el techo.', estrella3: 230, tema: 'cueva' });
+}
+/* ---------- S2 · La Graciosa: pistas de arena, olas y viento ---------- */
+function s02() {
+  const n = new N(13, 'graciosa');
+  n.llano(28).pista('graciosa', 10, 60, { hasta_x: 60 });
+  n.llano(12).hueco(2.4).llano(14); rocas(n, [[1.4, 0.8]], 12); n.llano(10).control();
+  n.llano(16).hueco(2.6).llano(8).hueco(2.6).llano(16); sube(n, 1, 1.1, 10); n.hueco(2.8).llano(10); baja(n, 1, 1.1, 14);
+  n.llano(18).roca(1.4, 0.9).llano(14).control();
+  n.llano(20).hueco(3.0).llano(18); rocas(n, [[1.2, 0.7], [1.4, 0.9]], 9);
+  n.llano(16).hueco(2.6).llano(6).hueco(2.8).llano(18).control();
+  sube(n, 2, 1.1, 8); n.hueco(2.8).llano(10); baja(n, 2, 1.1, 12); n.llano(14).hueco(3.0).llano(16);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'secreto_s2_la_graciosa', nombre: 'La octava isla', resumen: 'Nivel secreto: La Graciosa, sin asfalto, con olas y viento del norte.', estrella3: 240, tema: 'graciosa' });
+}
+
 /* ---------- Peligros vivos (2.1): se colocan sobre tramos llanos, lejos del inicio, de los puntos de control y de la meta ---------- */
 function peligros(L, plan) {
   const hz = [], ocup = [], cps = [L.checkpoint].concat(L.checkpoints_extra || []);
@@ -407,6 +438,16 @@ const niveles = [
   objetos(peligros(l10(), plan(['piedra', 'viento', 'piedra'], 3, { fragilSinViento: true })), ['higo', 'higo', 'tuno']),
   objetos(peligros(l11(), plan(['viento', 'piedra', 'viento', 'geiser', 'viento'], 4, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo'])
 ];
+const secretos = [
+  { mundo: 0, L: objetos(peligros(s01(), plan(['piedra', 'piedra', 'piedra'], 3)), ['higo', 'tuno', 'malvasia']) },
+  { mundo: 1, L: objetos(peligros(s02(), plan(['ola', 'viento', 'ola', 'viento', 'ola'], 1, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo']) }
+];
+const outS = '/* Niveles secretos de Martín: se abren con todos los frutos de su mundo. GENERADO por tools/niveles.mjs: no editar a mano.\n'
+  + '   Van aparte de niveles.js para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
+  + '(function (root) {\nconst S = [\n' + secretos.map(x => '  { mundo: ' + x.mundo + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'
+  + 'root.MARTIN_SECRETOS = S;\nif (root.MARTIN_NIVELES) for (const x of S) root.MARTIN_NIVELES.push(x.texto);\nif (typeof module !== "undefined" && module.exports) module.exports = S;\n})(typeof self !== "undefined" ? self : globalThis);\n';
+fs.writeFileSync(path.join(aqui, '..', 'www', 'secretos.js'), outS);
+console.log('secretos.js escrito:', secretos.map(x => x.L.level_id + ' (' + x.L.world.max_x + ' u)').join(', '));
 const out = '/* Niveles de Uga (JSON validado por Martin.cargar). GENERADO por tools/niveles.mjs: no editar a mano. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst N = [\n' + niveles.map(l => '  ' + JSON.stringify(JSON.stringify(l))).join(',\n') + '\n];\n'
   + 'root.MARTIN_NIVELES = N;\nif (typeof module !== "undefined" && module.exports) module.exports = N;\n})(typeof self !== "undefined" ? self : globalThis);\n';

@@ -25,7 +25,10 @@
     { cielo: ['#2266b8', '#5e9ad8', '#b9d6ec', '#f3e3d0'], sol: [0.7, 0.2], solC: '#fffaf0', haz: 0.08, lejos: '#a08ea8', lejos2: '#86749a', med: '#302a2c', geria: '#2a2224', tinte: 'rgba(255,200,210,0.07)', nubes: 0.6 },
     { cielo: ['#3f6d9e', '#7aa0c4', '#c3d3df', '#e9e1cf'], sol: [0.6, 0.18], solC: '#fffbe8', haz: 0.12, lejos: '#8c94a0', lejos2: '#727c8a', med: '#2f2b2a', geria: '#272322', tinte: 'rgba(230,220,200,0.08)', nubes: 1.2 },
     { cielo: ['#1260b8', '#3a8ad4', '#86c2ea', '#d8eef6'], sol: [0.82, 0.14], solC: '#fff8dc', haz: 0.05, lejos: '#7f9a8c', lejos2: '#68826f', med: '#2c2a26', geria: '#24221e', tinte: 'rgba(160,220,140,0.05)', nubes: 0.9 },
-    { cielo: ['#1d4f9a', '#4a86c8', '#9cc6e6', '#e4f0f6'], sol: [0.78, 0.12], solC: '#fffbe6', haz: 0.04, lejos: '#7e8aa6', lejos2: '#66708e', med: '#2a2629', geria: '#221e21', tinte: 'rgba(170,200,255,0.06)', nubes: 1.1 }
+    { cielo: ['#1d4f9a', '#4a86c8', '#9cc6e6', '#e4f0f6'], sol: [0.78, 0.12], solC: '#fffbe6', haz: 0.04, lejos: '#7e8aa6', lejos2: '#66708e', med: '#2a2629', geria: '#221e21', tinte: 'rgba(170,200,255,0.06)', nubes: 1.1 },
+    // secretos: Cueva de los Verdes (fondo dibujado) y La Graciosa
+    { cielo: ['#120c0a', '#1e1411', '#2a1c16', '#3a271e'], sol: [0.5, 0.1], solC: '#ffcf8a', haz: 0, lejos: '#2a1d18', lejos2: '#22170f', med: '#1a120f', geria: '#140e0b', tinte: 'rgba(255,170,90,0.06)', nubes: 0 },
+    { cielo: ['#0f62c0', '#2f8ad8', '#7cc2ec', '#d8eef8'], sol: [0.8, 0.14], solC: '#fff8dc', haz: 0.05, lejos: '#8c94a0', lejos2: '#727c8a', med: '#2f2b2a', geria: '#272322', tinte: 'rgba(230,220,200,0.06)', nubes: 1.0 },
   ];
 
   /* ---- Texturas (se crean una vez) ---- */
@@ -81,6 +84,7 @@
           const cerca = (L.obstacles || []).some(o => o.kind === 'gap' && o.x0 < x + 1.3 && o.x1 > x - 1.3);
           if (!choque && !cerca) {
             const q = hash(Math.floor(x * 13) + k * 31);
+            if (sc.tema === 11) { if (q < 0.5) sc.deco.push({ x: x + h * 1.0, y: g.top, t: 'piedra', s: 0.75 + h * 1.0, h: q }); continue; }   // en la cueva no crecen plantas: solo piedras
             sc.deco.push({ x: x + h * 1.0, y: g.top, t: q < 0.22 ? 'tunera' : q < 0.4 ? 'cardon' : q < 0.62 ? 'pita' : q < 0.8 ? 'piedra' : q < 0.88 ? 'lagarto' : 'flor', s: 0.75 + h * 1.0, h: q });
           }
         }
@@ -483,8 +487,9 @@
     { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
     { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8] };   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
+    if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
       f.img = new Image();
@@ -557,7 +562,37 @@
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
+  /* Cueva de los Verdes: roca volcánica, techo con estalactitas y focos de luz cálida. Se pinta una vez (por tamaño) y cada imagen solo la copia. */
+  const CUEVA = { key: '', cv: null };
+  function capaCueva(W, H, u) {
+    const TX = texturas(), key = W + 'x' + H + 'x' + u.toFixed(1) + (TX.lavaP ? 't' : ''); if (CUEVA.key === key && CUEVA.cv) return CUEVA.cv;   // se repinta una vez cuando llega la textura
+    const LW = Math.ceil(W * 2), c = document.createElement('canvas'); c.width = Math.ceil(LW * ESC); c.height = Math.ceil(H * ESC); const g = c.getContext('2d'); g.scale(ESC, ESC);
+    let gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#120b09'); gr.addColorStop(0.4, '#33231b'); gr.addColorStop(0.75, '#241812'); gr.addColorStop(1, '#0d0907'); g.fillStyle = gr; g.fillRect(0, 0, LW, H);
+    if (TX.lavaP) { g.globalAlpha = 0.45; const pt = g.createPattern(TX.lavaP, 'repeat'); try { pt.setTransform(new DOMMatrix().scale(u * 3.2 / TX.lavaP.height)); } catch (e) {} g.fillStyle = pt; g.fillRect(0, 0, LW, H); g.globalAlpha = 1; }
+    const per = (x, k) => Math.sin(x / LW * Math.PI * 2 * k);   // todo periódico en el ancho de la capa: se empalma sin costura
+    for (let i = 0; i < 4; i++) {   // focos de luz cálida (rojiza y ámbar, como la iluminación de la cueva)
+      const x = LW * (i + 0.5) / 4, y = H * (0.45 + 0.08 * per(x, 3)), r = u * (5 + (i % 2) * 2);
+      const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, i % 2 ? 'rgba(255,120,50,.40)' : 'rgba(255,190,100,.36)'); rg.addColorStop(1, 'rgba(255,140,60,0)'); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    // forma de tubo: arriba y abajo más oscuro
+    gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(5,3,2,.85)'); gr.addColorStop(0.3, 'rgba(5,3,2,0)'); gr.addColorStop(0.7, 'rgba(5,3,2,0)'); gr.addColorStop(1, 'rgba(5,3,2,.7)'); g.fillStyle = gr; g.fillRect(0, 0, LW, H);
+    // techo irregular y estalactitas finas de distintos largos
+    const techo = x => H * (0.12 + 0.035 * per(x, 2) + 0.022 * per(x, 5) + 0.01 * per(x, 13));
+    g.fillStyle = '#0a0605'; g.beginPath(); g.moveTo(0, 0); for (let x = 0; x <= LW; x += u * 0.2) g.lineTo(x, techo(x)); g.lineTo(LW, 0); g.closePath(); g.fill();
+    for (let k = 0; k < 30; k++) {
+      const x0 = LW * (k + hash(k * 7 + 1)) / 30, w = u * (0.12 + hash(k * 7 + 2) * 0.22), l = u * (0.3 + hash(k * 7 + 3) ** 2 * 1.6);
+      for (const x of [x0, x0 - LW, x0 + LW]) { if (x < -u || x > LW + u) continue; const b = techo(x) - 2;
+        g.fillStyle = '#0a0605'; g.beginPath(); g.moveTo(x - w, b); g.quadraticCurveTo(x - w * 0.25, b + l * 0.6, x, b + l); g.quadraticCurveTo(x + w * 0.25, b + l * 0.6, x + w, b); g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(255,170,90,.16)'; g.lineWidth = Math.max(1, u * 0.03); g.beginPath(); g.moveTo(x - w * 0.6, b + l * 0.15); g.quadraticCurveTo(x - w * 0.2, b + l * 0.6, x, b + l); g.stroke(); }
+    }
+    CUEVA.key = key; CUEVA.cv = c; CUEVA.lw = LW; return c;
+  }
+  function dibujaCueva(ctx, W, H, u, cam) {
+    const c = capaCueva(W, H, u), LW = CUEVA.lw, off = ((cam.x * u * 0.15) % LW + LW) % LW;
+    ctx.drawImage(c, -off, 0, LW, H); if (LW - off < W) ctx.drawImage(c, LW - off, 0, LW, H);
+  }
   function dibujaFondo(ctx, W, H, u, cam, TM, t, largo) {
+    if (TEMAS.indexOf(TM) === 11) return dibujaCueva(ctx, W, H, u, cam);
     { const F = fotoTema(TEMAS.indexOf(TM)); if (F) return dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo); }
     const cv = ctx.canvas, tema = TEMAS.indexOf(TM), key = W + 'x' + H + 'x' + u.toFixed(2) + 'x' + tema;
     let c = CACHE.get(cv); if (!c || c.key !== key) { c = { key, capas: {} }; CACHE.set(cv, c); }
