@@ -628,7 +628,7 @@ function mapaIsla(sig) {
 }
 /* Guía de la naturaleza: las especies de cada nivel se descubren al terminarlo */
 const NAT = window.NATURALEZA || [];
-const ORIGEN = { 'endemica-lz': ['Solo en Lanzarote', '#3fb27f'], endemica: ['Solo en Canarias', '#3fb27f'], nativa: ['Nativa', '#5aa0d8'], introducida: ['Llegó de fuera', '#d89a3f'], invasora: ['Llegó de fuera · invasora', '#e0604a'], cultivo: ['De cultivo', '#b98ad8'], salinas: ['Vive en las salinas', '#e07a9a'] };
+const ORIGEN = { 'endemica-lz': ['Solo en Lanzarote', '#3fb27f'], endemica: ['Solo en Canarias', '#3fb27f'], nativa: ['Nativa', '#5aa0d8'], introducida: ['Llegó de fuera', '#d89a3f'], invasora: ['Llegó de fuera · invasora', '#e0604a'], cultivo: ['De cultivo', '#b98ad8'], salinas: ['Vive en las salinas', '#e07a9a'], raza: ['Raza canaria reconocida', '#3fb27f'] };
 const ESP_NIV = [];
 const especiesNivel = i => ESP_NIV[i] || (ESP_NIV[i] = NIV[i] && NIV[i].ok ? especiesDe(NIV[i].nivel, i) : []);
 const descubreEn = i => NAT.filter(e => NIV[i] && NIV[i].ok && e.descubre === NIV[i].nivel.level_id).map(e => e.id);   // cada especie se descubre en el nivel de su lugar

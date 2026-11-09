@@ -273,7 +273,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('guía: 11 especies, cada una con texto, origen y fuente oficial https', await p.evaluate(() => NAT.length === 11 && NAT.every(e => e.texto.length === 2 && ORIGEN[e.origen] && /^https:\/\//.test(e.fuente[1]) && __martin.NIV.some(n => n.ok && n.nivel.level_id === e.descubre))));
     check('guía: cada especie se puede dibujar', await p.evaluate(() => NAT.every(e => { const c = document.createElement('canvas'); c.width = 80; c.height = 64; const x = c.getContext('2d'); dibujaEspecie(x, e.id, 80, 64); const d = x.getImageData(0, 0, 80, 64).data; for (let i = 3; i < d.length; i += 4) if (d[i]) return true; return false; })));
     await p.evaluate(() => { prog(0).done = false; save(); openGuia(); });
-    check('guía: sin terminar el nivel 1, la tunera y el dromedario siguen ocultos', !(await p.$('[data-esp="tunera"]')) && !(await p.$('[data-esp="dromedario"]')));
+    check('guía: sin terminar el nivel 1, la tunera y el camello siguen ocultos', !(await p.$('[data-esp="tunera"]')) && !(await p.$('[data-esp="camello"]')));
     await p.evaluate(() => { closeModal(); jugar(0, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; terminar(); }); await p.waitForTimeout(150);
     check('guía: al terminar el nivel avisa de las especies nuevas', /Nueva especie en tu guía/.test(await p.textContent('#mgOv')) && /Tunera/.test(await p.textContent('#mgOv')));
     await p.evaluate(() => { salirAlMapa(); openCuaderno(); }); await p.waitForTimeout(100);

@@ -78,12 +78,12 @@
       fuente: ['Cabildo de Lanzarote: ficha técnica del cultivo del aloe', 'https://www.cabildodelanzarote.com/documents/35307/78325/ficha_tecnica_del_cultivo_de__aloe_vera.pdf/6d484d29-6142-b195-ec78-c48a7d17793d?t=1620721613744']
     },
     {
-      id: 'dromedario', descubre: 'uga_l01_water_delivery', nombre: 'Dromedario', cientifico: 'Camelus dromedarius', origen: 'introducida',
+      id: 'camello', descubre: 'uga_l01_water_delivery', nombre: 'Camello canario', cientifico: 'Camelus dromedarius', origen: 'raza',
       texto: [
-        'Se trajo a la isla para el trabajo del campo. Hoy pasea a los visitantes por Timanfaya.',
-        'Martín es un dromedario: tiene una sola joroba. En Uga viven unos 400.'
+        'Tiene una sola joroba, como los dromedarios, pero en Canarias siempre se le ha llamado camello. Y con razón: el camello canario es una raza propia, reconocida en el Catálogo Oficial de Razas de Ganado de España.',
+        'Es una raza autóctona en peligro de extinción. Llegó a las islas para el trabajo del campo y hoy, desde Uga, pasea a los visitantes por Timanfaya. Martín es uno de ellos.'
       ],
-      fuente: ['MITECO: folleto del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/content/dam/miteco/es/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/guia-visitante/timanfaya-folleto-espa%C3%B1ol.pdf']
+      fuente: ['Ministerio de Agricultura: raza Camello Canario', 'https://www.mapa.gob.es/en/ganaderia/temas/zootecnia/razas-ganaderas/arca/logotipo-camello-canario']
     },
     {
       id: 'artemia', descubre: 'norte_l08_janubio', nombre: 'Artemia', cientifico: 'Artemia parthenogenetica', origen: 'salinas',

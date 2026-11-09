@@ -1189,7 +1189,7 @@
   /* Guía de la naturaleza: qué especies salen en un nivel (misma regla que elige cada dibujo) y su retrato */
   const SPR_ESP = { palmera: 'palmera', tabaibal: 'tabaiba', tunera: 'tunera', pita: 'pita', vid: 'vid', aloe: 'aloe', bejeque: 'bejeque', aulaga: 'aulaga' };
   function especiesDe(L, idx) {
-    const sc = preparaEscena(L, idx), set = new Set(['dromedario']);
+    const sc = preparaEscena(L, idx), set = new Set(['camello']);
     for (const d of sc.deco) {
       if (d.t === 'lagarto') { set.add('lagarto'); continue; }
       const l = FLO.por[d.t]; if (!l) continue;
@@ -1204,7 +1204,7 @@
     const inv = Object.keys(SPR_ESP).find(k => SPR_ESP[k] === id);
     if (inv && FLO.ok) { const m = FLO.m[inv], k = Math.min(W * 0.92 / m[2], H * 0.92 / m[3]); ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], (W - m[2] * k) / 2, (H - m[3] * k) / 2, m[2] * k, m[3] * k); return; }
     if (id === 'lagarto') { dibujaDeco(ctx, { t: 'lagarto', x: 0, s: 1, h: 0.85 }, W * 0.4, H * 0.7, W / 1.35, 0); return; }
-    if (id === 'dromedario' && SPR.ok) { const k = Math.min(W * 0.9 / 551, H * 0.9 / 560); ctx.drawImage(SPR.img, (W - 551 * k) / 2, (H - 560 * k) / 2, 551 * k, 560 * k); return; }
+    if (id === 'camello' && SPR.ok) { const k = Math.min(W * 0.9 / 551, H * 0.9 / 560); ctx.drawImage(SPR.img, (W - 551 * k) / 2, (H - 560 * k) / 2, 551 * k, 560 * k); return; }
     if (id === 'artemia') {   // crustáceo diminuto y rosado, nadando boca arriba
       ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-0.25); const L = W * 0.36;
       ctx.strokeStyle = '#d9667a'; ctx.lineWidth = Math.max(1, W * 0.012); for (let i = 0; i < 11; i++) { const x = -L * 0.45 + i * L * 0.075; ctx.beginPath(); ctx.moveTo(x, 0); ctx.quadraticCurveTo(x + L * 0.04, -L * 0.12, x + L * 0.02, -L * 0.2); ctx.stroke(); }

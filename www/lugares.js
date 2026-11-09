@@ -9,9 +9,9 @@
       texto: [
         'Uga es un pequeño pueblo de casas blancas del municipio de Yaiza, en el sur de Lanzarote, a las puertas del Parque Nacional de Timanfaya.',
         'En una isla donde casi no llueve, cada gota cuenta: en Uga los tejados se hacían inclinados para llevar el agua de lluvia a un aljibe.',
-        'Hoy en Uga viven unos 400 dromedarios. Cada mañana salen en fila india hacia el Echadero de los Camellos de Timanfaya, a hora y media de camino, donde pasean a los visitantes desde los años cincuenta.'
+        'Hoy en Uga viven unos 400 camellos. Cada mañana salen en fila india hacia el Echadero de los Camellos de Timanfaya, a hora y media de camino, donde pasean a los visitantes desde los años cincuenta.'
       ],
-      dato: 'De los paseos en camello por Timanfaya viven unas cuarenta familias de Uga. El dromedario llegó a la isla para el trabajo del campo.',
+      dato: 'De los paseos en camello por Timanfaya viven unas cuarenta familias de Uga. El camello llegó a la isla para el trabajo del campo.',
       extra: ['En verano el trabajo se multiplica: por el sendero del Echadero pueden pasar hasta 150 camellos al día.', ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']],
       fuentes: [
         ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/'],

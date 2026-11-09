@@ -28,7 +28,7 @@ Lleva el agua por Lanzarote: 13 niveles, guía de naturaleza y reto diario
 
 **Descripción completa**
 
-Martín es un camello joven de Uga. Tras una tormenta, los caminos han quedado dañados y hay que llevar el agua por toda la isla sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
+Martín es un camello canario joven de Uga. Tras una tormenta, los caminos han quedado dañados y hay que llevar el agua por toda la isla sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
 
 🐪 UN JUEGO DE REGLAS CLARAS
 • Un salto (más alto si lo mantienes), sin trucos: lo que pasa siempre tiene una causa que se ve.
@@ -44,7 +44,7 @@ Martín es un camello joven de Uga. Tras una tormenta, los caminos han quedado d
 📖 APRENDE MIENTRAS JUEGAS
 • Cuaderno de viaje: cada nivel abre la ficha de su lugar real, con datos de fuentes oficiales.
 • Sellos: recoge los 3 frutos de un nivel (tunos, higos, uvas…) y gana su sello y una curiosidad más.
-• Guía de la naturaleza: el lagarto atlántico, el bejeque, la tabaiba, la palmera canaria… 11 plantas y animales que se descubren por el camino, explicando cuáles solo viven aquí y cuáles llegaron de fuera.
+• Guía de la naturaleza: el camello canario (una raza propia), el lagarto atlántico, el bejeque, la tabaiba, la palmera canaria… 11 plantas y animales que se descubren por el camino, explicando cuáles solo viven aquí y cuáles llegaron de fuera.
 
 🧒 MODO PEQUE
 • Para los más pequeños: se derrama la mitad de agua, la lava va más despacio y las pistas no se quitan.
