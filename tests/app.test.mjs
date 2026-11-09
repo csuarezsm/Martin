@@ -231,7 +231,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
   }
   { // música de fondo: suena al jugar (distinta por mundo) y se para al pausar, al salir o si se quita en ajustes
     await p.evaluate(() => { S.musica = true; S.sound = true; jugar(0, 'nivel'); empezar(); }); await p.waitForTimeout(300);
-    check('música: suena al jugar el Mundo 1 (aire de isa)', await p.evaluate(() => Musica.estado() === 'sur'));
+    check('música: suena al jugar el Mundo 1 (ambiente: viento y pájaros)', await p.evaluate(() => Musica.estado() === 'sur'));
     await p.evaluate(() => pausar()); await p.waitForTimeout(100);
     check('música: se para al pausar', await p.evaluate(() => Musica.estado() === ''));
     await p.evaluate(() => { salirAlMapa(); jugar(7, 'nivel'); empezar(); }); await p.waitForTimeout(300);
@@ -267,6 +267,22 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
       return !!c && c.getContext('2d').getImageData(c.width / 2, c.height * 0.3, 1, 1).data[3] > 0 && t.includes(f.extra[0]) && [...document.querySelectorAll('.fi-f a')].some(a => a.dataset.url === f.extra[1][1]); }));
     await p.evaluate(() => { closeModal(); openCuaderno(); });
     check('sellos: el cuaderno cuenta los sellos y marca el lugar', /Sellos: \d+\/13/.test(await p.textContent('#modal')) && !!(await p.$('[data-fi="2"] .cu-b')));
+    await p.evaluate(() => closeModal());
+  }
+  { // 2.4.2: guía de la naturaleza — cada especie se descubre al terminar el nivel de su lugar
+    check('guía: 11 especies, cada una con texto, origen y fuente oficial https', await p.evaluate(() => NAT.length === 11 && NAT.every(e => e.texto.length === 2 && ORIGEN[e.origen] && /^https:\/\//.test(e.fuente[1]) && __martin.NIV.some(n => n.ok && n.nivel.level_id === e.descubre))));
+    check('guía: cada especie se puede dibujar', await p.evaluate(() => NAT.every(e => { const c = document.createElement('canvas'); c.width = 80; c.height = 64; const x = c.getContext('2d'); dibujaEspecie(x, e.id, 80, 64); const d = x.getImageData(0, 0, 80, 64).data; for (let i = 3; i < d.length; i += 4) if (d[i]) return true; return false; })));
+    await p.evaluate(() => { prog(0).done = false; save(); openGuia(); });
+    check('guía: sin terminar el nivel 1, la tunera y el dromedario siguen ocultos', !(await p.$('[data-esp="tunera"]')) && !(await p.$('[data-esp="dromedario"]')));
+    await p.evaluate(() => { closeModal(); jugar(0, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; terminar(); }); await p.waitForTimeout(150);
+    check('guía: al terminar el nivel avisa de las especies nuevas', /Nueva especie en tu guía/.test(await p.textContent('#mgOv')) && /Tunera/.test(await p.textContent('#mgOv')));
+    await p.evaluate(() => { salirAlMapa(); openCuaderno(); }); await p.waitForTimeout(100);
+    check('guía: el cuaderno tiene el botón de la guía con el recuento', /Guía de la naturaleza/.test(await p.textContent('#modal')) && !!(await p.$('#cuGuia')));
+    await p.click('#cuGuia'); await p.waitForTimeout(100); await p.click('[data-esp="tunera"]'); await p.waitForTimeout(100);
+    check('guía: la ficha de la especie enseña su nombre científico, dónde vive y su fuente', await p.evaluate(() => { const t = document.getElementById('modal').textContent, e = NAT.find(x => x.id === 'tunera'); return t.includes(e.cientifico) && t.includes(e.texto[0]) && /Vive en:/.test(t) && /Sale en \d+ niveles/.test(t) && [...document.querySelectorAll('.es .fi-f a')].some(a => a.dataset.url === e.fuente[1]); }));
+    await p.click('#esVol'); await p.waitForTimeout(100);
+    check('guía: «‹ Guía» vuelve a la lista', !!(await p.$('#guOk')));
+    check('guía: todos los textos de la guía están traducidos a 4 idiomas', await p.evaluate(() => { const I = window.I18N; return NAT.every(e => [e.nombre, ...e.texto, e.fuente[0]].every(s => ['en', 'fr', 'de', 'it'].every(l => (I[l + ':martin'] || {})[s] || I[l][s]))); }));
     await p.evaluate(() => closeModal());
   }
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));

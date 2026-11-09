@@ -83,7 +83,7 @@ const Sound = (() => {
 
 /* ================= Música de fondo (sintetizada, muy suave) =================
    Se programan las notas con medio segundo de adelanto desde un temporizador (no desde el bucle de dibujo):
-   apenas gasta. Mundo 1: aire de isa (3/4) con rasgueos de timple; Mundo 2: acordes suaves y olas; cueva: zumbido y gotas. */
+   apenas gasta. Mundo 1: ambiente (viento, pájaros y alguna nota de guitarra); Mundo 2: folía con guitarra y olas; cueva: zumbido y gotas. */
 const Musica = (() => {
   let on = false, estilo = '', timer = 0, tNext = 0, paso = 0, ruidoBuf = null;
   const H = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -101,18 +101,56 @@ const Musica = (() => {
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.45); g.gain.linearRampToValueAtTime(0.0001, t + dur);
     s.connect(f); f.connect(g); g.connect(Sound.out(c)); s.start(t); s.stop(t + dur + 0.05);
   }
-  const ACORDES = { D: [62, 66, 69], A: [57, 61, 64], G: [55, 59, 62], Bm: [59, 62, 66], Em: [52, 55, 59] };
+  function ruido(c) { if (!ruidoBuf) { const len = c.sampleRate * 2, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; ruidoBuf = b; } return ruidoBuf; }
+  function viento(c, t, dur, vol, fc) {
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = ruido(c); s.loop = true; f.type = 'bandpass'; f.Q.value = 0.9;
+    f.frequency.setValueAtTime(fc, t); f.frequency.linearRampToValueAtTime(fc * 1.35, t + dur * 0.5); f.frequency.linearRampToValueAtTime(fc, t + dur);
+    vol *= 0.6; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(Sound.out(c)); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+  }
+  function pajaro(c, t, h) {   // dos a cuatro silbidos cortos que suben
+    const n = 2 + Math.floor(h * 3), f0 = 2400 + h * 1400;
+    for (let k = 0; k < n; k++) { const o = c.createOscillator(), g = c.createGain(), u = t + k * 0.13; o.type = 'sine';
+      o.frequency.setValueAtTime(f0, u); o.frequency.exponentialRampToValueAtTime(f0 * 1.35, u + 0.07);
+      g.gain.setValueAtTime(0.0001, u); g.gain.linearRampToValueAtTime(0.012 * 0.6, u + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, u + 0.09);
+      o.connect(g); g.connect(Sound.out(c)); o.start(u); o.stop(u + 0.12); }
+  }
+  // cuerda pulsada (timple, guitarra, bandurria): diente de sierra con un filtro que se va cerrando
+  function pulsa(c, t, f, dur, vol, brillo) {
+    const o = c.createOscillator(), fl = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.value = f;
+    fl.type = 'lowpass'; fl.Q.value = 0.8; fl.frequency.setValueAtTime(Math.min(9000, f * (brillo || 6)), t); fl.frequency.exponentialRampToValueAtTime(Math.max(120, f * 1.3), t + dur * 0.7);
+    vol *= 0.6; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(fl); fl.connect(g); g.connect(Sound.out(c)); o.start(t); o.stop(t + dur + 0.05);
+  }
+  const AC = { D: [62, 66, 69], G: [55, 59, 62], A7: [57, 61, 64, 67], Am: [57, 60, 64], E7: [52, 56, 59, 62], C: [48, 52, 55], G7: [55, 59, 62, 65] };
+  // la segunda voz va una tercera por debajo dentro de la escala, como cantan las parrandas
+  const ESC = { D: [61, 62, 64, 66, 67, 69, 71], Am: [56, 57, 59, 60, 62, 64, 65], C: [59, 60, 62, 64, 65, 67, 69] };
+  function tercera(m, esc) { const pc = ((m % 12) + 12) % 12, e = esc.map(x => x % 12), k = e.indexOf(pc); if (k < 0) return m - 4; const d = e[(k + 5) % 7]; let r = m - ((pc - d + 12) % 12); if (m - r < 3) r -= 12; return r; }
+  // melodía propia en el estilo de la folía: [nota, corcheas] por compás (0 = silencio)
+  const FOLIA = [['Am', [[72, 3], [71, 1], [69, 2]]], ['E7', [[68, 2], [71, 2], [74, 2]]], ['Am', [[72, 2], [76, 2], [72, 2]]], ['E7', [[71, 6]]],
+    ['C', [[76, 2], [79, 2], [76, 1], [74, 1]]], ['G7', [[74, 2], [71, 2], [74, 2]]], ['C', [[72, 4], [76, 2]]], ['E7', [[71, 4], [68, 2]]]];
+  const sin = fr => fr.map(([ac]) => [ac, [[0, 6]]]);
+  const FOL = [...FOLIA, ...sin(FOLIA), ...FOLIA, ...sin(FOLIA)];
+  const escDe = ac => (ac === 'Am' || ac === 'E7' ? ESC.Am : ac === 'C' || ac === 'G7' ? ESC.C : ESC.D);
+  function melodia(c, t, fr, e, pulso, vol, trem) {
+    let o = 0; for (const [m, d] of fr[1]) { if (o === e && m) { const esc = escDe(fr[0]);
+        // la bandurria sostiene las notas largas con trémolo
+        const golpes = trem && d >= 2 ? d * 2 : 1, dt = pulso * d / golpes;
+        for (let k = 0; k < golpes; k++) { const v = vol * (k ? 0.7 : 1); pulsa(c, t + k * dt, N(m), dt + 0.12, v, 5); pulsa(c, t + k * dt, N(tercera(m, esc)), dt + 0.12, v * 0.7, 4); } }
+      o += d; }
+  }
   const EST = {
-    // isa canaria en 3/4: bajo en el primer tiempo y rasgueo de timple en el segundo y el tercero; melodía de vez en cuando
-    sur: { pulso: 0.6, prog: ['D', 'D', 'A', 'A', 'D', 'D', 'G', 'A'], toca(c, t, p) { const bar = Math.floor(p / 3), b = p % 3, ac = ACORDES[this.prog[bar % 8]];
-      if (b === 0) nota(c, t, N(ac[0] - 24), 0.55, 0.05, 'sine', 0.01);
-      else ac.forEach((m, i) => nota(c, t + i * 0.018, N(m + 12), 0.32, 0.022, 'triangle'));
-      if (bar % 4 === 3 && b === 0) { const esc = [74, 76, 78, 81, 83, 86]; for (let k = 0; k < 3; k++) nota(c, t + k * this.pulso, N(esc[Math.floor(H(bar * 3 + k) * esc.length)]), 0.5, 0.02, 'sine', 0.02); } } },
-    // costa: acordes largos y suaves y el rumor de las olas cada dos compases
-    costa: { pulso: 0.9, prog: ['D', 'Bm', 'G', 'A'], toca(c, t, p) { const bar = Math.floor(p / 4), b = p % 4, ac = ACORDES[this.prog[bar % 4]];
-      if (b === 0) { ac.forEach(m => nota(c, t, N(m), this.pulso * 4.2, 0.016, 'sine', 0.6)); nota(c, t, N(ac[0] - 24), this.pulso * 3.5, 0.03, 'sine', 0.3); }
-      if (b === 0 && bar % 2 === 0) ola(c, t + 0.4, 4.5, 0.035);
-      if (b === 2 && H(bar) > 0.5) nota(c, t, N(ac[2] + 12), 1.2, 0.012, 'sine', 0.05); } },
+    // sur: solo ambiente — viento del malpaís, algún pájaro y de vez en cuando unas notas sueltas de guitarra
+    sur: { pulso: 0.5, toca(c, t, p) {
+      if (p % 12 === 0) viento(c, t, 7.5, 0.03 + H(p) * 0.015, 380 + H(p + 1) * 420);
+      if (H(p * 1.7) > 0.86) pajaro(c, t, H(p + 3));
+      if (p % 16 === 8 && H(p * 2.3) > 0.35) { const ac = [AC.D, AC.G, AC.A7, AC.D][Math.floor(p / 16) % 4]; ac.slice(0, 3).forEach((m, i) => pulsa(c, t + i * 0.42, N(m), 2.2, 0.022, 2.5)); } } },
+    // costa: folía (más lenta, en menor y mayor), guitarra arpegiada y el rumor de las olas
+    costa: { pulso: 0.34, toca(c, t, p) { const bar = Math.floor(p / 6), e = p % 6, fr = FOL[bar % FOL.length], ac = AC[fr[0]];
+      if (e === 0) pulsa(c, t, N(ac[0] - 12), 1.4, 0.055, 3);
+      else { const m = ac[[1, 2, 1, 2, 1][e - 1]] + (e === 3 ? 12 : 0); pulsa(c, t, N(m), 0.9, 0.022, 4); }
+      if (e === 0 && bar % 4 === 0) ola(c, t + 0.4, 5, 0.03);
+      melodia(c, t, fr, e, this.pulso, 0.028, true); } },
     // cueva: zumbido grave y gotas con eco
     cueva: { pulso: 0.8, toca(c, t, p) { if (p % 8 === 0) nota(c, t, N(38), 7, 0.035, 'sine', 1.2);
       if (H(p) > 0.62) { const f = 1100 + H(p + 7) * 900; nota(c, t, f, 0.18, 0.02, 'sine', 0.003); nota(c, t + 0.28, f * 0.98, 0.18, 0.008, 'sine', 0.003); } } }
@@ -169,7 +207,7 @@ const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
 
 /* ================= Dibujo (www/dibujo.js) ================= */
-const { COL, hash, dibujaLavaVista, fruto, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaPrimerPlano, dibujaHero, dibujaMini } = window.Dibujo;
+const { COL, hash, especiesDe, dibujaEspecie, dibujaLavaVista, fruto, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaPrimerPlano, dibujaHero, dibujaMini } = window.Dibujo;
 
 /* ================= Partida en marcha ================= */
 const RUN = { on: false, raf: 0, last: 0, acc: 0, cv: null, ctx: null, L: null, esc: null, s: null, idx: 0, modo: 'nivel', opts: {}, inp: { pila: [], salto: false }, rec: null, cam: { x: 0, y: 0 },
@@ -409,7 +447,7 @@ function terminar() {
   if (s.fase === 'meta') {
     const nu = { tiempo: false, agua: false, estrellas: false };
     if (RUN.modo === 'nivel') {
-      const p = prog(RUN.idx);
+      const espAntes = especiesVistas(RUN.idx), p = prog(RUN.idx);
       if (!p.done) nu.primera = true;
       p.done = true;
       if (res.estrellas > p.stars) { p.stars = res.estrellas; nu.estrellas = true; }
@@ -419,6 +457,7 @@ function terminar() {
       if (nuevos.length) { const sa = selloAbierto(RUN.idx), abiertos = [0, 1].map(mundoCompleto); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; const m = [0, 1].find(k => !abiertos[k] && mundoCompleto(k)); if (m != null) nu.secreto = m; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs(), mod: s.mod !== 'normal' ? s.mod : undefined }; if (f0 && f0.firma === firma) nu.fantasma = true; }
+      { const nuevas = descubreEn(RUN.idx).filter(e => !espAntes.has(e)); if (nuevas.length) nu.especies = nuevas.map(e => (NAT.find(x => x.id === e) || {}).nombre).filter(Boolean); }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -587,6 +626,36 @@ function mapaIsla(sig) {
       ${mk}
     </svg><small>Mapa: © OpenStreetMap</small></div>`;
 }
+/* Guía de la naturaleza: las especies de cada nivel se descubren al terminarlo */
+const NAT = window.NATURALEZA || [];
+const ORIGEN = { 'endemica-lz': ['Solo en Lanzarote', '#3fb27f'], endemica: ['Solo en Canarias', '#3fb27f'], nativa: ['Nativa', '#5aa0d8'], introducida: ['Llegó de fuera', '#d89a3f'], invasora: ['Llegó de fuera · invasora', '#e0604a'], cultivo: ['De cultivo', '#b98ad8'], salinas: ['Vive en las salinas', '#e07a9a'] };
+const ESP_NIV = [];
+const especiesNivel = i => ESP_NIV[i] || (ESP_NIV[i] = NIV[i] && NIV[i].ok ? especiesDe(NIV[i].nivel, i) : []);
+const descubreEn = i => NAT.filter(e => NIV[i] && NIV[i].ok && e.descubre === NIV[i].nivel.level_id).map(e => e.id);   // cada especie se descubre en el nivel de su lugar
+const especiesVistas = (sin) => { const v = new Set(); NIV.forEach((n, i) => { if (i !== sin && progR(i).done) descubreEn(i).forEach(e => v.add(e)); }); return v; };
+function openGuia() {
+  const v = especiesVistas();
+  let h = `<h3>🌿 Guía de la naturaleza</h3><div class="sub">Las plantas y los animales que salen en el juego. Cada uno se descubre al terminar el nivel del lugar donde vive.</div><div class="gu-l">`;
+  NAT.forEach(e => { const ok = v.has(e.id); h += `<button class="gu-i ${ok ? '' : 'cerrado'}" ${ok ? `data-esp="${e.id}"` : 'disabled'}><canvas class="gu-c" data-espc="${e.id}" width="160" height="128" aria-hidden="true"></canvas><b>${ok ? esc(e.nombre) : '?'}</b></button>`; });
+  h += `</div><div class="acts"><button class="btn-ghost" id="guVol">‹ Cuaderno</button><button class="btn-gold" id="guOk">Cerrar</button></div>`;
+  openModal(h);
+  document.querySelectorAll('[data-espc]').forEach(c => { dibujaEspecie(c.getContext('2d'), c.dataset.espc, c.width, c.height); if (!v.has(c.dataset.espc)) c.style.filter = 'brightness(0) opacity(.35)'; });
+  document.querySelectorAll('[data-esp]').forEach(b => b.onclick = () => openEspecie(b.dataset.esp));
+  $('#guOk').onclick = closeModal; $('#guVol').onclick = openCuaderno;
+}
+function openEspecie(id) {
+  const e = NAT.find(x => x.id === id); if (!e) return; const o = ORIGEN[e.origen] || ['', '#888'];
+  const iv = NIV.findIndex(n => n.ok && n.nivel.level_id === e.descubre), lugar = iv >= 0 && LUG[iv] ? LUG[iv].lugar : '', veces = NIV.filter((n, i) => n.ok && especiesNivel(i).includes(id)).length;
+  openModal(`<div class="es"><canvas id="esC" width="320" height="240" aria-hidden="true"></canvas>
+    <h3>${esc(e.nombre)}</h3><div class="es-c"><i>${esc(e.cientifico)}</i></div><span class="es-o" style="background:${o[1]}">${esc(o[0])}</span>
+    ${e.texto.map(p => `<p>${esc(p)}</p>`).join('')}
+    ${lugar ? `<div class="es-d"><b>Vive en:</b> <span>${esc(lugar)}</span></div>` : ''}${veces ? `<div class="es-d"><b>Sale en ${veces} niveles</b></div>` : ''}
+    <div class="fi-f">Fuente: <a href="#" data-url="${esc(e.fuente[1])}">${esc(e.fuente[0])}</a></div></div>
+    <div class="acts"><button class="btn-ghost" id="esVol">‹ Guía</button><button class="btn-gold" id="esOk">Cerrar</button></div>`);
+  dibujaEspecie($('#esC').getContext('2d'), id, 320, 240);
+  document.querySelectorAll('.es .fi-f a').forEach(a => a.onclick = ev => { ev.preventDefault(); openExternal(a.dataset.url); });
+  $('#esOk').onclick = closeModal; $('#esVol').onclick = openGuia;
+}
 function cuadernoBoton() {
   if (!LUG.length) return '';
   const n = LUG.filter((_, i) => fichaAbierta(i)).length;
@@ -595,6 +664,7 @@ function cuadernoBoton() {
 }
 function openCuaderno() {
   let h = `<h3>📖 Cuaderno de viaje</h3><div class="sub">Cada nivel recorre un lugar real de Lanzarote. Termínalo para abrir su ficha.</div>
+    ${NAT.length ? `<button class="cu-gu" id="cuGuia"><span>🌿 Guía de la naturaleza</span><b>${especiesVistas().size}/${NAT.length}</b></button>` : ''}
     <div class="cu-se"><b>🏅 Sellos: ${sellosHechos()}/${LUG.length}</b><span>Encuentra los 3 frutos de un nivel y gana el sello de ese lugar.</span></div><div class="cu-l">`;
   LUG.forEach((f, i) => {
     const ok = fichaAbierta(i);
@@ -603,7 +673,7 @@ function openCuaderno() {
   h += `</div><div class="acts"><button class="btn-gold" id="cuOk">Cerrar</button></div>`;
   openModal(h);
   document.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => openFicha(+b.dataset.fi, true));
-  $('#cuOk').onclick = closeModal;
+  $('#cuOk').onclick = closeModal; const gb = $('#cuGuia'); if (gb) gb.onclick = openGuia;
 }
 function openFicha(i, desdeCuaderno) {
   const f = LUG[i]; if (!f) return;
@@ -653,6 +723,7 @@ function ponOverlay() {
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
       ${nu.secreto != null ? `<div class="ov-se"><b>✨ ¡Has abierto un nivel secreto!</b><span>Búscalo en el mapa, al final del Mundo ${nu.secreto + 1}.</span></div>` : ''}
+      ${nu.especies && nu.especies.length ? `<div class="ov-gu"><b>🌿 Nueva especie en tu guía</b><span>${nu.especies.map(esc).join(' · ')}</span></div>` : ''}
       ${nu.sello ? '<div class="ov-se"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></div>' : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}

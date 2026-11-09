@@ -1,0 +1,13 @@
+import { chromium } from 'playwright'; import http from 'http'; import fs from 'fs'; import path from 'path';
+const root = path.resolve('www');
+const srv = http.createServer((q, r) => { let f = path.join(root, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end(); } const ext = path.extname(f); r.writeHead(200, { 'Content-Type': { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.jpg': 'image/jpeg', '.css': 'text/css' }[ext] || 'application/octet-stream' }); r.end(d); }); }).listen(8780);
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 412, height: 860 }, deviceScaleFactor: 2.5, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+await ctx.route('https://**', r => r.abort()); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+await p.addInitScript(() => localStorage.setItem('martin.v1', JSON.stringify({ nombre: 'P', bienvenida: true, visto: true })));
+await p.goto('http://localhost:8780/'); await p.waitForTimeout(1500);
+console.log(await p.evaluate(() => NIV.map((n, i) => (i + 1) + ': ' + especiesNivel(i).join(',')).join('\n')));
+await p.evaluate(() => { for (let i = 0; i < 9; i++) { const q = prog(i); q.done = true; q.stars = 2; } save(); try { closeModal(); } catch (e) {} openGuia(); }); await p.waitForTimeout(600);
+await p.screenshot({ path: '/tmp/guia.png' });
+await p.evaluate(() => openEspecie('bejeque')); await p.waitForTimeout(500); await p.screenshot({ path: '/tmp/especie.png' });
+await p.evaluate(() => openEspecie('lagarto')); await p.waitForTimeout(500); await p.screenshot({ path: '/tmp/especie2.png' });
+console.log(errs); await b.close(); srv.close();

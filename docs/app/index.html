@@ -259,6 +259,7 @@ main:has(.gm){padding-top:8px}
 .mp-peq{display:flex;justify-content:space-between;align-items:center;width:100%;margin:8px 0 0;padding:10px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:calc(14px * var(--fs, 1))}.mp-peq b{padding:2px 12px;border-radius:999px;background:var(--card2);color:var(--mut)}.mp-peq.on{border-color:var(--gold)}.mp-peq.on b{background:var(--gold);color:var(--on-gold)}
 .mp-map{margin:12px 0 4px;padding:10px 10px 6px;border-radius:var(--r);background:var(--card);border:1px solid var(--line)}.mp-map h4{margin:0 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.04em;font-size:calc(13px * var(--fs, 1))}.mp-map svg{display:block;width:100%;max-width:440px;margin:0 auto;height:auto;border-radius:12px}.mp-map small{display:block;text-align:right;color:var(--mut);font-size:calc(10px * var(--fs, 1));margin-top:3px}.mk{cursor:pointer}.mk.cerrado{cursor:default}.mk:focus{outline:none}.mk:focus circle.fondo{stroke:#fff;stroke-width:3}.mk-pulso{transform-box:fill-box;transform-origin:center;animation:mkPulso 1.6s ease-out infinite}@keyframes mkPulso{0%{transform:scale(1);opacity:.85}100%{transform:scale(2.1);opacity:0}}@media (prefers-reduced-motion: reduce){.mk-pulso{animation:none}}
 .mp-sec{color:#c9a4ff;font-size:calc(12px * var(--fs, 1));margin-top:3px}.mp-sec i{font-style:normal}.mp-sec.ok{color:var(--ok)}.lv.secreto{border-color:#8a6ad0;background:linear-gradient(135deg,rgba(140,100,220,.18),transparent 60%),var(--card)}.lv.secreto.cerrado .lv-c{filter:grayscale(1) brightness(.35)}
+.cu-gu{display:flex;justify-content:space-between;align-items:center;width:100%;margin:6px 0 8px;padding:10px 12px;border-radius:12px;border:1px solid #3fb27f;background:rgba(63,178,127,.12);color:var(--txt);font:inherit;font-weight:700}.cu-gu b{color:#7fe0b0}.gu-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0}.gu-i{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-size:calc(12px * var(--fs, 1))}.gu-i.cerrado{color:var(--mut)}.gu-c{width:100%;height:auto;max-width:120px}.es canvas{display:block;width:100%;max-width:320px;height:auto;margin:0 auto 6px;border-radius:14px;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.10),transparent 70%)}.es h3{margin:4px 0 0}.es-c{color:var(--mut);margin-bottom:6px}.es-o{display:inline-block;padding:3px 10px;border-radius:999px;color:#1a120c;font-weight:700;font-size:calc(12px * var(--fs, 1))}.es-d{margin:8px 0;color:var(--mut)}.es-d b{color:var(--txt)}.ov-gu{display:flex;flex-direction:column;gap:2px;margin:8px 0;padding:8px 10px;border-radius:12px;background:rgba(63,178,127,.14);border:1px solid #3fb27f}.ov-gu b{color:#7fe0b0}.ov-gu span{color:var(--txt);font-size:calc(13px * var(--fs, 1))}
 .mp-mu{display:flex;flex-direction:column;gap:1px;margin:10px 2px 0}.mp-mu b{color:var(--gold);text-transform:uppercase;letter-spacing:.04em;font-size:calc(13px * var(--fs, 1))}.mp-mu span{color:var(--mut);font-size:calc(12.5px * var(--fs, 1))}
 .lv{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;color:var(--txt);font:inherit}
 .lv:not(:disabled):active{background:var(--card2)}
@@ -364,6 +365,7 @@ body.jugando main{padding:0}
 <script src="secretos.js"></script>
 <script src="lugares.js"></script>
 <script src="mapa-lz.js"></script>
+<script src="naturaleza.js"></script>
 <script src="dibujo.js"></script>
 <script src="juego.js"></script>
 <script>window.APP_ID = 'martin';</script>
@@ -420,7 +422,7 @@ function openThemes() {
   openModal(`<h3>🎨 Aspecto y sonido</h3>
     <label class="f"><span>Botones<em>Dónde va el salto</em></span><span class="kinds" style="flex:none;width:58%;margin:0">${[['normal', 'Salto a la derecha'], ['invertida', 'Salto a la izquierda']].map(([v, l]) => `<button data-mano="${v}" class="${(S.mano || 'normal') === v ? 'on' : ''}">${l}</button>`).join('')}</span></label>
     <label class="f" style="margin-bottom:10px"><span>Sonidos<em>Salto, golpes, puntos de control y entrega</em></span><input type="checkbox" class="tg" id="thSound" ${S.sound !== false ? 'checked' : ''}></label>
-    <label class="f" style="margin-bottom:10px"><span>🎵 Música<em>Una melodía suave mientras juegas, distinta en cada mundo</em></span><input type="checkbox" class="tg" id="thMus" ${S.musica !== false ? 'checked' : ''}></label>
+    <label class="f" style="margin-bottom:10px"><span>🎵 Música<em>Sonido de fondo suave mientras juegas, distinto en cada mundo</em></span><input type="checkbox" class="tg" id="thMus" ${S.musica !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>Fantasma<em>Tu mejor carrera corre a tu lado en cada nivel</em></span><input type="checkbox" class="tg" id="thFan" ${S.fantasma !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>🧒 Modo peque<em>Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.</em></span><input type="checkbox" class="tg" id="thPeq" ${S.peque ? 'checked' : ''}></label>
     ${AvisoTurno.opcionHtml()}
@@ -444,7 +446,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.4.1';
+const APP_VERSION = '2.4.2';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);

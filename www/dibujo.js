@@ -793,13 +793,39 @@
     ctx.strokeStyle = 'rgba(255,235,210,.4)'; ctx.lineWidth = Math.max(1, u * 0.03); ctx.beginPath(); ctx.moveTo(pts[1][0] + u * 0.05, pts[1][1] + u * 0.1); ctx.lineTo(pts[2][0], pts[2][1] + u * 0.03); ctx.lineTo(pts[3][0], pts[3][1] + u * 0.02); ctx.lineTo(pts[4][0], pts[4][1] + u * 0.03); ctx.stroke();
   }
 
+  /* Repisa: muro de piedra seca recto (dos hiladas de piedras volcánicas, arriba plano). Se pinta una vez por repisa y tamaño. */
+  const REPISAS = new Map();
+  function muroSeco(s, w, th, u) {
+    const key = s.id + '|' + Math.round(w) + '|' + Math.round(th); let c = REPISAS.get(key); if (c) return c;
+    if (REPISAS.size > 80) REPISAS.clear();
+    const pad = Math.ceil(u * 0.15); c = document.createElement('canvas'); c.width = Math.ceil(w + pad * 2); c.height = Math.ceil(th + pad * 2); c.pad = pad;
+    const g = c.getContext('2d'), sd = Math.floor(s.x0 * 31 + s.top * 17), rh = th / 2;
+    g.fillStyle = '#1a1312'; g.beginPath(); rr(g, pad, pad + th * 0.06, w, th * 0.94, u * 0.06); g.fill();   // juntas oscuras
+    for (let fila = 0; fila < 2; fila++) {
+      let x = pad - (fila ? u * 0.18 : 0), k = 0;
+      while (x < pad + w) {
+        const sw = u * (0.34 + hash(sd + fila * 97 + k * 7) * 0.3), y = pad + fila * rh + u * 0.02, hh = rh - u * 0.05, x0 = Math.max(pad, x), x1 = Math.min(pad + w, x + sw);
+        if (x1 - x0 > u * 0.08) {
+          const v = hash(sd + k * 13 + fila), PAL = [['#6e5a50', '#3a2d28'], ['#5b4b46', '#2e2522'], ['#7a5a48', '#40291f'], ['#4f4442', '#262020']], cc = PAL[Math.floor(v * PAL.length)];
+          const dy = fila ? (hash(sd + k * 3 + 1) - 0.5) * u * 0.06 : 0, dh = fila ? (hash(sd + k * 9) - 0.5) * u * 0.08 : (hash(sd + k * 9) - 0.5) * u * 0.05;
+          const gr = g.createLinearGradient(0, y + dy, 0, y + dy + hh + dh); gr.addColorStop(0, cc[0]); gr.addColorStop(1, cc[1]); g.fillStyle = gr;
+          g.beginPath(); rr(g, x0 + u * 0.025, y + dy, x1 - x0 - u * 0.05, hh + dh, u * 0.11); g.fill();
+          g.fillStyle = 'rgba(255,235,210,.16)'; g.fillRect(x0 + u * 0.06, y + u * 0.03, Math.max(0, x1 - x0 - u * 0.14), u * 0.04);   // luz arriba
+          g.fillStyle = 'rgba(15,8,6,.35)'; for (let q = 0; q < 3; q++) g.fillRect(x0 + (x1 - x0) * hash(sd + k * 5 + q), y + hh * (0.3 + hash(sd + k * 3 + q) * 0.5), Math.max(1, u * 0.03), Math.max(1, u * 0.03));   // poros
+          if (hash(sd + k * 11 + fila * 3) < 0.3) { g.fillStyle = 'rgba(214,170,60,.55)'; g.beginPath(); g.ellipse(x0 + (x1 - x0) * 0.4, y + hh * 0.45, u * 0.06, u * 0.04, 0, 0, TAU); g.fill(); }   // liquen
+        }
+        x += sw; k++;
+      }
+    }
+    g.fillStyle = 'rgba(255,225,180,.18)'; g.fillRect(pad, pad + th * 0.06, w, Math.max(1, u * 0.03));   // borde de arriba, recto
+    REPISAS.set(key, c); return c;
+  }
   function dibujaRepisa(ctx, s, W, H, u, sx, sy) {
-    if (FLO.ok) { // repisa de piedra seca: tramos del muro ilustrado puestos en fila
-      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), m = FLO.m.muro, th = Math.max(u * 0.7, 8), tw = th * m[2] / m[3] * 0.62;
-      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0 + u * 0.1, yt + th * 0.9, x1 - x0 - u * 0.1, u * 0.18);
-      ctx.save(); ctx.beginPath(); ctx.rect(x0 - u * 0.12, yt - th * 0.25, x1 - x0 + u * 0.24, th * 1.3); ctx.clip();
-      for (let x = x0 - u * 0.12, i = 0; x < x1 + u * 0.12; x += tw * 0.92, i++) { const sxx = m[0] + (i % 2 ? m[2] * 0.3 : 0); ctx.drawImage(FLO.img, sxx, m[1] + m[3] * 0.05, m[2] * 0.62, m[3] * 0.9, x, yt - th * 0.15, tw, th); }
-      ctx.restore(); return; }
+    if (FLO.ok) {
+      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), th = Math.max(u * 0.62, 8), w = x1 - x0;
+      if (x1 < -u || x0 > W + u) return;
+      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0 + u * 0.1, yt + th * 0.95, w - u * 0.1, u * 0.16);
+      const c = muroSeco(s, w, th, u); ctx.drawImage(c, x0 - c.pad, yt - th * 0.06 - c.pad); return; }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), th = Math.max(u * 0.34, 5), w = x1 - x0;
     ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(x0 + u * 0.1, yt + th, w - u * 0.1, u * 0.2);
     let g = ctx.createLinearGradient(0, yt, 0, yt + th); g.addColorStop(0, '#c7b6a0'); g.addColorStop(0.35, COL.repisa); g.addColorStop(1, '#5d5047'); ctx.fillStyle = g; rr(ctx, x0, yt, w, th, u * 0.08); ctx.fill();
@@ -1160,5 +1186,35 @@
   }
 
   function dibujaLavaVista(ctx, W, H, u, cam, L, st, t) { if (!st || !L.lava) return; dibujaLava(ctx, W, H, u, wx => (wx - cam.x) * u, wy => H - (wy - cam.y) * u, L, st, t, cam.x); }
-  window.Dibujo = { COL, dibujaLavaVista, fruto, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini };
+  /* Guía de la naturaleza: qué especies salen en un nivel (misma regla que elige cada dibujo) y su retrato */
+  const SPR_ESP = { palmera: 'palmera', tabaibal: 'tabaiba', tunera: 'tunera', pita: 'pita', vid: 'vid', aloe: 'aloe', bejeque: 'bejeque', aulaga: 'aulaga' };
+  function especiesDe(L, idx) {
+    const sc = preparaEscena(L, idx), set = new Set(['dromedario']);
+    for (const d of sc.deco) {
+      if (d.t === 'lagarto') { set.add('lagarto'); continue; }
+      const l = FLO.por[d.t]; if (!l) continue;
+      const n = l[Math.floor(hash(Math.floor(d.x * 7) + 5) * l.length)]; if (SPR_ESP[n]) set.add(SPR_ESP[n]);
+    }
+    if (sc.tema === 9) set.add('palmera');                       // Haría: el camino alto va por las copas de las palmeras
+    if (L.solids.some(q => q.sal)) set.add('artemia');           // salinas
+    return [...set];
+  }
+  function dibujaEspecie(ctx, id, W, H) {
+    ctx.clearRect(0, 0, W, H);
+    const inv = Object.keys(SPR_ESP).find(k => SPR_ESP[k] === id);
+    if (inv && FLO.ok) { const m = FLO.m[inv], k = Math.min(W * 0.92 / m[2], H * 0.92 / m[3]); ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], (W - m[2] * k) / 2, (H - m[3] * k) / 2, m[2] * k, m[3] * k); return; }
+    if (id === 'lagarto') { dibujaDeco(ctx, { t: 'lagarto', x: 0, s: 1, h: 0.85 }, W * 0.4, H * 0.7, W / 1.35, 0); return; }
+    if (id === 'dromedario' && SPR.ok) { const k = Math.min(W * 0.9 / 551, H * 0.9 / 560); ctx.drawImage(SPR.img, (W - 551 * k) / 2, (H - 560 * k) / 2, 551 * k, 560 * k); return; }
+    if (id === 'artemia') {   // crustáceo diminuto y rosado, nadando boca arriba
+      ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-0.25); const L = W * 0.36;
+      ctx.strokeStyle = '#d9667a'; ctx.lineWidth = Math.max(1, W * 0.012); for (let i = 0; i < 11; i++) { const x = -L * 0.45 + i * L * 0.075; ctx.beginPath(); ctx.moveTo(x, 0); ctx.quadraticCurveTo(x + L * 0.04, -L * 0.12, x + L * 0.02, -L * 0.2); ctx.stroke(); }
+      const g = ctx.createLinearGradient(0, -L * 0.1, 0, L * 0.1); g.addColorStop(0, '#f6a8b4'); g.addColorStop(1, '#c84d63'); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.ellipse(-L * 0.1, 0, L * 0.45, L * 0.07, 0, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(L * 0.3, -L * 0.03); ctx.quadraticCurveTo(L * 0.7, 0, L * 0.85, L * 0.12); ctx.lineTo(L * 0.82, -L * 0.02); ctx.quadraticCurveTo(L * 0.62, -L * 0.04, L * 0.3, -L * 0.05); ctx.fill();
+      ctx.fillStyle = '#2a1414'; for (const yy of [-1, 1]) { ctx.beginPath(); ctx.arc(-L * 0.58, yy * L * 0.06, L * 0.035, 0, TAU); ctx.fill(); }
+      ctx.restore(); return;
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.arc(W / 2, H / 2, Math.min(W, H) * 0.35, 0, TAU); ctx.fill();   // aún sin cargar
+  }
+  window.Dibujo = { COL, especiesDe, dibujaEspecie, dibujaLavaVista, fruto, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini };
 })();
