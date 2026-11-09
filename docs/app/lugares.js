@@ -52,15 +52,14 @@
     {
       lugar: 'La Geria', titulo: 'Viñas en la ceniza', img: 'paisaje-geria.jpg', pos: '55% 50%',
       texto: [
-        'Las erupciones de 1730-1736 enterraron bajo metros de ceniza volcánica, el picón, algunas de las tierras más fértiles de la isla.',
-        'Los agricultores excavaron a mano hoyos en el picón hasta llegar a la tierra y plantaron una o pocas cepas en cada uno. Para frenar el viento levantaron pequeños muros semicirculares de piedra, los zocos.',
-        'El picón guarda la humedad en una isla donde casi no llueve. Así nació la malvasía volcánica, la uva más cultivada de La Geria. Se protegió en 1987 y hoy es Paisaje Protegido, con más de 5.200 hectáreas.'
+        'Las erupciones de Timanfaya, entre 1730 y 1736, cubrieron estas tierras con una gruesa capa de ceniza volcánica: el picón.',
+        'Para plantar las parras se excava la capa de picón, de unos dos metros y medio, hasta llegar a la tierra que quedó enterrada. El hoyo suele protegerse del viento con un pequeño muro de piedra.',
+        'La tierra volcánica absorbe y conserva la humedad en una isla donde casi no llueve. La variedad de uva más abundante es la malvasía. Fue declarada Parque Natural en 1987 y hoy es Paisaje Protegido, con 5.255 hectáreas.'
       ],
-      dato: 'En algunos puntos la capa de picón llega a los 3 metros de espesor, y en una hectárea caben hasta 350 hoyos.',
-      extra: ['En plena Geria está el Volcán del Cuervo, el primero que entró en erupción en 1730. Hoy se puede entrar a pie en su cráter por un sendero señalizado.', ['Lanzarote Film Commission (Turismo Lanzarote): ruta de Timanfaya', 'https://film.turismolanzarote.com/en/film-destination/cinema-routes/timanfaya-a-volcano-of-film/']],
+      dato: 'Cada hoyo mide unos 3 metros de diámetro, y en una hectárea caben hasta 350, según lo profundos que sean.',
+      extra: ['En plena Geria está el Volcán del Cuervo, el primero de las erupciones de Timanfaya. Hoy se puede entrar a pie en su cráter por un sendero señalizado de alrededor de una hora.', ['Lanzarote Film Commission (Turismo Lanzarote): ruta de Timanfaya', 'https://film.turismolanzarote.com/en/film-destination/cinema-routes/timanfaya-a-volcano-of-film/']],
       fuentes: [
         ['Gobierno de Canarias: La Geria', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=La_Geria'],
-        ['Cabildo de Lanzarote: ficha técnica del cultivo de la vid', 'https://www.cabildodelanzarote.com/documents/35307/78425/ficha_tecnica_del_cultivo_de_la_vid.pdf/3928871f-28d8-f2f2-d7a5-c9505b2afa16?t=1620735957625'],
         ['BOC: Plan Especial del Paisaje Protegido de La Geria', 'https://www.gobiernodecanarias.org/boc/2010/235/003.html']
       ]
     },

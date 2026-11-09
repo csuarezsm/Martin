@@ -49,12 +49,15 @@
       fuentes: [['Gobierno de Canarias: ahulaga', GC('Ahulaga')]]
     },
     {
-      id: 'vid', descubre: 'uga_l04_basin_descent', nombre: 'Vid', cientifico: 'Vitis vinifera', origen: 'cultivo',
+      id: 'vid', descubre: 'uga_l04_basin_descent', nombre: 'Parra (vid)', cientifico: 'Vitis vinifera', origen: 'cultivo',
       texto: [
-        'En La Geria, cada vid se planta en un hoyo en forma de cono excavado en las capas de grava volcánica, y alrededor se levanta un muro de piedra en forma de media luna que la protege del viento.',
-        'En las bodegas de La Geria se venden vinos premiados, entre ellos algunos de los más conocidos de uva malvasía.'
+        'En Lanzarote se cultiva de dos formas tradicionales: en hoyos y en zanjas. Los hoyos se excavan en forma de cono en el picón para que la parra llegue a la tierra de debajo; las zanjas tienen muros que las separan.',
+        'Para protegerla del viento se levantan zocos, pequeños muros de piedra en media luna. Sus vinos más destacados son los blancos de malvasía, y la vendimia se hace en julio, antes que en ningún otro lugar de Europa.'
       ],
-      fuentes: [['Turismo de Islas Canarias: Paisaje Protegido de La Geria', 'https://www.hellocanaryislands.com/nature-areas/lanzarote/protected-landscape-la-geria/']]
+      fuentes: [['Turespaña: viñedos de La Geria', 'https://www.spain.info/es/descubrir-espana/budouen-kazan-ransarote/'],
+        ['FAO: sistemas agrícolas de Lanzarote (Patrimonio Agrícola Mundial)', 'https://sfcs.fao.org/giahs/giahs-around-the-world/agricultural-systems-lanzarote-spain/en'],
+        ['Ministerio de Agricultura: los enarenados de Lanzarote', 'https://mapa.gob.es/ministerio/pags/Biblioteca/Revistas/pdf%5FLEAD%2FALE%5F2000%5F10%5F22%5F23%2Epdf'],
+        ['Papeles de Geografía (Universidad de Murcia): el viñedo de La Geria', 'https://www.redalyc.org/pdf/407/40743406008.pdf']]
     },
     {
       id: 'tunera', descubre: 'uga_l01_water_delivery', nombre: 'Tunera', cientifico: 'Opuntia ficus-indica', origen: 'cultivo',

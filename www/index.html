@@ -347,7 +347,7 @@ body.jugando main{padding:0}
 .ov-fan{font-size:calc(13px * var(--fs, 1));color:var(--mut);margin-bottom:6px}
 .fi-dato{background:#ffd9781a;border-left:3px solid var(--gold);padding:8px 10px;border-radius:8px;margin:4px 0 10px}
 .fi-f{font-size:calc(12px * var(--fs, 1));color:var(--mut)}.fi-f a{color:var(--mut);text-decoration:underline}
-.ov-fi{background:#ffd97822;border:1px solid var(--gold);color:var(--txt);border-radius:12px;padding:8px 10px;font:inherit;font-weight:700}
+.ov-ir{width:100%;text-align:left;font:inherit;color:var(--txt);cursor:pointer}.ov-ir:active{filter:brightness(1.2)}.ov-ir b::after{content:' ›'}.ov-fi{background:#ffd97822;border:1px solid var(--gold);color:var(--txt);border-radius:12px;padding:8px 10px;font:inherit;font-weight:700}
 </style>
 </head>
 <body>
@@ -446,7 +446,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.4.4';
+const APP_VERSION = '2.4.5';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);

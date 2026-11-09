@@ -262,6 +262,9 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('sellos: sin los 3 frutos, la ficha dice cómo ganar el sello', /ganarás su sello/.test(await p.textContent('#modal')) && !(await p.$('#fiSello')));
     await p.evaluate(() => { closeModal(); jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
     check('sellos: al coger el último fruto del nivel avisa del nuevo sello', /Nuevo sello/.test(await p.textContent('#mgOv')));
+    await p.click('#ovSe'); await p.waitForTimeout(200);
+    check('sellos: tocar el aviso del sello abre la ficha del lugar con su sello', !!(await p.$('#fiSello')));
+    await p.evaluate(() => closeModal());
     await p.evaluate(() => { salirAlMapa(); openFicha(2); }); await p.waitForTimeout(300);
     check('sellos: la ficha enseña el sello, la curiosidad extra y su fuente oficial', await p.evaluate(() => { const c = document.getElementById('fiSello'), t = document.getElementById('modal').textContent, f = LUGARES[2];
       return !!c && c.getContext('2d').getImageData(c.width / 2, c.height * 0.3, 1, 1).data[3] > 0 && t.includes(f.extra[0]) && [...document.querySelectorAll('.fi-f a')].some(a => a.dataset.url === f.extra[1][1]); }));
@@ -276,6 +279,9 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('guía: sin terminar el nivel 1, la tunera y el camello siguen ocultos', !(await p.$('[data-esp="tunera"]')) && !(await p.$('[data-esp="camello"]')));
     await p.evaluate(() => { closeModal(); jugar(0, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; terminar(); }); await p.waitForTimeout(150);
     check('guía: al terminar el nivel avisa de las especies nuevas', /Nueva especie en tu guía/.test(await p.textContent('#mgOv')) && /Tunera/.test(await p.textContent('#mgOv')));
+    await p.click('#ovGu'); await p.waitForTimeout(150);
+    check('guía: desde el final del nivel se abre la especie nueva', !!(await p.$('#esC')) || !!(await p.$('#guOk')));
+    await p.evaluate(() => closeModal());
     await p.evaluate(() => { salirAlMapa(); openCuaderno(); }); await p.waitForTimeout(100);
     check('guía: el cuaderno tiene el botón de la guía con el recuento', /Guía de la naturaleza/.test(await p.textContent('#modal')) && !!(await p.$('#cuGuia')));
     await p.click('#cuGuia'); await p.waitForTimeout(100); await p.click('[data-esp="tunera"]'); await p.waitForTimeout(100);

@@ -457,7 +457,7 @@ function terminar() {
       if (nuevos.length) { const sa = selloAbierto(RUN.idx), abiertos = [0, 1].map(mundoCompleto); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; const m = [0, 1].find(k => !abiertos[k] && mundoCompleto(k)); if (m != null) nu.secreto = m; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs(), mod: s.mod !== 'normal' ? s.mod : undefined }; if (f0 && f0.firma === firma) nu.fantasma = true; }
-      { const nuevas = descubreEn(RUN.idx).filter(e => !espAntes.has(e)); if (nuevas.length) nu.especies = nuevas.map(e => (NAT.find(x => x.id === e) || {}).nombre).filter(Boolean); }
+      { const nuevas = descubreEn(RUN.idx).filter(e => !espAntes.has(e)); if (nuevas.length) { nu.especies = nuevas.map(e => (NAT.find(x => x.id === e) || {}).nombre).filter(Boolean); nu.espIds = nuevas; } }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -723,8 +723,8 @@ function ponOverlay() {
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
       ${nu.secreto != null ? `<div class="ov-se"><b>✨ ¡Has abierto un nivel secreto!</b><span>Búscalo en el mapa, al final del Mundo ${nu.secreto + 1}.</span></div>` : ''}
-      ${nu.especies && nu.especies.length ? `<div class="ov-gu"><b>🌿 Nueva especie en tu guía</b><span>${nu.especies.map(esc).join(' · ')}</span></div>` : ''}
-      ${nu.sello ? '<div class="ov-se"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></div>' : ''}
+      ${nu.especies && nu.especies.length ? `<button class="ov-gu ov-ir" id="ovGu"><b>🌿 Nueva especie en tu guía</b><span>${nu.especies.map(esc).join(' · ')}</span></button>` : ''}
+      ${nu.sello ? '<button class="ov-se ov-ir" id="ovSe"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></button>' : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
       ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}
@@ -734,6 +734,8 @@ function ponOverlay() {
     const rk = $('#ovRank'); if (rk) rk.onclick = () => openRanking();
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
     const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
+    const se = $('#ovSe'); if (se) se.onclick = () => openFicha(RUN.idx, false);   // la ficha enseña el sello y la curiosidad nueva
+    const gu = $('#ovGu'); if (gu) gu.onclick = () => { const ids = nu.espIds || []; if (ids.length === 1) openEspecie(ids[0]); else openGuia(); };
     pintaFrutos($('#ovFru'), n, s.obj || {}, 26);
   }
 }
