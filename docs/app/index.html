@@ -256,6 +256,7 @@ main:has(.gm){padding-top:8px}
 .mp-cont{width:100%;padding:16px;font-size:calc(17px * var(--fs, 1))}
 .mp-lv{display:flex;flex-direction:column;gap:8px}
 .mp-se{display:block;color:var(--gold);font-size:calc(12px * var(--fs, 1))}.cu-se{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px;padding:8px 10px;border-radius:12px;background:rgba(244,193,61,.12)}.cu-se b{color:var(--gold)}.cu-se span{color:var(--mut);font-size:calc(12.5px * var(--fs, 1))}.cu-i{position:relative}.cu-b{position:absolute;top:4px;right:6px;font-style:normal;font-size:calc(18px * var(--fs, 1));filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fi-se{display:flex;gap:12px;align-items:center;margin:12px 0;padding:10px;border-radius:14px;background:rgba(244,193,61,.12);border:1px solid var(--gold)}.fi-se canvas{width:96px;height:auto;flex:none;transform:rotate(-4deg);filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}.fi-se b{color:var(--gold)}.fi-se p{margin:4px 0 0}.fi-se.cerrado{border-style:dashed;border-color:var(--line);background:none;color:var(--mut)}.se-v{font-size:28px;width:60px;height:70px;display:grid;place-items:center;border:2px dashed var(--line);border-radius:6px;flex:none}.ov-se{display:flex;flex-direction:column;gap:2px;margin:8px 0;padding:8px 10px;border-radius:12px;background:rgba(244,193,61,.14);border:1px solid var(--gold)}.ov-se b{color:var(--gold)}.ov-se span{color:var(--mut);font-size:calc(13px * var(--fs, 1))}
+.mp-peq{display:flex;justify-content:space-between;align-items:center;width:100%;margin:8px 0 0;padding:10px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:calc(14px * var(--fs, 1))}.mp-peq b{padding:2px 12px;border-radius:999px;background:var(--card2);color:var(--mut)}.mp-peq.on{border-color:var(--gold)}.mp-peq.on b{background:var(--gold);color:var(--on-gold)}
 .mp-mu{display:flex;flex-direction:column;gap:1px;margin:10px 2px 0}.mp-mu b{color:var(--gold);text-transform:uppercase;letter-spacing:.04em;font-size:calc(13px * var(--fs, 1))}.mp-mu span{color:var(--mut);font-size:calc(12.5px * var(--fs, 1))}
 .lv{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;color:var(--txt);font:inherit}
 .lv:not(:disabled):active{background:var(--card2)}
@@ -416,6 +417,7 @@ function openThemes() {
     <label class="f"><span>Botones<em>Dónde va el salto</em></span><span class="kinds" style="flex:none;width:58%;margin:0">${[['normal', 'Salto a la derecha'], ['invertida', 'Salto a la izquierda']].map(([v, l]) => `<button data-mano="${v}" class="${(S.mano || 'normal') === v ? 'on' : ''}">${l}</button>`).join('')}</span></label>
     <label class="f" style="margin-bottom:10px"><span>Sonidos<em>Salto, golpes, puntos de control y entrega</em></span><input type="checkbox" class="tg" id="thSound" ${S.sound !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>Fantasma<em>Tu mejor carrera corre a tu lado en cada nivel</em></span><input type="checkbox" class="tg" id="thFan" ${S.fantasma !== false ? 'checked' : ''}></label>
+    <label class="f" style="margin-bottom:10px"><span>🧒 Modo peque<em>Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.</em></span><input type="checkbox" class="tg" id="thPeq" ${S.peque ? 'checked' : ''}></label>
     ${AvisoTurno.opcionHtml()}
     <h3>🔠 Tamaño de letra</h3>
     <div class="kinds" style="margin:6px 0 16px">${FONT_SIZES.map(([v, l]) => `<button data-fs="${v}" class="${String(S.fontScale || '1') === v ? 'on' : ''}" style="font-size:${13 * parseFloat(v)}px">${l}</button>`).join('')}</div>
@@ -430,12 +432,13 @@ function openThemes() {
   document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fontScale = b.dataset.fs; applyFont(); save(); openThemes(); });
   document.querySelectorAll('[data-mano]').forEach(b => b.onclick = () => { S.mano = b.dataset.mano; save(); openThemes(); });
   $('#thFan').onchange = e => { S.fantasma = e.target.checked; save(); };
+  $('#thPeq').onchange = e => { S.peque = e.target.checked; save(); if (typeof renderSetup === 'function' && !(window.__martin && __martin.RUN.on)) renderSetup(); };
   $('#thSound').onchange = e => { S.sound = e.target.checked; save(); if (S.sound) Sound.play('control'); };
   $('#thOk').onclick = closeModal;
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.3.6';
+const APP_VERSION = '2.3.7';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);

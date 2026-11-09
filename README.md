@@ -2,7 +2,7 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.3.6
+Paquete: `com.itcanarias.martin` · versión 2.3.7
 
 Novedades de la 2.3: **Mundo 2 · La costa y el norte**, con 5 niveles nuevos en El Golfo, las Salinas de Janubio (¡la sal resbala!), Famara, Haría (por las copas de las palmeras) y el Mirador del Río, y sus fichas en el Cuaderno de viaje.
 

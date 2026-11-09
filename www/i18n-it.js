@@ -2709,7 +2709,11 @@ window.I18N["it:martin"] = Object.assign(window.I18N["it:martin"] || {}, {
 "En Lanzarote se han visto más de 190 especies de aves migratorias, y las salinas de Janubio son uno de los mejores sitios de Canarias para observar aves de orilla.": "A Lanzarote sono state viste più di 190 specie di uccelli migratori, e le saline di Janubio sono uno dei posti migliori delle Canarie per osservare gli uccelli di riva.",
 "El director de cine Pedro Almodóvar rodó en Famara algunas escenas de su película «Los abrazos rotos».": "Il regista Pedro Almodóvar girò a Famara alcune scene del suo film «Gli abbracci spezzati».",
 "Hace mucho, en Haría y sus valles llegó a haber unas 10.000 palmeras. Hoy quedan unas 3.000.": "Tanto tempo fa, a Haría e nelle sue valli c'erano circa 10.000 palme. Oggi ne restano circa 3.000.",
-"En la entrada, Manrique puso una escultura de hierro con un pez y un pájaro: el agua y el aire que rodean el mirador.": "All'ingresso Manrique mise una scultura di ferro con un pesce e un uccello: l'acqua e l'aria che circondano il belvedere."
+"En la entrada, Manrique puso una escultura de hierro con un pez y un pájaro: el agua y el aire que rodean el mirador.": "All'ingresso Manrique mise una scultura di ferro con un pesce e un uccello: l'acqua e l'aria che circondano il belvedere.",
+"🧒 Modo peque": "🧒 Modalità piccoli",
+"🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.": "🧒 Modalità piccoli: perdi metà acqua e la lava va più piano.",
+"Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.": "Perdi metà acqua e la lava va più piano. La sfida del giorno è uguale per tutti.",
+"No": "No"
 });
 window.I18N["it:poker"] = Object.assign(window.I18N["it:poker"] || {}, {
 "Carta alta": "Carta alta",

@@ -2698,7 +2698,11 @@ window.I18N["fr:martin"] = Object.assign(window.I18N["fr:martin"] || {}, {
 "En Lanzarote se han visto más de 190 especies de aves migratorias, y las salinas de Janubio son uno de los mejores sitios de Canarias para observar aves de orilla.": "Plus de 190 espèces d'oiseaux migrateurs ont été observées à Lanzarote, et les salines de Janubio sont l'un des meilleurs endroits des Canaries pour observer les oiseaux de rivage.",
 "El director de cine Pedro Almodóvar rodó en Famara algunas escenas de su película «Los abrazos rotos».": "Le réalisateur Pedro Almodóvar a tourné à Famara quelques scènes de son film « Étreintes brisées ».",
 "Hace mucho, en Haría y sus valles llegó a haber unas 10.000 palmeras. Hoy quedan unas 3.000.": "Il y a longtemps, Haría et ses vallées comptaient environ 10 000 palmiers. Aujourd'hui, il en reste environ 3 000.",
-"En la entrada, Manrique puso una escultura de hierro con un pez y un pájaro: el agua y el aire que rodean el mirador.": "À l'entrée, Manrique a placé une sculpture en fer avec un poisson et un oiseau : l'eau et l'air qui entourent le belvédère."
+"En la entrada, Manrique puso una escultura de hierro con un pez y un pájaro: el agua y el aire que rodean el mirador.": "À l'entrée, Manrique a placé une sculpture en fer avec un poisson et un oiseau : l'eau et l'air qui entourent le belvédère.",
+"🧒 Modo peque": "🧒 Mode petits",
+"🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.": "🧒 Mode petits : tu perds deux fois moins d'eau et la lave va moins vite.",
+"Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.": "Tu perds deux fois moins d'eau et la lave va moins vite. Le défi du jour est le même pour tous.",
+"No": "Non"
 });
 window.I18N["fr:poker"] = Object.assign(window.I18N["fr:poker"] || {}, {
 "Carta alta": "Carte haute",

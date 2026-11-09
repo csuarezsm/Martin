@@ -252,8 +252,8 @@ function pistaActual() {
   const s = RUN.s, L = RUN.L;
   for (const h of L.hints || []) {
     if (s.x < h.x0 || s.x > h.x1) continue;
-    if (h.hasta_x != null && s.x > h.hasta_x) continue;
-    if (h.hasta_saltos != null && s.saltos >= h.hasta_saltos) continue;
+    if (!S.peque && h.hasta_x != null && s.x > h.hasta_x) continue;          // en modo peque las pistas se quedan todo el tramo
+    if (!S.peque && h.hasta_saltos != null && s.saltos >= h.hasta_saltos) continue;
     return PISTAS[h.id] || '';
   }
   return '';
@@ -307,13 +307,13 @@ function crearIntento() {
   const n = NIV[RUN.idx].nivel;
   RUN.L = n; RUN.esc = RUN.esc && RUN.esc.id === n.level_id ? RUN.esc : Object.assign(preparaEscena(n, RUN.idx), { id: n.level_id });
   for (const c of n.cps) c.alcanzado = false;
-  RUN.s = M.nuevo(n, Object.assign({ eventos: true }, RUN.opts));
+  RUN.s = M.nuevo(n, Object.assign({ eventos: true }, RUN.opts, RUN.modo === 'nivel' && S.peque ? { mod: 'peque' } : {}));   // modo peque: solo en los niveles (el reto diario es igual para todos)
   RUN.rec = M.grabadora(); RUN.fx = []; RUN.golpe = 0; RUN.t = 0; RUN.fase = 0; RUN.tFin = 0; RUN.overlay = 'listo'; RUN.hint = ''; RUN.avisado = false; RUN.rutaVista = '';
   RUN.nuevo = null; RUN.enviado = null; RUN.intento = (RUN.intento || 0) + 1; RUN.acc = 0;
   RUN.rep = { i: 0, c: 0 }; RUN.replay = Array.isArray(window.MARTIN_REPLAY) ? window.MARTIN_REPLAY : null;
   RUN.fruVista = null; RUN.fan = null;
   const fa = RUN.modo === 'nivel' && S.fantasma !== false && S.fant && S.fant[n.level_id];
-  if (fa && fa.firma === firmaNivel(n) && Array.isArray(fa.runs)) RUN.fan = { s: M.nuevo(n, {}), runs: fa.runs, rep: { i: 0, c: 0 }, ms: fa.ms };
+  if (fa && fa.firma === firmaNivel(n) && Array.isArray(fa.runs)) RUN.fan = { s: M.nuevo(n, fa.mod ? { mod: fa.mod } : {}), runs: fa.runs, rep: { i: 0, c: 0 }, ms: fa.ms };
   soltarTodo();
 }
 function jugar(idx, modo, opts) {
@@ -355,7 +355,7 @@ function terminar() {
       const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
       if (nuevos.length) { const sa = selloAbierto(RUN.idx); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
-      if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs() }; if (f0 && f0.firma === firma) nu.fantasma = true; }
+      if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs(), mod: s.mod !== 'normal' ? s.mod : undefined }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -383,6 +383,7 @@ function renderSetup() {
     <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Los Caminos del Volcán</b><span>Lleva el agua por toda la isla</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · Nivel ${sig + 1}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     ${cuadernoBoton()}
+    <button class="mp-peq ${S.peque ? 'on' : ''}" id="mpPeq" aria-pressed="${S.peque ? 'true' : 'false'}"><span>🧒 Modo peque</span><b>${S.peque ? 'Sí' : 'No'}</b></button>
     <div id="mpDiario">${diarioHtml()}</div>
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
@@ -404,6 +405,7 @@ function renderSetup() {
   animaHero();
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
   const cb = $('#mpCuad'); if (cb) cb.onclick = openCuaderno;
+  const pq = $('#mpPeq'); if (pq) pq.onclick = () => { S.peque = !S.peque; save(); renderSetup(); if (S.peque) toast('🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.'); };
   enlazarDiario();
   retoCargar(false);
 }
@@ -529,7 +531,7 @@ function ponOverlay() {
   ov.className = 'mg-ov' + (o ? ' on' : '');
   if (!o) { ov.innerHTML = ''; return; }
   if (o === 'listo') {
-    const rt = RUN.modo === 'diario' ? `<div class="mg-tag">📅 Reto diario · ${esc(MODS_TXT[RUN.opts.mod || 'normal'][0])}</div>` : RUN.modo === 'practica' ? '<div class="mg-tag">🎯 Práctica</div>' : '';
+    const rt = RUN.modo === 'diario' ? `<div class="mg-tag">📅 Reto diario · ${esc(MODS_TXT[RUN.opts.mod || 'normal'][0])}</div>` : RUN.modo === 'practica' ? '<div class="mg-tag">🎯 Práctica</div>' : RUN.s && RUN.s.mod === 'peque' ? '<div class="mg-tag">🧒 Modo peque</div>' : '';
     ov.innerHTML = `<div class="ov-c">${rt}<div class="ov-t">${esc(n.name)}</div><div class="ov-s">${esc(n.brief)}</div>
       <div class="ov-k"><span>◀ ▶ moverse</span><span>⬆ saltar</span></div><button class="btn-gold ov-go" id="ovGo">▶ ¡Vamos!</button>
       <button class="btn-ghost" id="ovMapa">Volver al mapa</button></div>`;

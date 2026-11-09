@@ -218,8 +218,17 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('2.2: en Timanfaya la lava alcanza a Martín si se para', await waitFor(p, () => __martin.RUN.s.fase === 'fallo' && __martin.RUN.s.causa === 'lava', null, 20000) && await waitFor(p, () => /lava/i.test(document.getElementById('mgOv').textContent)));
     await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
   }
+  { // modo peque: menos agua perdida y lava más lenta, solo en los niveles
+    await p.evaluate(() => { salirAlMapa(); }); await p.click('#mpPeq');
+    check('modo peque: el interruptor del mapa lo activa', (await store(p)).peque === true && /Sí/.test(await p.textContent('#mpPeq')));
+    await p.evaluate(() => jugar(2, 'nivel'));
+    check('modo peque: en un nivel, el motor derrama la mitad y la lava va al 70 %', await p.evaluate(() => { const s = __martin.RUN.s; return s.mod === 'peque' && s.dm === 0.5 && s.lf === 0.7; }) && /Modo peque/.test(await p.textContent('#mgOv')));
+    check('modo peque: el reto diario no cambia', await p.evaluate(() => { const r = __martin.M.retoDelDia('2026-11-09', ['a', 'b']); return ['normal', 'fragil', 'poca'].includes(r.mod); }));
+    await p.evaluate(() => { salirAlMapa(); S.peque = false; save(); renderSetup(); });
+  }
   { // 2.3.6: con los 3 frutos de un nivel se gana su sello y otra curiosidad en el cuaderno
-    await p.evaluate(() => { prog(2).obj = frutosDe(__martin.NIV[2].nivel).map(o => o.id).filter(id => id !== 'FRU-1'); save(); openFicha(2); });
+    await p.evaluate(() => { S.peque = true; jugar(1, 'nivel'); }); await p.waitForTimeout(150); await p.evaluate(() => { salirAlMapa(); S.peque = false; });
+  await p.evaluate(() => { prog(2).obj = frutosDe(__martin.NIV[2].nivel).map(o => o.id).filter(id => id !== 'FRU-1'); save(); openFicha(2); });
     check('sellos: sin los 3 frutos, la ficha dice cómo ganar el sello', /ganarás su sello/.test(await p.textContent('#modal')) && !(await p.$('#fiSello')));
     await p.evaluate(() => { closeModal(); jugar(2, 'nivel'); empezar(); const s = __martin.RUN.s; s.fase = 'meta'; s.obj = { 'FRU-1': 'tuno' }; terminar(); }); await p.waitForTimeout(150);
     check('sellos: al coger el último fruto del nivel avisa del nuevo sello', /Nuevo sello/.test(await p.textContent('#mgOv')));
