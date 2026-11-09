@@ -240,6 +240,7 @@
       const [a1, a2] = P(467, 156), [c1, c2] = P(455 + sw, 330), [d1, d2] = P(300 + sw * 0.4, 300), [e1, e2] = P(262, 222);
       ctx.lineCap = 'round'; for (const [col, lw] of [['#7a5a32', 7.5], ['#ead6a4', 5]]) { ctx.strokeStyle = col; ctx.lineWidth = lw * s; ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); }
       ctx.strokeStyle = 'rgba(150,115,60,.6)'; ctx.lineWidth = 1.4 * s; ctx.setLineDash([4 * s, 3 * s]); ctx.beginPath(); ctx.moveTo(a1, a2); ctx.bezierCurveTo(c1, c2, d1, d2, e1, e2); ctx.stroke(); ctx.setLineDash([]); }
+    if (st.adorno) dibujaAdorno(ctx, st.adorno, s, T, anim === 'corre' ? ph : 0);
     // nivel de agua en la ventana de la cantimplora
     const [wx, wy, ww, wh] = SPR.win, X = (wx - SPR.ax) * s, Y = (wy - SPR.ay) * s, W = ww * s, H = wh * s, r = Math.min(W, H) * 0.25;
     ctx.fillStyle = '#0d2233'; rr(ctx, X, Y, W, H, r); ctx.fill();
@@ -250,6 +251,37 @@
     ctx.restore();
   }
 
+  // adornos que se ganan con los frutos (en coordenadas del dibujo del camello)
+  function dibujaAdorno(ctx, id, s, T, ph) {
+    const P = (x, y) => [(x - SPR.ax) * s, (y - SPR.ay) * s];
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (id === 'borlas') {   // collar de cuero con borlas de lana de colores, como en las fiestas
+      const A = [346, 186], B = [434, 196], C = [392, 214], pt = q => [(1 - q) * (1 - q) * A[0] + 2 * (1 - q) * q * C[0] + q * q * B[0], (1 - q) * (1 - q) * A[1] + 2 * (1 - q) * q * C[1] + q * q * B[1]];
+      const banda = () => { ctx.beginPath(); const [a1, a2] = P(...A), [c1, c2] = P(...C), [b1, b2] = P(...B); ctx.moveTo(a1, a2); ctx.quadraticCurveTo(c1, c2, b1, b2); };
+      banda(); ctx.strokeStyle = '#5a2a14'; ctx.lineWidth = 11 * s; ctx.stroke(); banda(); ctx.strokeStyle = '#b8332a'; ctx.lineWidth = 8 * s; ctx.stroke();
+      banda(); ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = 2 * s; ctx.setLineDash([5 * s, 5 * s]); ctx.stroke(); ctx.setLineDash([]);
+      const cols = ['#e63946', '#f4a261', '#2a9d8f', '#457b9d', '#e76fae', '#f6d55c'];
+      for (let i = 0; i < 5; i++) {
+        const q = 0.12 + i * 0.19, [x, y] = pt(q), sw = Math.sin(T * 3 + i * 1.3 + ph * 0.8) * (ph ? 8 : 3), [x1, y1] = P(x, y + 4), [x2, y2] = P(x + sw, y + 34);
+        ctx.strokeStyle = '#3a2416'; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.arc(x2, y2 + 7 * s, 11 * s, 0, TAU); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1.2 * s; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(x2 + k * 3.2 * s, y2 + 10 * s); ctx.lineTo(x2 + k * 4 * s, y2 + 21 * s); ctx.stroke(); }
+        ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(x2 - 4 * s, y2 + 3 * s, 3.5 * s, 0, TAU); ctx.fill();
+      }
+    } else if (id === 'flores') {   // corona de buganvillas, la flor de las casas blancas de Lanzarote
+      const pos = [[338, 50], [352, 32], [369, 20], [388, 13], [407, 15], [424, 24]];
+      ctx.strokeStyle = '#3e6b2f'; ctx.lineWidth = 4 * s; ctx.beginPath(); pos.forEach(([x, y], i) => { const [a, b] = P(x, y + 6); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke();
+      pos.forEach(([x, y], i) => { const [a, b] = P(x + 6, y + 9); ctx.fillStyle = i % 2 ? '#4f8a3a' : '#3e7330'; ctx.beginPath(); ctx.ellipse(a, b, 7 * s, 3.5 * s, 0.5, 0, TAU); ctx.fill(); });
+      pos.forEach(([x, y], i) => {
+        const [a, b] = P(x, y), r = (i % 2 ? 13 : 15.5) * s, rot = i * 0.7 + Math.sin(T * 1.5 + i) * 0.05;
+        ctx.fillStyle = i % 3 === 1 ? '#c0186b' : i % 3 === 2 ? '#e0409a' : '#d4237f';
+        for (let k = 0; k < 3; k++) { const an = rot + k * TAU / 3; ctx.beginPath(); ctx.ellipse(a + Math.cos(an) * r * 0.45, b + Math.sin(an) * r * 0.45, r * 0.62, r * 0.45, an, 0, TAU); ctx.fill(); }
+        ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(a - r * 0.25, b - r * 0.3, r * 0.22, 0, TAU); ctx.fill();
+        ctx.fillStyle = '#fbf3d0'; ctx.beginPath(); ctx.arc(a, b, r * 0.16, 0, TAU); ctx.fill();
+      });
+    }
+    ctx.restore();
+  }
   function dibujaMartin(ctx, u, px, py, st) {
     if (SPR.ok) return dibujaMartinSprite(ctx, u, px, py, st);
     // (px,py) = pies; u = px por unidad. st: {dir, fase, anim, agua, golpe, t, alpha}

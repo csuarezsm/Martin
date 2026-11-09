@@ -101,6 +101,12 @@ const PROG0 = () => ({ done: false, stars: 0, bestMs: 0, bestAgua: 0, plays: 0, 
 const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para escribir (crea la entrada)
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
 const desbloqueado = i => i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done);
+// Adornos de Martín: se ganan al recoger todos los frutos de un mundo
+const ADORNOS = [{ id: 'borlas', mundo: 0, nombre: '🧶 Collar de borlas' }, { id: 'flores', mundo: 1, nombre: '🌺 Corona de buganvillas' }];
+function frutosMundo(m) { const a = MUNDOS[m].desde, b = m + 1 < MUNDOS.length ? MUNDOS[m + 1].desde : NIV.length; let h = 0, t = 0; for (let i = a; i < b; i++) { const n = NIV[i]; if (!n || !n.ok) continue; t += frutosDe(n.nivel).length; h += frutosHechos(i); } return { h, t }; }
+const adornoAbierto = a => { const f = frutosMundo(a.mundo); return f.t > 0 && f.h >= f.t; };
+const adornoPuesto = () => { const a = ADORNOS.find(x => x.id === S.adorno); return a && adornoAbierto(a) ? a.id : ''; };
+window.MartinAdornos = { ADORNOS, abierto: adornoAbierto, mundo: frutosMundo };
 const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }];
 const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars : 0), 0);
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
@@ -236,7 +242,7 @@ function dibujar(dt) {
     let anim = 'idle';
     if (s.fase === 'meta') anim = 'gana'; else if (!s.suelo) anim = s.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(s.vx) > 0.3) anim = 'corre';
     const parpadeo = s.fase === 'reaparece' ? 0.4 + 0.6 * ((24 - s.rt) / 24) : (s.frio > 0 && s.fase === 'jugando' && Math.floor(s.frio / 3) % 2 === 0 ? 0.55 : 1);
-    dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
+    dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo, adorno: adornoPuesto() });
   }
   if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
   dibujaLavaVista(ctx, W, H, u, RUN.cam, L, s, RUN.t);
@@ -353,7 +359,8 @@ function terminar() {
       if (!p.bestMs || res.ms < p.bestMs) { if (p.bestMs) nu.tiempo = true; p.bestMs = res.ms; }
       if (res.agua > p.bestAgua) { if (p.bestAgua) nu.agua = true; p.bestAgua = res.agua; }
       const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
-      if (nuevos.length) { p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); }
+      if (nuevos.length) { const ya = ADORNOS.filter(adornoAbierto).map(a => a.id); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean);
+        const gana = ADORNOS.find(a => !ya.includes(a.id) && adornoAbierto(a)); if (gana) { nu.adorno = gana; S.adorno = gana.id; } }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs() }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
@@ -387,7 +394,8 @@ function renderSetup() {
     <div class="mp-lv">`;
   NIV.forEach((n, i) => {
     const mu = MUNDOS.find(w => w.desde === i);
-    if (mu) h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span></div>`;
+    if (mu) { const m = MUNDOS.indexOf(mu), f = frutosMundo(m), ad = ADORNOS.find(a => a.mundo === m);
+      h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span>${ad && f.t ? `<small class="mp-ado ${f.h >= f.t ? 'ok' : ''}"><i>🧺 ${f.h}/${f.t}</i> <i>${f.h >= f.t ? '✅' : '🎁'}</i> <i>${esc(ad.nombre)}</i></small>` : ''}</div>`; }
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>Nivel ${i + 1}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
@@ -524,6 +532,7 @@ function ponOverlay() {
       <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
+      ${nu.adorno ? `<div class="ov-ado"><b>🎁 ¡Nuevo adorno para Martín!</b><span>${esc(nu.adorno.nombre)}</span><small>Ya lo lleva puesto. Puedes cambiarlo en Aspecto y sonido.</small></div>` : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
       ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}

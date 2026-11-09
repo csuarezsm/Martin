@@ -255,6 +255,7 @@ main:has(.gm){padding-top:8px}
 .mp-est{background:#0009;border:1.5px solid #ffffff3a;border-radius:14px;padding:7px 12px;font-weight:800;color:#ffd978;font-size:calc(16px * var(--fs, 1));white-space:nowrap}
 .mp-cont{width:100%;padding:16px;font-size:calc(17px * var(--fs, 1))}
 .mp-lv{display:flex;flex-direction:column;gap:8px}
+.mp-ado{color:var(--txt);font-size:calc(12px * var(--fs, 1));margin-top:3px}.mp-ado i{font-style:normal}.mp-ado.ok{color:var(--ok)}.ov-ado{display:flex;flex-direction:column;gap:2px;margin:8px 0;padding:8px 10px;border-radius:12px;background:rgba(244,193,61,.14);border:1px solid var(--gold)}.ov-ado b{color:var(--gold)}.ov-ado small{color:var(--mut)}
 .mp-mu{display:flex;flex-direction:column;gap:1px;margin:10px 2px 0}.mp-mu b{color:var(--gold);text-transform:uppercase;letter-spacing:.04em;font-size:calc(13px * var(--fs, 1))}.mp-mu span{color:var(--mut);font-size:calc(12.5px * var(--fs, 1))}
 .lv{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;color:var(--txt);font:inherit}
 .lv:not(:disabled):active{background:var(--card2)}
@@ -416,6 +417,8 @@ function openThemes() {
     <label class="f" style="margin-bottom:10px"><span>Sonidos<em>Salto, golpes, puntos de control y entrega</em></span><input type="checkbox" class="tg" id="thSound" ${S.sound !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>Fantasma<em>Tu mejor carrera corre a tu lado en cada nivel</em></span><input type="checkbox" class="tg" id="thFan" ${S.fantasma !== false ? 'checked' : ''}></label>
     ${AvisoTurno.opcionHtml()}
+    ${window.MartinAdornos ? `<h3>🐪 Adornos de Martín</h3><div class="sub">Recoge todos los frutos de un mundo y Martín gana un adorno.</div>
+    <div class="kinds" style="margin:6px 0 16px"><button data-ado="" class="${!S.adorno ? 'on' : ''}">Sin adorno</button>${MartinAdornos.ADORNOS.map(a => MartinAdornos.abierto(a) ? `<button data-ado="${a.id}" class="${S.adorno === a.id ? 'on' : ''}">${esc(a.nombre)}</button>` : `<button disabled title="${esc(a.nombre)}">🔒 Mundo ${a.mundo + 1}</button>`).join('')}</div>` : ''}
     <h3>🔠 Tamaño de letra</h3>
     <div class="kinds" style="margin:6px 0 16px">${FONT_SIZES.map(([v, l]) => `<button data-fs="${v}" class="${String(S.fontScale || '1') === v ? 'on' : ''}" style="font-size:${13 * parseFloat(v)}px">${l}</button>`).join('')}</div>
     <h3>🎨 Colores de la app</h3><div class="sub">Toca un tema y se aplica al momento.</div>
@@ -427,6 +430,7 @@ function openThemes() {
     <div class="acts"><button class="btn-gold" id="thOk">Listo</button></div>`);
   document.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => { S.theme = b.dataset.theme; applyTheme(S.theme); save(); openThemes(); });
   document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fontScale = b.dataset.fs; applyFont(); save(); openThemes(); });
+  document.querySelectorAll('[data-ado]').forEach(b => b.onclick = () => { S.adorno = b.dataset.ado; save(); openThemes(); });
   document.querySelectorAll('[data-mano]').forEach(b => b.onclick = () => { S.mano = b.dataset.mano; save(); openThemes(); });
   $('#thFan').onchange = e => { S.fantasma = e.target.checked; save(); };
   $('#thSound').onchange = e => { S.sound = e.target.checked; save(); if (S.sound) Sound.play('control'); };
@@ -434,7 +438,7 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.3.4';
+const APP_VERSION = '2.3.5';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
