@@ -2,7 +2,7 @@
 
 Paquete: `com.itcanarias.martin` · Archivo para subir: `martin-play.aab` (en la Release de GitHub) · Desarrollador: IT Canarias
 
-Las imágenes de esta carpeta se generan con `node tools/iconos.mjs` (icono y gráfico) y `node play-store/capturas.mjs` (capturas).
+Las imágenes de esta carpeta se generan con `python3 tools/iconos.py` (icono y gráfico) y `node play-store/capturas.mjs` (capturas).
 
 > ⚠️ **Revisión de marca pendiente**: el dossier del proyecto deja el nombre definitivo «Martín» pendiente de verificación (búsqueda de marca y de nombres en Google Play) antes de publicar en tiendas. El subtítulo «Los Caminos del Volcán» ayuda a distinguirlo. Los personajes y lugares son de ficción; no se usa ninguna imagen real de Timanfaya ni de rutas reales.
 

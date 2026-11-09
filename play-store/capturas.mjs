@@ -47,4 +47,4 @@ for (const [dev, w, h, dsf] of SIZES) {
   }
 }
 await b.close();
-console.log('Listo: play-store/ (el icono y el gráfico destacado: node tools/iconos.mjs)');
+console.log('Listo: play-store/ (el icono y el gráfico destacado: python3 tools/iconos.py)');

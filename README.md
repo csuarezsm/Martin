@@ -2,7 +2,7 @@
 
 Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.3.1
+Paquete: `com.itcanarias.martin` · versión 2.3.2
 
 Novedades de la 2.3: **Mundo 2 · La costa y el norte**, con 5 niveles nuevos en El Golfo, las Salinas de Janubio (¡la sal resbala!), Famara, Haría (por las copas de las palmeras) y el Mirador del Río, y sus fichas en el Cuaderno de viaje.
 
@@ -32,7 +32,7 @@ Hecha con la misma plantilla que Ajedrez, Damas, Chinchón, Pumba, Parchís, Pó
 - `www/niveles.js`: niveles en JSON (esquema v0.2, validados con suma de control). Se generan con `node tools/niveles.mjs`.
 - `tools/bot.cjs`: robot (búsqueda en haz) que comprueba que cada nivel y cada ruta se pueden terminar. `node tools/comprobar-niveles.cjs [n]`.
 - `tools/generar-partidas.cjs`: graba las partidas del robot para las pruebas de la app (`tests/partidas.json`).
-- `tools/iconos.mjs`: dibuja los iconos, la pantalla de arranque y el gráfico de Play con el propio dibujo de Martín.
+- `tools/iconos.py`: crea los iconos, la pantalla de arranque y el gráfico de Play con la ilustración de Martín sobre el paisaje de Timanfaya.
 
 ## Pruebas
 
