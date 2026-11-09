@@ -493,12 +493,11 @@
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
       f.img = new Image();
-      f.img.onload = () => {   // el dibujo entero (sin fundidos, que mezclaban dos sitios distintos) y su copia en espejo para empalmar sin cortes si hace falta repetirlo
+      f.img.onload = () => {   // el dibujo entero (sin fundidos, que mezclaban dos sitios distintos); nunca se repite
         const x0 = Math.round(f.img.naturalWidth * (f.ini || 0)), w = Math.round(f.img.naturalWidth * (f.fin || 1)) - x0, h = f.img.naturalHeight;   // se recorta lo que no conviene en los bordes (palmeras grandes…)
         const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
-        const m = document.createElement('canvas'); m.width = w; m.height = h; const gm = m.getContext('2d'); gm.translate(w, 0); gm.scale(-1, 1); gm.drawImage(c, 0, 0);
-        f.tile = c; f.tileM = m; f.ok = true;
-        if (f.mar) try { f.agua = capaAgua(c, f.mar); const am = document.createElement('canvas'); am.width = w; am.height = h; const ga = am.getContext('2d'); ga.translate(w, 0); ga.scale(-1, 1); ga.drawImage(f.agua, 0, 0); am.y0 = f.agua.y0; am.y1 = f.agua.y1; f.aguaM = am; } catch (e) { f.agua = null; }
+        f.tile = c; f.ok = true;
+        if (f.mar) try { f.agua = capaAgua(c, f.mar); } catch (e) { f.agua = null; }
       };
       f.img.src = f.src;
     }
@@ -546,18 +545,18 @@
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo) {
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
     const ref = H - H * (W < H ? 0.27 : 0.3), suelo = ref + u * 0.5;   // fijo en vertical: seguir al suelo daba saltos
-    const alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
+    // el dibujo nunca se repite (repetirlo, aunque fuera en espejo, duplicaba el sol, los molinos…): si la pantalla es muy ancha se agranda hasta cubrirla
+    let alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h;
+    if (F.tile.width * k < W * 1.15) { k = W * 1.15 / F.tile.width; dib = k * PAI.h; alto = dib / 1.25; }
+    const ancho = F.tile.width * k, top = suelo - alto, sobra = Math.max(0, ancho - W);
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
-    // paralaje: en un nivel el dibujo avanza justo lo necesario para recorrerlo entero una vez (sin repetirse si cabe);
-    // si no cabe (pantalla muy ancha) o en la portada, se repite alternando con su espejo para que el empalme sea continuo
-    const fac = largo ? Math.max(0.03, Math.min(0.18, (ancho - W) / Math.max(1, largo * u))) : 0.18;
-    const off = cam.x * u * fac, i0 = Math.floor(off / ancho);
-    for (let i = i0; ancho * i - off < W; i++) {
-      const x = ancho * i - off;
-      const esp = ((i % 2) + 2) % 2;
-      ctx.drawImage(esp ? F.tileM : F.tile, x, top, ancho + 1, dib);
-      if (F.agua && !(typeof window !== 'undefined' && window.SIN_OLAS)) dibujaOlas(ctx, esp ? F.aguaM : F.agua, x, top, k, t, W);
-    }
+    // paralaje: en un nivel el dibujo avanza justo lo necesario para recorrerlo una vez de punta a punta;
+    // en la portada va y vuelve despacio
+    let off;
+    if (largo) off = Math.min(sobra, Math.max(0, cam.x * u * sobra / Math.max(1, largo * u)));
+    else { const pp = (cam.x * u * 0.18) % Math.max(1, 2 * sobra); off = pp < sobra ? pp : 2 * sobra - pp; }
+    ctx.drawImage(F.tile, -off, top, ancho + 1, dib);
+    if (F.agua && !(typeof window !== 'undefined' && window.SIN_OLAS)) dibujaOlas(ctx, F.agua, -off, top, k, t, W);
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
