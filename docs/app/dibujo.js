@@ -895,38 +895,68 @@
   /* Lava: un frente incandescente que avanza por detrás de Martín */
   function dibujaLava(ctx, W, H, u, sx, sy, L, st, t, cam0) {
     if (st.lava == null) return;
-    const xe = sx(st.lava);
-    // aviso en el borde si aún no se ve: resplandor rojo que crece según se acerca
+    const xe = sx(st.lava), ux = x => (x / u) + cam0;   // de pantalla a mundo
+    // altura del camino en cada punto (la colada va por encima del suelo y de las rocas; en un hueco cae al fondo)
+    const sol = L.solids.filter(q => q.kind !== 'oneway');
+    const suelo = wx => { let top = null; for (const q of sol) if (q.x0 <= wx && q.x1 >= wx && (top == null || q.top > top)) top = q.top; return top; };
     const dist = st.x - st.lava;
-    if (xe < 0) { const a = Math.max(0, Math.min(0.55, (9 - dist) / 9 * 0.55 + 0.12 * Math.sin(t * 8))); const g = ctx.createLinearGradient(0, 0, u * 2.5, 0); g.addColorStop(0, 'rgba(255,70,20,' + a + ')'); g.addColorStop(1, 'rgba(255,70,20,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, u * 2.5, H); return; }
-    const g0 = ctx.createLinearGradient(xe, 0, xe + u * 3, 0); g0.addColorStop(0, 'rgba(255,120,30,.45)'); g0.addColorStop(1, 'rgba(255,120,30,0)'); ctx.fillStyle = g0; ctx.fillRect(xe, 0, u * 3, H);
-    ctx.beginPath(); ctx.moveTo(-2, -2);
-    const paso = Math.max(4, u * 0.25);
-    for (let y = 0; y <= H + paso; y += paso) { const wy = (H - y) / u; ctx.lineTo(xe + Math.sin(wy * 1.7 + t * 3) * u * 0.25 + Math.sin(wy * 4.3 - t * 5) * u * 0.1, y); }
-    ctx.lineTo(-2, H + 2); ctx.closePath();
-    ctx.save(); ctx.clip();
-    { // lava fundida: naranja que brilla entre placas de costra oscura que se enfría al alejarse del frente
-      const g = ctx.createLinearGradient(xe - u * 6, 0, xe, 0); g.addColorStop(0, '#7a1606'); g.addColorStop(0.5, '#d2380c'); g.addColorStop(0.85, '#ff7a1c'); g.addColorStop(1, '#ffc65a'); ctx.fillStyle = g; ctx.fillRect(-2, -2, xe + u, H + 4);
-      // placas de costra en rejilla hexagonal: entre ellas quedan grietas finas que brillan
-      const R = u * 0.62, dx = R * 1.5, dy = R * 1.732, fy = (t * u * 0.3) % dy, base = Math.floor(t * u * 0.3 / dy);
-      const cols = Math.ceil((xe + u) / dx) + 1, rows = Math.ceil(H / dy) + 2;
+    if (xe < -u * 0.5) {   // aún no se ve: resplandor rojizo a ras de suelo en el borde, que crece según se acerca
+      const ys = suelo(ux(0)), y0 = ys == null ? H : sy(ys), a = Math.max(0, Math.min(0.55, (9 - dist) / 9 * 0.55 + 0.12 * Math.sin(t * 8)));
+      const g = ctx.createRadialGradient(0, y0, 0, 0, y0, u * 4); g.addColorStop(0, 'rgba(255,90,20,' + a + ')'); g.addColorStop(1, 'rgba(255,70,20,0)'); ctx.fillStyle = g; ctx.fillRect(0, y0 - u * 4, u * 4, u * 6); return;
+    }
+    const paso = Math.max(3, u * 0.18), ALTO = 1.25, FR = 1.7;   // espesor de la colada (mundo) y largo de la lengua del frente
+    const arr = [], aba = [];
+    let ult = suelo(ux(-paso)); if (ult == null) { for (let k = 1; k < 40 && ult == null; k++) ult = suelo(ux(-paso) - k * 0.5); if (ult == null) ult = 0; }
+    for (let x = -paso; ; x += paso) {
+      const xx = Math.min(x, xe), wx = ux(xx), real = suelo(wx), d = (xe - xx) / u;   // d: distancia al frente
+      const ys = real == null ? ult : real; ult = ys;   // en un hueco la lava lo rellena y sigue al nivel del camino
+      const base = real == null ? H + 4 : sy(ys) + u * 0.18;
+      const grueso = u * ALTO * (d < FR ? Math.sin(Math.min(1, d / FR) * Math.PI / 2) : 1) * (0.92 + 0.08 * Math.sin(wx * 2.3 - t * 1.4));
+      arr.push([xx, sy(ys) - grueso + (d < FR ? 0 : Math.sin(wx * 4.1 + t * 2) * u * 0.04)]); aba.push([xx, base]);
+      if (xx >= xe) break;
+    }
+    for (let i = 1; i < arr.length - 1; i++) arr[i][1] = Math.min(arr[i][1], (arr[i - 1][1] + arr[i + 1][1]) / 2 + u * 0.05);   // al bajar un escalón la lava se derrama en cuesta
+    const yf = aba[aba.length - 1][1] - u * 0.18;
+    // resplandor del frente sobre el suelo
+    { const g = ctx.createRadialGradient(xe, yf, 0, xe, yf, u * 3.2); g.addColorStop(0, 'rgba(255,140,40,.5)'); g.addColorStop(1, 'rgba(255,100,30,0)'); ctx.fillStyle = g; ctx.fillRect(xe - u * 3.2, yf - u * 3.2, u * 6.4, u * 4.2); }
+    const forma = () => { ctx.beginPath(); ctx.moveTo(aba[0][0], aba[0][1]); arr.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.quadraticCurveTo(xe + u * 0.35, yf - u * 0.1, xe, aba[aba.length - 1][1]); for (let i = aba.length - 1; i >= 0; i--) ctx.lineTo(aba[i][0], aba[i][1]); ctx.closePath(); };
+    ctx.save(); forma(); ctx.clip();
+    { // lava fundida que asoma por las grietas de una costra oscura y rugosa; la costra se enfría (y oscurece) lejos del frente
+      const top = Math.min(...arr.map(p => p[1])) - u, fondo = Math.min(H + 4, Math.max(...aba.map(p => p[1])) + u);
+      let g = ctx.createLinearGradient(xe - u * 7, 0, xe, 0); g.addColorStop(0, '#3d0a03'); g.addColorStop(0.45, '#a3290a'); g.addColorStop(0.8, '#f06a18'); g.addColorStop(1, '#ffd27a'); ctx.fillStyle = g; ctx.fillRect(-2, top, xe + u, fondo - top);
+      // costra: placas pequeñas e irregulares; avanzan con la colada
+      const R = u * 0.3, dx = R * 1.5, dy = R * 1.732, fx = (st.lava * u) % dx;
+      const cols = Math.ceil((xe + u) / dx) + 2, rows = Math.ceil((fondo - top) / dy) + 2;
       for (let i = 0; i < cols; i++) {
-        const cerca = Math.min(1, Math.max(0, (i + 0.3) / 1.8));
+        const cerca = Math.min(1, Math.max(0, (i - 0.5) / 3)), ci = i + Math.floor(st.lava * u / dx);
         for (let j = -1; j < rows; j++) {
-          const k = i * 131 + (j - base) * 17, cx = xe - R * 0.9 - i * dx + (hash(k) - 0.5) * R * 0.6, cy = j * dy + fy + (i % 2) * dy / 2 + (hash(k + 1) - 0.5) * R * 0.6;
-          const r = R * (0.5 + 0.55 * cerca) * (0.85 + hash(k + 3) * 0.3);
-          ctx.fillStyle = cerca < 0.35 ? 'rgba(120,30,10,.6)' : 'rgb(' + Math.round(70 - 30 * cerca) + ',' + Math.round(26 - 10 * cerca) + ',' + Math.round(18 - 6 * cerca) + ')';
-          ctx.beginPath(); for (let q = 0; q < 6; q++) { const a = q * Math.PI / 3 + hash(k + 2) * 0.3, rq = r * (0.72 + hash(k + q + 5) * 0.45); q ? ctx.lineTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq) : ctx.moveTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq); } ctx.closePath(); ctx.fill();
-          if (cerca > 0.5) { ctx.fillStyle = 'rgba(120,70,55,.18)'; ctx.beginPath(); ctx.ellipse(cx - r * 0.2, cy - r * 0.3, r * 0.5, r * 0.22, 0.3, 0, TAU); ctx.fill(); }
+          const k = ci * 131 + j * 17, cx = xe - R * 0.6 - i * dx + fx - dx + (hash(k) - 0.5) * R * 0.7, cy = top + j * dy + (ci % 2) * dy / 2 + (hash(k + 1) - 0.5) * R * 0.7;
+          const r = R * (0.7 + 0.42 * cerca) * (0.92 + hash(k + 3) * 0.2), v = hash(k + 4);
+          ctx.fillStyle = cerca < 0.3 ? 'rgba(110,28,8,.55)' : 'rgb(' + Math.round(52 - 18 * cerca + v * 16) + ',' + Math.round(38 - 14 * cerca + v * 10) + ',' + Math.round(33 - 10 * cerca + v * 8) + ')';
+          ctx.beginPath(); for (let q = 0; q < 7; q++) { const a = q * TAU / 7 + hash(k + 2) * 0.6, rq = r * (0.84 + hash(k + q + 5) * 0.26); q ? ctx.lineTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq) : ctx.moveTo(cx + Math.cos(a) * rq, cy + Math.sin(a) * rq); } ctx.closePath(); ctx.fill();
+          if (cerca > 0.4) { ctx.fillStyle = 'rgba(140,115,100,.16)'; ctx.beginPath(); ctx.ellipse(cx - r * 0.25, cy - r * 0.35, r * 0.45, r * 0.16, 0.2, 0, TAU); ctx.fill();   // brillo mate de la costra
+            ctx.fillStyle = 'rgba(15,8,6,.45)'; for (let q = 0; q < 3; q++) ctx.fillRect(cx + (hash(k + q * 3) - 0.5) * r, cy + (hash(k + q * 3 + 1) - 0.5) * r, Math.max(1, u * 0.03), Math.max(1, u * 0.03)); }   // poros
         }
       }
-      const gb = ctx.createLinearGradient(xe - u * 1.6, 0, xe, 0); gb.addColorStop(0, 'rgba(255,150,40,0)'); gb.addColorStop(1, 'rgba(255,200,90,.65)'); ctx.fillStyle = gb; ctx.fillRect(xe - u * 1.6, -2, u * 2, H + 4);
+      // volumen: arriba la piel enfriada, abajo más oscuro
+      g = ctx.createLinearGradient(0, top + u, 0, fondo); g.addColorStop(0, 'rgba(255,190,140,.10)'); g.addColorStop(0.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(20,4,0,.45)'); ctx.fillStyle = g; ctx.fillRect(-2, top, xe + u, fondo - top);
+      // punta del frente: el núcleo incandescente asoma por debajo de la costra
+      const gt = ctx.createRadialGradient(xe - u * 0.2, yf + u * 0.1, 0, xe - u * 0.2, yf + u * 0.1, u * 1.5); gt.addColorStop(0, 'rgba(255,240,170,.95)'); gt.addColorStop(0.35, 'rgba(255,150,40,.7)'); gt.addColorStop(1, 'rgba(255,90,20,0)'); ctx.fillStyle = gt; ctx.fillRect(xe - u * 1.8, yf - u * 1.6, u * 2.2, u * 2);
+      ctx.strokeStyle = 'rgba(30,6,2,.55)'; ctx.lineWidth = u * 0.2; ctx.beginPath(); aba.forEach(([x, y], i) => i ? ctx.lineTo(x, y - u * 0.08) : ctx.moveTo(x, y - u * 0.08)); ctx.stroke();   // sombra en la base
     }
     ctx.restore();
-    ctx.strokeStyle = 'rgba(255,230,150,.85)'; ctx.lineWidth = Math.max(2, u * 0.07); ctx.beginPath();
-    for (let y = 0; y <= H + paso; y += paso) { const wy = (H - y) / u, xx = xe + Math.sin(wy * 1.7 + t * 3) * u * 0.25 + Math.sin(wy * 4.3 - t * 5) * u * 0.1; if (y) ctx.lineTo(xx, y); else ctx.moveTo(xx, y); } ctx.stroke();
-    ctx.fillStyle = 'rgba(255,220,120,.9)';
-    for (let i = 0; i < 7; i++) { const f = (t * (0.7 + hash(i) * 0.6) + hash(i + 4)) % 1, yy = H * hash(i + 20), xx = xe + u * 0.2 + f * u * 1.4; ctx.globalAlpha = 1 - f; ctx.beginPath(); ctx.arc(xx, yy - f * u * 1.5, u * 0.07, 0, TAU); ctx.fill(); }
+    ctx.strokeStyle = 'rgba(70,52,44,.85)'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); { let ini = false; for (const [x, y] of arr) { if ((xe - x) / u < FR * 0.8) break; if (ini) ctx.lineTo(x, y); else { ctx.moveTo(x, y); ini = true; } } } ctx.stroke();
+    // borde incandescente solo en la lengua del frente
+    ctx.strokeStyle = 'rgba(255,225,140,.85)'; ctx.lineWidth = Math.max(2, u * 0.06); ctx.beginPath();
+    { let ini = false; for (const [x, y] of arr) { if ((xe - x) / u > FR * 1.2) continue; if (ini) ctx.lineTo(x, y); else { ctx.moveTo(x, y); ini = true; } } ctx.quadraticCurveTo(xe + u * 0.35, yf - u * 0.1, xe, aba[aba.length - 1][1]); } ctx.stroke();
+    // humo que sube de la colada y chispas en el frente
+    for (let i = 0; i < 6; i++) {
+      const f = (t * (0.18 + hash(i + 30) * 0.1) + hash(i + 31)) % 1, px = xe - u * (0.6 + hash(i + 32) * 5), ys = suelo(ux(px)) ?? suelo(st.lava); if (px < -u || ys == null) continue;
+      const y = sy(ys) - u * ALTO - f * u * 3.5, r = u * (0.35 + f * 0.9); ctx.globalAlpha = 0.28 * (1 - f) * Math.min(1, f * 5);
+      ctx.fillStyle = '#5a504c'; ctx.beginPath(); ctx.arc(px + Math.sin(t + i) * u * 0.3 + f * u * 0.6, y, r, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(255,220,120,.9)';
+    for (let i = 0; i < 7; i++) { const f = (t * (0.7 + hash(i) * 0.6) + hash(i + 4)) % 1, xx = xe - u * hash(i + 20) * 1.2 + f * u * 0.6; ctx.globalAlpha = 1 - f; ctx.beginPath(); ctx.arc(xx, yf - u * hash(i + 8) * ALTO - f * u * 1.4, u * 0.06, 0, TAU); ctx.fill(); }
     ctx.globalAlpha = 1;
   }
   function dibujaEscena(ctx, W, H, u, cam, L, esc, t, fx) {
