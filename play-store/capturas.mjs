@@ -10,25 +10,35 @@ let b; try { b = await chromium.launch(); } catch (e) { b = await chromium.launc
 
 // Partidas del robot (para llevar a Martín a un punto concreto del nivel sin jugar a mano)
 const PART = JSON.parse(readFileSync(ROOT + 'tests/partidas.json', 'utf8'));
+const RUNS = { 0: PART['uga_l01_water_delivery|RUTA-ALTA'].runs, 2: PART['uga_l03_dry_ravine'].runs, 6: PART['norte_l07_el_golfo'].runs };
 // Prepara cada pantalla dentro de la app (se ejecuta en el navegador)
-const setup = async ([name, runs]) => {
-  const avanza = (ticks) => {                       // repite la partida del robot hasta ese paso y deja la escena dibujada, sin que corra el reloj
-    jugar(0, 'nivel'); const R = __martin.RUN, s = R.s, L = R.L; M_.empezar(s); let t = 0;
-    for (let i = 0; i < runs.length && t < ticks; i += 2) for (let j = 0; j < runs[i + 1] && t < ticks; j++, t++) M_.paso(L, s, runs[i]);
-    R.overlay = ''; ponOverlay(); R.fase = t / 6; R.on = false; cancelAnimationFrame(R.raf); dibujar(0); hud();
-  };
+const setup = async ([name, RUNS]) => {
   const M_ = __martin.M;
-  if (name === '1-partida') avanza(1325);
-  if (name === '2-camino') avanza(3875);
-  if (name === '3-mapa' || name === '5-reto') {
-    S.prog = { uga_l01_water_delivery: { done: true, stars: 3, bestMs: 102600, bestAgua: 100, plays: 4, fails: 1 }, uga_l02_after_the_storm: { done: true, stars: 2, bestMs: 141000, bestAgua: 82, plays: 3, fails: 0 } };
-    S.diario = name === '5-reto' ? { dia: retoInfoLocal().dia, ms: 118400, agua: 91 } : null; save(); salirAlMapa();
-    RETO.estado = 'listo'; RETO.info = retoInfoLocal(); pintaDiario();
-    if (name === '5-reto') document.getElementById('mpDiario').scrollIntoView({ block: 'start' });
+  // repite la partida del robot del nivel idx hasta el paso «ticks» (o hasta que «hasta» diga que pare) y deja la escena dibujada, sin que corra el reloj
+  const avanza = (idx, ticks, hasta) => {
+    const runs = RUNS[idx]; jugar(idx, 'nivel'); const R = __martin.RUN, s = R.s, L = R.L; M_.empezar(s); let t = 0;
+    fuera: for (let i = 0; i < runs.length; i += 2) for (let j = 0; j < runs[i + 1]; j++, t++) { if (t >= ticks || (hasta && hasta(s))) break fuera; M_.paso(L, s, runs[i]); }
+    R.overlay = ''; ponOverlay(); R.fase = t / 6; R.on = false; cancelAnimationFrame(R.raf); dibujar(0); hud(); return t;
+  };
+  const hechos = (n, frutos) => { S.prog = {}; for (let i = 0; i < n; i++) { const p = prog(i); Object.assign(p, { done: true, stars: 3 - (i % 3 === 2), bestMs: 100000 + i * 9000, bestAgua: 100 - i * 3, plays: 2 + i, fails: i % 2 });
+      if (frutos.includes(i)) p.obj = frutosDe(__martin.NIV[i].nivel).map(o => o.id); } save(); };
+  if (name === '1-partida') avanza(0, 1325);
+  if (name === '2-costa') avanza(6, 1e9, s => s.x >= 118);
+  if (name === '3-lava') {   // la lava, a la vista y justo detrás de Martín
+    avanza(2, 1e9, s => s.lava != null && s.x >= 372); const R = __martin.RUN, s = R.s;
+    s.lava = R.cam.x + (s.x - R.cam.x) * 0.5; dibujar(0); hud();
   }
-  if (name === '4-final') { avanza(1e9); terminar(); ponOverlay(); }
+  if (name === '4-mapa' || name === '8-reto') {
+    hechos(7, [0, 1, 2, 4]); S.diario = name === '8-reto' ? { dia: retoInfoLocal().dia, ms: 118400, agua: 91 } : null; save(); salirAlMapa();
+    RETO.estado = 'listo'; RETO.info = retoInfoLocal(); pintaDiario();
+    if (name === '8-reto') document.getElementById('mpDiario').scrollIntoView({ block: 'start' });
+    else { const m = document.querySelector('.mp-map'); if (m) m.scrollIntoView({ block: 'center' }); }
+  }
+  if (name === '5-cuaderno') { hechos(8, [0, 1, 2, 4]); salirAlMapa(); openCuaderno(); }
+  if (name === '6-guia') { hechos(9, []); salirAlMapa(); openEspecie('lagarto'); }
+  if (name === '7-final') { avanza(0, 1e9); terminar(); ponOverlay(); }
 };
-const SHOTS = ['1-partida', '2-camino', '3-mapa', '4-final', '5-reto'];
+const SHOTS = ['1-partida', '2-costa', '3-lava', '4-mapa', '5-cuaderno', '6-guia', '7-final', '8-reto'];
 const SIZES = [
   ['movil', 405, 720, 1080 / 405],
   ['tablet7', 600, 960, 2],
@@ -40,8 +50,11 @@ for (const [dev, w, h, dsf] of SIZES) {
   for (const name of SHOTS) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dsf, isMobile: dev === 'movil', hasTouch: true });
     const p = await ctx.newPage();
-    await p.addInitScript(() => { window.MARTIN_ONLINE_URL = ''; }); await p.addInitScript(() => { if (!sessionStorage.s) { localStorage.setItem('martin.v1', JSON.stringify({ onboarded: true, iosHint: true })); sessionStorage.s = 1; } });
-    await p.goto(APP); await p.evaluate(setup, [name, PART['uga_l01_water_delivery|RUTA-ALTA'].runs]); await p.evaluate(() => document.querySelector('#toast') && document.querySelector('#toast').classList.remove('on')); await p.waitForTimeout(name === '4-final' ? 900 : 500);
+    await p.addInitScript(() => { window.MARTIN_ONLINE_URL = ''; }); await p.addInitScript(() => { if (!sessionStorage.s) { localStorage.setItem('martin.v1', JSON.stringify({ onboarded: true, iosHint: true, sound: false })); sessionStorage.s = 1; } });
+    await p.goto(APP); await p.waitForTimeout(800);   // que carguen las fotos del fondo
+    await p.evaluate(setup, [name, RUNS]); await p.waitForTimeout(400);
+    await p.evaluate(() => { const R = __martin.RUN; if (R.s && !R.on) dibujar(0); const t = document.querySelector('#toast'); if (t) t.classList.remove('on'); });   // vuelve a dibujar con todo cargado
+    await p.waitForTimeout(name === '7-final' ? 900 : 300);
     await p.screenshot({ path: `${OUT}${dev}-${name}.png` });
     await ctx.close();
   }
