@@ -478,44 +478,46 @@
     { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
     { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
     // Mundo 2: El Golfo, Janubio, Famara, Haría y el Mirador del Río
-    { src: 'paisaje-golfo.jpg', ini: 0.12, cielo: ['#007cf0', '#008bfd'] },
-    { src: 'paisaje-janubio.jpg', ini: 0.14, cielo: ['#007cf0', '#0089fe'] },
+    { src: 'paisaje-golfo.jpg', cielo: ['#007cf0', '#008bfd'] },
+    { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
     { src: 'paisaje-famara.jpg', cielo: ['#0070e8', '#007ffb'] },
-    { src: 'paisaje-haria.jpg', ini: 0.36, fin: 0.72, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', ini: 0.16, cielo: ['#006ae8', '#0078fb'] }],
+    { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
+    { src: 'paisaje-mirador.jpg', cielo: ['#006ae8', '#0078fb'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
       f.img = new Image();
-      f.img.onload = () => {   // mosaico sin costuras: el final de la imagen se funde con su principio (sin espejo, que duplicaba casas)
-        const x0 = Math.round(f.img.naturalWidth * (f.ini || 0)), w = Math.round(f.img.naturalWidth * (f.fin || 1)) - x0, h = f.img.naturalHeight, ov = Math.round(w * 0.22), c = document.createElement('canvas'); c.width = w - ov; c.height = h;   // se recorta la palmera grande del borde (al repetirse dejaba un fantasma)
-        const g = c.getContext('2d'); g.drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
-        const q = document.createElement('canvas'); q.width = ov; q.height = h; const gq = q.getContext('2d'); gq.drawImage(f.img, x0 + w - ov, 0, ov, h, 0, 0, ov, h);
-        gq.globalCompositeOperation = 'destination-in'; const gr = gq.createLinearGradient(0, 0, ov, 0); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); gq.fillStyle = gr; gq.fillRect(0, 0, ov, h);
-        g.drawImage(q, 0, 0); f.tile = c; f.ok = true;
+      f.img.onload = () => {   // el dibujo entero (sin fundidos, que mezclaban dos sitios distintos) y su copia en espejo para empalmar sin cortes si hace falta repetirlo
+        const x0 = Math.round(f.img.naturalWidth * (f.ini || 0)), w = Math.round(f.img.naturalWidth * (f.fin || 1)) - x0, h = f.img.naturalHeight;   // se recorta lo que no conviene en los bordes (palmeras grandes…)
+        const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
+        const m = document.createElement('canvas'); m.width = w; m.height = h; const gm = m.getContext('2d'); gm.translate(w, 0); gm.scale(-1, 1); gm.drawImage(c, 0, 0);
+        f.tile = c; f.tileM = m; f.ok = true;
       };
       f.img.src = f.src;
     }
     return f.ok ? f : null;
   }
   fotoTema(0);
-  function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F) {
+  function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo) {
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
     const ref = H - H * (W < H ? 0.27 : 0.3), suelo = ref + u * 0.5;   // fijo en vertical: seguir al suelo daba saltos
     const alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h, ancho = F.tile.width * k, top = suelo - alto;
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
-    const off = cam.x * u * 0.18, i0 = Math.floor(off / ancho);
+    // paralaje: en un nivel el dibujo avanza justo lo necesario para recorrerlo entero una vez (sin repetirse si cabe);
+    // si no cabe (pantalla muy ancha) o en la portada, se repite alternando con su espejo para que el empalme sea continuo
+    const fac = largo ? Math.max(0.03, Math.min(0.18, (ancho - W) / Math.max(1, largo * u))) : 0.18;
+    const off = cam.x * u * fac, i0 = Math.floor(off / ancho);
     for (let i = i0; ancho * i - off < W; i++) {
       const x = ancho * i - off;
-      ctx.drawImage(F.tile, x, top, ancho + 1, dib);
+      ctx.drawImage(((i % 2) + 2) % 2 ? F.tileM : F.tile, x, top, ancho + 1, dib);
     }
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
-  function dibujaFondo(ctx, W, H, u, cam, TM, t) {
-    { const F = fotoTema(TEMAS.indexOf(TM)); if (F) return dibujaPaisaje(ctx, W, H, u, cam, TM, t, F); }
+  function dibujaFondo(ctx, W, H, u, cam, TM, t, largo) {
+    { const F = fotoTema(TEMAS.indexOf(TM)); if (F) return dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo); }
     const cv = ctx.canvas, tema = TEMAS.indexOf(TM), key = W + 'x' + H + 'x' + u.toFixed(2) + 'x' + tema;
     let c = CACHE.get(cv); if (!c || c.key !== key) { c = { key, capas: {} }; CACHE.set(cv, c); }
     if (!c.cielo) {   // cielo, sol y rayos: una sola vez
@@ -865,7 +867,7 @@
     { // altura en pantalla del suelo bajo el centro de la vista (suavizada) para apoyar el paisaje
       const cx = cam.x + W / u / 2; let top = null; for (const s of L.solids) if (s.kind === 'ground' && s.x0 <= cx + 3 && s.x1 >= cx - 3 && (top == null || s.top > top)) top = s.top;
       if (top != null) { const y = sy(top); PAI.suelo = PAI.suelo == null || Math.abs(PAI.suelo - y) > H * 0.5 ? y : PAI.suelo + (y - PAI.suelo) * 0.035; } }
-    dibujaFondo(ctx, W, H, u, cam, TM, t);
+    dibujaFondo(ctx, W, H, u, cam, TM, t, Math.max(0, (L.world.max_x - Math.max(0, L.world.min_x))) + 2);
     // abismo de los huecos
     for (const h of esc.huecos) {
       const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
