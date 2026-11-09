@@ -446,8 +446,12 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-window.NOTICIA_MARTIN = 'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html';   // el Martín real (elDiario.es, agosto de 2026)
-const APP_VERSION = '2.4.8';
+window.NOTICIAS_MARTIN = ['https://www.laprovincia.es/videos/lanzarote/2026/08/13/historia-camello-martin-protagonista-eclipse-solar-lanzarote-133334770.html',
+  'https://www.lavozdelanzarote.com/actualidad/mas-noticias/camellero-guelfo-protagonistas-eclipse-solar-en-lanzarote_245391_102.html',
+  'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html',
+  'https://www.tiktok.com/@unahoramenostv/video/7605692657339256097'];   // el Martín real (prensa, agosto de 2026)
+window.NOTICIA_MARTIN = NOTICIAS_MARTIN[0];
+const APP_VERSION = '2.4.9';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -683,10 +687,11 @@ function openGameRules() {
     <h4>Reto diario</h4><ul>
       <li>Cada día hay un nivel y unas condiciones (agua normal, cántaro frágil o poca agua), iguales para todos.</li>
       <li>Ganas el menor tiempo; a igual tiempo, más agua. El servidor repite tu partida con tus pulsaciones para comprobar que el tiempo es posible.</li></ul>
-    <h4>El Martín real</h4><p>Martín existe: es un guelfo, una cría de camello, de Uga. En agosto de 2026 lo fotografiaron con su camellero durante el eclipse de sol, y este juego está inspirado en él. <a href="#" id="grNot">Leer la noticia</a></p>
+    <h4>El Martín real</h4><p>Martín existe. Es un guelfo, una cría de camello, que nació en Uga en enero de 2026. Su madre lo abandonó al nacer y creció al cuidado de su camellero, al que hoy sigue por las calles del pueblo como si fuera su sombra. El 12 de agosto, mientras la Luna se comía el Sol, una fotógrafa los retrató juntos bajo una media luna de luz. Este juego está inspirado en él.</p>
+    <p class="gr-not">📰 <a href="#" data-not="0">La Provincia</a> · <a href="#" data-not="1">La Voz de Lanzarote</a> · <a href="#" data-not="2">elDiario.es</a> · <a href="#" data-not="3">Una Hora Menos</a></p>
     <p>La historia del juego, la tormenta y sus caminos son inventados, inspirados en los paisajes de Lanzarote. No son rutas reales ni se deben imitar.</p>
   </div><div class="acts"><button class="btn-gold" id="grOk">Entendido</button></div>`);
-  $('#grOk').onclick = closeModal; $('#grNot').onclick = e => { e.preventDefault(); openExternal(NOTICIA_MARTIN); };
+  $('#grOk').onclick = closeModal; document.querySelectorAll('[data-not]').forEach(a => a.onclick = e => { e.preventDefault(); openExternal(NOTICIAS_MARTIN[+a.dataset.not]); });
 }
 
 /* ---------- Compartir la app ---------- */
