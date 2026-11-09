@@ -1,7 +1,7 @@
 // Service worker: deja la versión web disponible sin conexión.
 // En la app Android no hace falta (los archivos ya van dentro del APK) y podría servir
 // una versión antigua tras actualizar, así que allí se da de baja solo.
-const CACHE = 'martin-v2.4.7';
+const CACHE = 'martin-v2.4.8';
 const ASSETS = ['./', 'index.html', 'martin.js', 'niveles.js', 'secretos.js', 'juego.js', 'dibujo.js', 'lugares.js', 'mapa-lz.js', 'naturaleza.js', 'paisaje-cueva.jpg', 'camello.png', 'portada.jpg', 'paisaje.jpg', 'flora.png', 'suelo-tierra.jpg', 'suelo-lava.jpg', 'paisaje-uga.jpg', 'paisaje-timanfaya.jpg', 'paisaje-geria.jpg', 'paisaje-costa.jpg', 'paisaje-ocaso.jpg', 'paisaje-golfo.jpg', 'paisaje-janubio.jpg', 'paisaje-famara.jpg', 'paisaje-haria.jpg', 'paisaje-mirador.jpg', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'i18n-en.js', 'i18n-fr.js', 'i18n-de.js', 'i18n-it.js', 'idioma.js', 'masjuegos.js', 'audio-suave.js', 'turno.js', 'contador.js', 'invitacion.js', 'publicas.js', 'juegos/ajedrez.png', 'juegos/chinchon.png', 'juegos/pumba.png', 'juegos/damas.png', 'juegos/parchis.png', 'juegos/poker.png', 'juegos/uno.png', 'juegos/martin.png'];
 const NATIVE = self.location.hostname === 'localhost' && self.location.protocol === 'https:';
 

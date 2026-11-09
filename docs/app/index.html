@@ -446,7 +446,8 @@ function openThemes() {
   AvisoTurno.enlazar();
 }
 
-const APP_VERSION = '2.4.7';
+window.NOTICIA_MARTIN = 'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html';   // el Martín real (elDiario.es, agosto de 2026)
+const APP_VERSION = '2.4.8';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -631,7 +632,7 @@ async function wipeAll() {
 
 /* ---------- Pantalla de bienvenida ---------- */
 const WELCOME = [
-  ['🐪', 'Bienvenido a Martín', 'Martín es un camello canario joven de Uga. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
+  ['🐪', 'Bienvenido a Martín', 'Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
   ['👆', 'Cómo se juega', 'Mantén ◀ ▶ para caminar y toca ⬆ para saltar. Mantén el salto para llegar un poco más alto. En ordenador: flechas o A/D, barra espaciadora y Esc para pausa.'],
   ['💧', 'Cuida el agua', 'Tienes 100 de agua. Una caída desde muy alto o un golpe fuerte contra una roca derrama parte. Si se acaba, hay que volver a intentarlo; si te caes por un hueco, vuelves al último punto de control y pierdes 15.'],
   ['🌋', 'Peligros vivos', 'Piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde. Todos avisan antes: fíjate en el «!», el humo, la manga de viento o las burbujas. Y en Timanfaya… ¡corre, que viene la lava!'],
@@ -682,9 +683,10 @@ function openGameRules() {
     <h4>Reto diario</h4><ul>
       <li>Cada día hay un nivel y unas condiciones (agua normal, cántaro frágil o poca agua), iguales para todos.</li>
       <li>Ganas el menor tiempo; a igual tiempo, más agua. El servidor repite tu partida con tus pulsaciones para comprobar que el tiempo es posible.</li></ul>
-    <h4>Ficción</h4><p>Martín, Uga y los caminos del juego son una historia inventada, inspirada en los colores y las formas de Lanzarote. No son rutas reales ni se deben imitar.</p>
+    <h4>El Martín real</h4><p>Martín existe: es un guelfo, una cría de camello, de Uga. En agosto de 2026 lo fotografiaron con su camellero durante el eclipse de sol, y este juego está inspirado en él. <a href="#" id="grNot">Leer la noticia</a></p>
+    <p>La historia del juego, la tormenta y sus caminos son inventados, inspirados en los paisajes de Lanzarote. No son rutas reales ni se deben imitar.</p>
   </div><div class="acts"><button class="btn-gold" id="grOk">Entendido</button></div>`);
-  $('#grOk').onclick = closeModal;
+  $('#grOk').onclick = closeModal; $('#grNot').onclick = e => { e.preventDefault(); openExternal(NOTICIA_MARTIN); };
 }
 
 /* ---------- Compartir la app ---------- */
@@ -847,7 +849,7 @@ $('#menuBtn').onclick = () => {
   on('mArch', openArchive);
   on('mAbout', () => {
     openModal(`<h3>Martín: Los Caminos del Volcán</h3>
-      <div class="sub">v${APP_VERSION}<br>© 2026 IT Canarias. Todos los derechos reservados.<br>itcanarias.com<br><br>Dibujos, sonidos y código propios de IT Canarias. Martín, Uga y sus caminos son ficción inspirada en Lanzarote. Juego de entretenimiento sin apuestas. App independiente de IT Canarias.</div>
+      <div class="sub">v${APP_VERSION}<br>© 2026 IT Canarias. Todos los derechos reservados.<br>itcanarias.com<br><br>Dibujos, sonidos y código propios de IT Canarias. Martín está inspirado en un guelfo real de Uga; la historia y los caminos del juego son inventados. Juego de entretenimiento sin apuestas. App independiente de IT Canarias.<br><a href="#" id="abNot">📰 Martín, el de verdad</a></div>
       <details class="hrow" style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">🔒 Privacidad</summary>
         <div class="mut" style="margin-top:8px;line-height:1.5">
         • Tus partidas y ajustes se guardan <b>solo en este móvil</b>. No hay cuentas ni registro.<br>
@@ -865,6 +867,7 @@ $('#menuBtn').onclick = () => {
       <div class="acts"><button class="btn-ghost" id="ok">Cerrar</button></div>`);
     $('#ok').onclick = closeModal;
     if ($('#donate')) $('#donate').onclick = () => openExternal(DONATE_URL);
+    $('#abNot').onclick = e => { e.preventDefault(); openExternal(NOTICIA_MARTIN); };
   });
 };
 

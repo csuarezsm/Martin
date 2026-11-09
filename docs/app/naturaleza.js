@@ -87,10 +87,11 @@
       id: 'camello', descubre: 'uga_l01_water_delivery', nombre: 'Camello canario', cientifico: 'Camelus dromedarius', origen: 'raza',
       texto: [
         'En Canarias siempre se le ha llamado camello, aunque tiene una sola joroba, como los dromedarios. El camello canario es una raza propia: el Catálogo Oficial de Razas de Ganado de España la clasifica como raza autóctona en peligro de extinción.',
-        'Fue una herramienta básica para trabajar los campos y para llevar personas y mercancías. Hoy vive casi solo en las islas orientales y se usa sobre todo para pasear a los visitantes. Martín es un camello canario.'
+        'Fue una herramienta básica para trabajar los campos y para llevar personas y mercancías. Hoy vive casi solo en las islas orientales y se usa sobre todo para pasear a los visitantes. A la cría, desde que nace hasta que deja de mamar, en Canarias se le llama guelfo.'
       ],
       fuentes: [['Ministerio de Agricultura: raza Camello Canario', 'https://www.mapa.gob.es/en/ganaderia/temas/zootecnia/razas-ganaderas/arca/logotipo-camello-canario'],
-        ['Ministerio de Agricultura: libro genealógico de la raza Camello Canario', 'https://servicio.mapama.gob.es/es/ganaderia/temas/zootecnia/ordende2deoctubrede2015porlaqueseapruebalareglamentaciondellgrazacamellocanario_tcm30-117770.pdf']]
+        ['Ministerio de Agricultura: libro genealógico de la raza Camello Canario', 'https://servicio.mapama.gob.es/es/ganaderia/temas/zootecnia/ordende2deoctubrede2015porlaqueseapruebalareglamentaciondellgrazacamellocanario_tcm30-117770.pdf'],
+        ['RAE, Diccionario histórico del español de Canarias: guelfo', 'https://www.rae.es/tdhle/guelfo']]
     },
     {
       id: 'artemia', descubre: 'norte_l08_janubio', nombre: 'Artemia', cientifico: 'Artemia parthenogenetica', origen: 'salinas',

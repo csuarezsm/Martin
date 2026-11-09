@@ -1,7 +1,7 @@
 /* Martín: Los Caminos del Volcán — pantallas, dibujo, controles y reto diario (IT Canarias)
    © 2026 IT Canarias. Todos los derechos reservados.
    Las reglas viven en martin.js (el mismo archivo que usa el servidor). Aquí solo se dibuja y se escuchan los dedos.
-   Los dibujos y sonidos son propios (se pintan con código); personajes, lugares y rutas son ficción. */
+   Los dibujos y sonidos son propios (se pintan con código); Martín está inspirado en un guelfo real de Uga; la historia y las rutas son inventadas. */
 'use strict';
 const M = window.Martin;
 // Servidor de juegos (repo csuarezsm/juegos-servidor): el reto diario. Vacío = el reto diario solo se puede practicar.

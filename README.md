@@ -1,8 +1,8 @@
 # Martín: Los Caminos del Volcán
 
-Un camello canario joven de Uga lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
+Martín, un guelfo (cría de camello canario) de Uga inspirado en uno real, lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.4.7
+Paquete: `com.itcanarias.martin` · versión 2.4.8
 
 Novedades de la 2.3: **Mundo 2 · La costa y el norte**, con 5 niveles nuevos en El Golfo, las Salinas de Janubio (¡la sal resbala!), Famara, Haría (por las copas de las palmeras) y el Mirador del Río, y sus fichas en el Cuaderno de viaje.
 
@@ -14,7 +14,7 @@ De la 2.0: **Cuaderno de viaje**. Cada nivel recorre un lugar real de Lanzarote 
 
 **iPhone y navegadores**: la misma app se publica como versión web instalable en https://csuarezsm.github.io/Martin/app/ (GitHub Pages, carpeta `docs/app`, copia de `www/`). En Safari: Compartir → «Añadir a pantalla de inicio». Tras cambiar `www/`, ejecuta `npm run web`.
 
-© 2026 IT Canarias. Todos los derechos reservados. Martín, Uga y sus caminos son ficción inspirada en Lanzarote; dibujos, sonidos y código propios.
+© 2026 IT Canarias. Todos los derechos reservados. Martín está inspirado en un guelfo real de Uga ([la noticia](https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html)); la historia y los caminos del juego son inventados; dibujos, sonidos y código propios.
 
 Hecha con la misma plantilla que Ajedrez, Damas, Chinchón, Pumba, Parchís, Póker, UNO e Invasores espaciales (tema por defecto: volcán). Las reglas, con sus fuentes, están en [REGLAS.md](REGLAS.md).
 

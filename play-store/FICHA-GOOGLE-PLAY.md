@@ -28,7 +28,7 @@ Lleva el agua por Lanzarote: 13 niveles, guía de naturaleza y reto diario
 
 **Descripción completa**
 
-Martín es un camello canario joven de Uga. Tras una tormenta, los caminos han quedado dañados y hay que llevar el agua por toda la isla sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
+Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Tras una tormenta, los caminos han quedado dañados y hay que llevar el agua por toda la isla sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
 
 🐪 UN JUEGO DE REGLAS CLARAS
 • Un salto (más alto si lo mantienes), sin trucos: lo que pasa siempre tiene una causa que se ve.
@@ -64,7 +64,7 @@ Martín es un camello canario joven de Uga. Tras una tormenta, los caminos han q
 🔒 SIN ANUNCIOS Y SIN CUENTAS
 Tu progreso se guarda solo en tu móvil. Solo si juegas el reto diario se envían el nombre que pongas y las pulsaciones de esa partida, para comprobar el tiempo.
 
-Juego de entretenimiento sin apuestas. Martín y su historia son ficción; los lugares, las plantas y los animales son de Lanzarote. App desarrollada en Lanzarote por IT Canarias, con dibujos, sonidos y código propios. Mapa: © colaboradores de OpenStreetMap.
+Juego de entretenimiento sin apuestas. Martín está inspirado en un guelfo real de Uga; la historia del juego es inventada, y los lugares, las plantas y los animales son de Lanzarote. App desarrollada en Lanzarote por IT Canarias, con dibujos, sonidos y código propios. Mapa: © colaboradores de OpenStreetMap.
 
 ## Datos de la ficha
 

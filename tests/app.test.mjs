@@ -81,7 +81,7 @@ console.log('Mapa de Uga');
   await p.click('#mGameRules');
   const reglas = await p.textContent('.sheet');
   check('las reglas explican el agua, el salto, los puntos de control y las estrellas', /−12/.test(reglas) && /−25/.test(reglas) && /punto de control/.test(reglas) && /★/.test(reglas) && /reto/i.test(reglas));
-  check('las reglas citan que es ficción inspirada en Lanzarote', /Lanzarote/.test(reglas) && /Ficción/.test(reglas));
+  check('las reglas cuentan que Martín está inspirado en un guelfo real y que los caminos son inventados', /Lanzarote/.test(reglas) && /guelfo/.test(reglas) && /inventados/.test(reglas));
   await p.click('#grOk');
   await p.click('#menuBtn'); await p.click('#mTheme');
   const bgAntes = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
