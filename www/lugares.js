@@ -1,5 +1,6 @@
 /* Martín: Los Caminos del Volcán — Cuaderno de viaje
-   Una ficha divulgativa por nivel. Los datos están contrastados en las fuentes que se citan en cada ficha.
+   Una ficha divulgativa por nivel. Los datos están contrastados en fuentes oficiales
+   (Gobierno de Canarias, Cabildo de Lanzarote, ayuntamientos, MITECO, universidades públicas, RTVC).
    © 2026 IT Canarias. Todos los derechos reservados. */
 (function () {
   window.LUGARES = [
@@ -7,14 +8,14 @@
       lugar: 'Uga', titulo: 'El pueblo de los camellos', img: 'paisaje-uga.jpg', pos: '60% 40%',
       texto: [
         'Uga es un pequeño pueblo de casas blancas del municipio de Yaiza, en el sur de Lanzarote, a las puertas del Parque Nacional de Timanfaya.',
-        'Durante la gran erupción de 1730 la lava llegó a pocos cientos de metros: el 16 de diciembre de ese año sepultó la vega de Uga, según el diario del cura de Yaiza, Andrés Lorenzo Curbelo. El pueblo se salvó, aunque quedó cubierto de ceniza.',
-        'Hoy Uga cría la mayor parte de los dromedarios de la isla, unos 400. Cada día suben por el Camino de los Camellos hasta el Echadero de Timanfaya, donde llevan a los visitantes, como hacían ya en los años cincuenta.'
+        'En una isla donde casi no llueve, cada gota cuenta: en Uga los tejados se hacían inclinados para llevar el agua de lluvia a un aljibe.',
+        'Hoy en Uga viven unos 400 dromedarios. Cada mañana salen en fila india hacia el Echadero de los Camellos de Timanfaya, a hora y media de camino, donde pasean a los visitantes desde los años cincuenta.'
       ],
-      dato: 'Los paseos en camello por Timanfaya están reconocidos como Patrimonio de Interés Social y Cultural, y de ellos viven decenas de familias de Uga.',
+      dato: 'De los paseos en camello por Timanfaya viven unas cuarenta familias de Uga. El dromedario llegó a la isla para el trabajo del campo.',
       fuentes: [
-        ['Uga (enciclopedia, con referencias de MITECO)', 'https://es.hispanopedia.com/wiki/Uga'],
-        ['Lanzarote3: qué ver en Uga', 'https://lanzarote3.com/en/what-to-see-in-Uga/'],
-        ['La Voz de Lanzarote: los camelleros de Uga', 'https://www.lavozdelanzarote.com/en/news/culture/the-proclamation-of-uga-exalts-the-nobility-of-the-camel-and-the-work-of-its-breeders_218786_102.html']
+        ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/'],
+        ['Ayuntamiento de Yaiza: los paseos a camello en Timanfaya', 'https://yaiza.es/yaiza-promueve-la-declaracion-de-los-paseos-a-camello-en-timanfaya-como-patrimonio-de-interes-social-y-cultural/'],
+        ['MITECO: folleto del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/content/dam/miteco/es/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/guia-visitante/timanfaya-folleto-espa%C3%B1ol.pdf']
       ]
     },
     {
@@ -24,25 +25,25 @@
         'El molino clásico es una torre de planta circular, de dos pisos y techo cónico. El viento mueve las aspas y, mediante engranajes de madera, hace girar dos piedras muy duras que muelen el grano.',
         'Junto a estos molinos de torre se levantaron también las molinas, más ligeras. Aún pueden verse en Teguise, en Tiagua, donde la finca de El Patio conserva su molino, y en San Bartolomé.'
       ],
-      dato: 'En la isla, el molino que se ha protegido como Bien de Interés Cultural es el de José María Gil, en San Bartolomé.',
+      dato: 'En San Bartolomé, el molino de José María Gil es Bien de Interés Cultural y todavía muele gofio.',
       fuentes: [
-        ['Turismo de Teguise: el molino', 'https://turismoteguise.com/es/molino.php?pdf=1'],
-        ['Turismo de Teguise: Tiagua', 'https://turismoteguise.com/es/pueblo-tiagua.php?pdf=1'],
-        ['Cabrera García, «Revitalización de los molinos de viento» (Univ. de Granada)', 'https://revistaseug.ugr.es/index.php/erph/article/download/6724/5837/16917']
+        ['Turismo de Teguise (Ayuntamiento): el molino', 'https://turismoteguise.com/es/molino.php'],
+        ['Ayuntamiento de Teguise: el antiguo molino de La Villa', 'https://teguise.es/teguise-avanza-en-su-estrategia-de-recuperacion-del-patrimonio-de-uno-de-los-conjuntos-historicos-con-mas-proyeccion-de-canarias/'],
+        ['Turismo Lanzarote: molinos del interior de la isla', 'https://turismolanzarote.com/en/fire-and-wind-discovering-the-rural-heart-of-lanzarote/']
       ]
     },
     {
       lugar: 'Timanfaya', titulo: 'Las Montañas del Fuego', img: 'paisaje-timanfaya.jpg', pos: '30% 40%',
       texto: [
         'La noche del 1 de septiembre de 1730, entre las nueve y las diez, la tierra se abrió cerca de Timanfaya, a casi 10 km de Yaiza. Así empezó la erupción más larga de la historia de Canarias: duró casi seis años, hasta abril de 1736.',
-        'Se abrieron unas 300 bocas volcánicas y la lava cubrió cerca de 187 km², una cuarta parte de la isla, sepultando pueblos, cultivos y caminos.',
-        'En 1974 el corazón de aquel paisaje se declaró Parque Nacional de Timanfaya, con 5.107 hectáreas. Su símbolo, el «Diablo», lo diseñó César Manrique.'
+        'La lava cubrió unos 174 km², casi una cuarta parte de la isla, y sepultó pueblos, cultivos y caminos.',
+        'En 1974 el corazón de aquel paisaje se declaró Parque Nacional de Timanfaya, con 5.107 hectáreas. Bajo el suelo el volcán sigue caliente: a 13 metros de profundidad la roca está a unos 600 °C.'
       ],
       dato: 'Tres siglos después, las coladas de lava siguen enfriándose y «encogen» unos 0,6 cm al año.',
       fuentes: [
-        ['RTVC: 292 años desde la erupción de Timanfaya', 'https://rtvc.es/292-anos-desde-la-erupcion-de-timanfaya-en-lanzarote/'],
-        ['RTVC: las lavas de Timanfaya siguen enfriando', 'https://rtvc.es/las-lavas-de-timanfaya-encogen-06-cm-al-ano/'],
-        ['Ficha del Parque Nacional de Timanfaya', 'https://ksv.neocities.org/img/ficha.pdf']
+        ['MITECO: historia del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/en/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/historia.html'],
+        ['MITECO: guía de visita del Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/content/dam/miteco/es/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/guia-timanfaya_tcm30-67887.pdf'],
+        ['RTVC: las lavas de Timanfaya siguen enfriando', 'https://rtvc.es/las-lavas-de-timanfaya-encogen-06-cm-al-ano/']
       ]
     },
     {
@@ -50,13 +51,13 @@
       texto: [
         'Las erupciones de 1730-1736 enterraron bajo metros de ceniza volcánica, el picón, algunas de las tierras más fértiles de la isla.',
         'Los agricultores excavaron a mano hoyos en el picón hasta llegar a la tierra y plantaron una o pocas cepas en cada uno. Para frenar el viento levantaron pequeños muros semicirculares de piedra, los zocos.',
-        'El picón guarda la humedad del rocío en una isla donde casi no llueve. Así nació la malvasía volcánica, la uva blanca más cultivada de la isla. La Geria es Paisaje Protegido desde 1987 y ocupa más de 5.200 hectáreas.'
+        'El picón guarda la humedad en una isla donde casi no llueve. Así nació la malvasía volcánica, la uva más cultivada de La Geria. Se protegió en 1987 y hoy es Paisaje Protegido, con más de 5.200 hectáreas.'
       ],
-      dato: 'Aquí no entran tractores: cada cepa se cuida y se vendimia a mano.',
+      dato: 'En algunos puntos la capa de picón llega a los 3 metros de espesor, y en una hectárea caben hasta 350 hoyos.',
       fuentes: [
-        ['La Geria (enciclopedia, con referencias del Gobierno de Canarias)', 'https://es.hispanopedia.com/wiki/La_Geria'],
-        ['Infoagro: conservación de los agrosistemas de La Geria', 'https://www.infoagro.com/noticias/2024/acuerdo_para_la_conservacion_de_los_agrosistemas_del_espacio_vitivinic.asp'],
-        ['UPV: La Geria, arquitectura agrícola', 'https://riunet.upv.es/handle/10251/88121?show=full']
+        ['Gobierno de Canarias: La Geria', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=La_Geria'],
+        ['Cabildo de Lanzarote: ficha técnica del cultivo de la vid', 'https://www.cabildodelanzarote.com/documents/35307/78425/ficha_tecnica_del_cultivo_de_la_vid.pdf/3928871f-28d8-f2f2-d7a5-c9505b2afa16?t=1620735957625'],
+        ['BOC: Plan Especial del Paisaje Protegido de La Geria', 'https://www.gobiernodecanarias.org/boc/2010/235/003.html']
       ]
     },
     {
@@ -66,25 +67,25 @@
         'Se formaron cuando la lava de las erupciones de 1730-1736 llegó al Atlántico: al enfriarse de golpe creó acantilados, cuevas y arcos de roca, que el mar sigue esculpiendo.',
         'Con oleaje, las olas entran en las cuevas y salen a presión entre las rocas. El agua parece hervir, y de ahí viene su nombre.'
       ],
-      dato: 'Muy cerca está el Charco de los Clicos, en El Golfo, cuyo color verde se debe a un alga, la Ruppia maritima.',
+      dato: 'Las lavas de Timanfaya que llegaron al mar hicieron crecer la isla hacia el oeste.',
       fuentes: [
-        ['Lanzarote.com: Los Hervideros', 'https://www.lanzarote.com/en/?p=2170963'],
-        ['Barceló: Los Hervideros de Lanzarote', 'https://www.barcelo.com/guia-turismo/es/espana/lanzarote/que-ver/los-hervideros/'],
-        ['Lanzarote3: las erupciones de Timanfaya', 'https://lanzarote3.com/en/timanfaya-eruptions/']
+        ['Ayuntamiento de Yaiza: lugares de interés', 'https://yaiza.es/lugares-de-interes/'],
+        ['Hola Islas Canarias: Mirador de Los Hervideros', 'https://www.hellocanaryislands.com/viewpoints/lanzarote/los-hervideros-viewpoint/'],
+        ['Turismo Lanzarote: Yaiza', 'https://turismolanzarote.com/en/yaiza/']
       ]
     },
     {
       lugar: 'Teguise', titulo: 'La antigua capital', img: 'paisaje-ocaso.jpg', pos: '50% 40%',
       texto: [
         'La Villa de Teguise la fundó en el siglo XV Maciot de Béthencourt, sobre la antigua aldea aborigen de Acatife. Según la tradición, su nombre recuerda a la princesa Teguise, hija del rey Guadarfía.',
-        'Fue la capital de Lanzarote hasta 1852, cuando la capitalidad pasó a Arrecife. Al estar en el interior, a unos 360 metros de altura, era más fácil vigilar la llegada de piratas, aunque aun así sufrió varios saqueos.',
+        'Fue la capital de Lanzarote hasta 1852, cuando la capitalidad pasó a Arrecife. Su riqueza atrajo a los piratas, que la saquearon varias veces; para defenderla se levantó el castillo de Santa Bárbara, en la montaña de Guanapay.',
         'Su casco histórico, de casas blancas y casonas nobles, está declarado conjunto histórico-artístico.'
       ],
-      dato: 'Cada domingo, Teguise celebra uno de los mercadillos más grandes de Canarias.',
+      dato: 'Cada domingo por la mañana, el casco histórico de Teguise se llena con su mercadillo.',
       fuentes: [
-        ['Turismo de Teguise: la Villa', 'https://www.turismoteguise.com/en/pueblos/la-villa-de-teguise'],
-        ['ULPGC: la fundación de la Real Villa de Teguise', 'https://mdc.ulpgc.es/files/original/43a9a683b8da379ee222d524f41d12f339789eb4.pdf'],
-        ['ULPGC: Teguise, atalaya de la isla', 'https://mdc.ulpgc.es/files/original/423e912c486f9c0fe7f86a2175a18fcf74f767ab.pdf']
+        ['Turismo Lanzarote: Teguise', 'https://turismolanzarote.com/en/teguise/'],
+        ['Ayuntamiento de Teguise: el Conjunto Histórico', 'https://teguise.es/wp-content/uploads/2015/09/teguise-conjunto-historico-artistico.pdf'],
+        ['ULPGC: el municipio de Teguise', 'https://www.dis.ulpgc.es/canarias/lanzarote/teguise.html']
       ]
     },
     {
@@ -92,69 +93,69 @@
       texto: [
         'Junto al pueblo pesquero de El Golfo, en la costa oeste de Yaiza, el mar se ha comido la mitad de un antiguo cono volcánico. En la mitad que queda se ve, como en un corte, cómo se apilaron las capas de ceniza y roca: rojas, ocres y negras.',
         'Dentro del cráter hay una laguna de agua de mar, el Charco de los Clicos o Charco Verde. Una franja de arena negra la separa del océano. Su color verde viene de algas microscópicas y cambia de tono según la luz.',
-        'Forma parte del Parque Natural de Los Volcanes y está protegida: no se puede bajar a la orilla de la laguna ni bañarse en ella, ni llevarse piedras de la playa.'
+        'Forma parte del Parque Natural de Los Volcanes y es reserva natural: está prohibido bañarse en la laguna.'
       ],
-      dato: 'Se llama «de los Clicos» por un marisco, el clico, que antes abundaba allí y hoy ha desaparecido. En la arena brillan piedrecitas verdes de olivina.',
+      dato: 'Se llama «de los Clicos» por un marisco, el clico, que antes abundaba allí y hoy ha desaparecido.',
       fuentes: [
-        ['Hola Islas Canarias: Charco de los Clicos', 'https://www.hellocanaryislands.com/nature-areas/lanzarote/timanfaya-national-park/'],
-        ['Hoteles.net: la Laguna de los Clicos', 'https://www.hoteles.net/lanzarote/yaiza/laguna-de-los-clicos-lanzarote.html'],
-        ['Barceló: El Golfo y el Lago Verde', 'https://www.barcelo.com/guia-turismo/es/espana/lanzarote/que-ver/el-golfo-lago-verde/']
+        ['Ayuntamiento de Yaiza: el Charco de los Clicos', 'https://yaiza.es/lugares-de-interes/'],
+        ['Gobierno de Canarias: El Golfo', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=El_Golfo'],
+        ['Hola Islas Canarias: Mirador de El Golfo', 'https://www.hellocanaryislands.com/viewpoints/lanzarote/el-golfo-viewpoint/']
       ]
     },
     {
       lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-janubio.jpg', pos: '45% 70%',
       texto: [
-        'En la costa de Yaiza, junto a la playa de Janubio, se extienden las salinas más grandes de Canarias: unas 168 hectáreas de cuadrículas blancas sobre tierra volcánica. Se empezaron a construir en 1895 y hoy las sigue trabajando la misma familia.',
-        'El agua de mar llega desde la laguna natural de Janubio. Antes la subían molinos de viento. El sol y el viento la evaporan poco a poco en los cocederos hasta que solo queda la sal.',
+        'En la costa de Yaiza, junto a la playa de Janubio, están las salinas más grandes de Canarias: cuadrículas blancas sobre tierra volcánica. Se empezaron a construir en 1895 y hoy las sigue trabajando la misma familia.',
+        'El agua de mar llega desde la laguna de Janubio, que nació cuando las lavas de 1730-1736 cerraron una antigua bahía. Antes la subían cinco molinos de viento. El sol y el viento la evaporan poco a poco hasta que solo queda la sal.',
         'Durante siglos, la sal fue uno de los productos más importantes de Lanzarote: servía para conservar el pescado que traían los barcos de la isla.'
       ],
       dato: 'Algunos estanques se vuelven rosados o rojizos por un pequeño crustáceo, la artemia, y por un alga, Dunaliella salina. Las salinas también son refugio de muchas aves.',
       fuentes: [
-        ['Barceló: Salinas de Janubio', 'https://www.barcelo.com/guia-turismo/es/espana/lanzarote/que-ver/salinas-de-janubio/'],
-        ['Escapada Rural: las Salinas de Janubio', 'https://www.escapadarural.com/que-hacer/yaiza/las-salinas-de-janubio'],
-        ['La Voz de Lanzarote: la familia de Janubio', 'https://www.lavozdelanzarote.com/en/ekonomus/gourmet/the-family-effort-to-preserve-and-innovate-in-salinas-de-janubio_222296_102.html']
+        ['Gobierno de Canarias: Salinas del Janubio', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Salinas_del_Janubio'],
+        ['Ayuntamiento de Yaiza: Sitio de Interés Científico del Janubio', 'https://yaiza.es/lugares-de-interes/'],
+        ['Turismo Lanzarote: Yaiza', 'https://turismolanzarote.com/en/yaiza/']
       ]
     },
     {
       lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje-famara.jpg', pos: '40% 40%',
       texto: [
-        'El Risco de Famara es un enorme acantilado que recorre durante unos veinte kilómetros el norte de Lanzarote. Por el lado del mar, la pared cae casi en vertical entre 400 y 600 metros.',
-        'Es la parte más antigua de la isla, millones de años anterior a los volcanes de Timanfaya. Su punto más alto, las Peñas del Chache, con unos 671 metros, es también el techo de Lanzarote.',
-        'A sus pies se abre la playa de Famara, de arena dorada y olas atlánticas, junto al pueblo de Caleta de Famara. El viento constante la hace famosa entre surfistas y parapentistas.'
+        'El Risco de Famara es un enorme acantilado de unos 22 kilómetros en el norte de Lanzarote. Su altura media ronda los 400 metros.',
+        'Es una de las zonas más antiguas de la isla, muy anterior a los volcanes de Timanfaya. Su punto más alto, las Peñas del Chache, con unos 671 metros, es también el techo de Lanzarote.',
+        'A sus pies se extiende la playa de Famara, de casi 6 km, junto al pueblo de Caleta de Famara. El viento constante la hace famosa entre los surfistas.'
       ],
-      dato: 'La arena de Famara viaja con el viento hacia el interior y forma El Jable, una franja arenosa que llega hasta el centro de la isla.',
+      dato: 'La arena viaja con el viento hacia el interior y forma El Jable, un gran arenal entre el Risco de Famara y el centro de la isla.',
       fuentes: [
-        ['elDiario.es: el gran acantilado de Famara', 'https://www.eldiario.es/viajes/gran-acantilado-600-metros-altura-arenales-iconicos-lanzarote_1_13429027.html'],
-        ['Wikipedia: Famara', 'https://es.wikipedia.org/wiki/Famara'],
-        ['theCrag: Risco de Famara', 'https://www.thecrag.com/es/escalar/spain/lanzarote/area/5485799178']
+        ['Gobierno de Canarias: Isla de Lanzarote', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Isla_de_Lanzarote'],
+        ['Gobierno de Canarias: historia volcánica de Lanzarote', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Historia_volc%C3%A1nica_de_Lanzarote'],
+        ['Turismo Lanzarote: El Jable', 'https://turismolanzarote.com/en/el-jable-lanzarotes-secret-treasure/']
       ]
     },
     {
       lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-haria.jpg', pos: '60% 50%',
       texto: [
         'Haría es un pueblo de casas blancas en un valle del norte de Lanzarote. Lo llaman «el valle de las mil palmeras» por su gran palmeral de palmeras canarias, entre huertas, tuneras y otros cactus.',
-        'Desde el Mirador de los Helechos se contempla el palmeral de Haría desde lo alto.',
-        'César Manrique pasó en Haría sus últimos años, de 1988 a 1992. Su casa, la Casa del Palmeral, es hoy una casa-museo rodeada de palmeras.'
+        'Desde el Mirador de Malpaso se contempla el palmeral desde lo alto. Con las hojas de palma, los cesteros del pueblo tejían cestas y esteras.',
+        'César Manrique pasó en Haría sus últimos años, hasta 1992. Su casa, en medio del palmeral, es casa-museo desde 2013.'
       ],
-      dato: 'Cada sábado por la mañana, la plaza de Haría acoge un mercado de artesanía y productos de agricultura ecológica.',
+      dato: 'Cada sábado por la mañana, la plaza de Haría acoge un mercado de artesanía.',
       fuentes: [
-        ['Turismo Lanzarote: Haría', 'https://turismolanzarote.com/en/haria/'],
-        ['Fundación César Manrique: Casa-Museo de Haría', 'https://fcmanrique.org/en/casas-museo-visitas/casa-museo-cesar-manrique-haria/'],
-        ['Hoteles.net: la Casa-Museo de César Manrique', 'https://www.hoteles.net/lanzarote/arrieta-haria/casa-museo-cesar-manrique-lanzarote.html']
+        ['Turismo Lanzarote: Haría, del palmeral al malpaís', 'https://turismolanzarote.com/en/haria-from-the-leafy-palm-grove-to-the-volcanic-badlands/'],
+        ['Ayuntamiento de Haría: la palmera en Haría', 'https://www.ayuntamientodeharia.com/haria/el-mirador-de-guatifay-4/'],
+        ['Hola Islas Canarias: el pueblo de Haría', 'https://www.hellocanaryislands.com/places-full-of-charm/lanzarote/the-village-of-haria/']
       ]
     },
     {
       lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-mirador.jpg', pos: '70% 40%',
       texto: [
-        'En lo alto del Risco de Famara, a unos 475 metros sobre el mar, César Manrique construyó entre 1971 y 1973 el Mirador del Río, con Eduardo Cáceres y Jesús Soto.',
+        'En lo alto del Risco de Famara, a 474 metros sobre el mar, César Manrique construyó entre 1971 y 1973 el Mirador del Río, con Eduardo Cáceres y Jesús Soto.',
         'El edificio está casi escondido: lo cubre una piel de piedra volcánica para que se confunda con el risco. Por dentro, grandes ventanales miran al estrecho de El Río, el brazo de mar que separa Lanzarote de La Graciosa.',
-        'Desde allí se ven La Graciosa y los islotes del Archipiélago Chinijo, que con el risco forman un parque natural, y abajo, las Salinas del Río, las más antiguas de la isla.'
+        'Desde allí se ven La Graciosa y los islotes del Archipiélago Chinijo, que con el risco forman un parque natural, y abajo, al pie del risco, las Salinas del Río.'
       ],
-      dato: 'Antes del mirador, en ese mismo lugar hubo una batería militar del siglo XIX para vigilar el estrecho: por eso aún se le llama la Batería del Río.',
+      dato: 'Manrique aprovechó una antigua batería de artillería de costa: por eso el lugar se llama la Batería del Río. Hoy el mirador es Bien de Interés Cultural.',
       fuentes: [
-        ['Cabildo de Lanzarote: folleto del Mirador del Río', 'https://lanzarotesmart.iotplatform.telefonica.com/sites/default/files/2021-09/folleto_Mirador_del_Rio_es.pdf'],
-        ['CACT Lanzarote: Mirador del Río', 'https://cactlanzarote.com/en/visit/mirador-del-rio'],
-        ['Hoteles.net: el Mirador del Río', 'https://www.hoteles.net/lanzarote/mirador-del-rio-lanzarote-islas-canarias.html']
+        ['CACT Lanzarote (Cabildo): Mirador del Río', 'https://cactlanzarote.com/centro/mirador-del-rio-2/'],
+        ['Turismo Lanzarote: César Manrique, 100 años', 'https://turismolanzarote.com/en/cesar-manrique-100-years-since-his-birth/'],
+        ['Gobierno de Canarias: El Mirador del Río', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=El_Mirador_del_R%C3%ADo']
       ]
     }
   ];

@@ -475,14 +475,14 @@
     { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
     { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
     { src: 'paisaje-geria.jpg', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
-    { src: 'paisaje-costa.jpg', cielo: ['#1688d0', '#209be4'] },
+    { src: 'paisaje-costa.jpg', mar: [0.42, 1], cielo: ['#1688d0', '#209be4'] },
     { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
     // Mundo 2: El Golfo, Janubio, Famara, Haría y el Mirador del Río
-    { src: 'paisaje-golfo.jpg', cielo: ['#007cf0', '#008bfd'] },
+    { src: 'paisaje-golfo.jpg', mar: [0.5, 1], cielo: ['#007cf0', '#008bfd'] },
     { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
-    { src: 'paisaje-famara.jpg', cielo: ['#0070e8', '#007ffb'] },
+    { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', cielo: ['#006ae8', '#0078fb'] }],
+    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
   function fotoTema(tema) {
     const f = PAI.fotos[PAI.porTema[tema] || 0];
@@ -493,12 +493,39 @@
         const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
         const m = document.createElement('canvas'); m.width = w; m.height = h; const gm = m.getContext('2d'); gm.translate(w, 0); gm.scale(-1, 1); gm.drawImage(c, 0, 0);
         f.tile = c; f.tileM = m; f.ok = true;
+        if (f.mar) try { f.agua = capaAgua(c, f.mar); const am = document.createElement('canvas'); am.width = w; am.height = h; const ga = am.getContext('2d'); ga.translate(w, 0); ga.scale(-1, 1); ga.drawImage(f.agua, 0, 0); am.y0 = f.agua.y0; am.y1 = f.agua.y1; f.aguaM = am; } catch (e) { f.agua = null; }
       };
       f.img.src = f.src;
     }
     return f.ok ? f : null;
   }
   fotoTema(0);
+  /* Oleaje: se separa del dibujo solo el agua (píxeles azules o de espuma dentro de la franja del mar) y luego se pinta
+     encima en tiras finas que suben y bajan un poco, como olas que llegan a la orilla. La arena, el risco o la laguna no se mueven. */
+  function capaAgua(c, mar) {
+    const w = c.width, h = c.height, y0 = Math.floor(h * mar[0]), y1 = Math.min(h, Math.ceil(h * mar[1]));
+    const src = c.getContext('2d').getImageData(0, y0, w, y1 - y0), d = src.data, n = w * (y1 - y0), a = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
+      a[i] = (b >= r + 25 && b >= g - 15 && b > 90) ? 1 : (Math.min(r, g, b) > 205 && b >= r - 8) ? 1 : 0; }
+    // bordes suaves (para que no se note el recorte) y la franja se funde arriba con el horizonte
+    const t = new Float32Array(n), R = 3;
+    for (let y = 0; y < y1 - y0; y++) for (let x = 0; x < w; x++) { let sm = 0, k = 0; for (let j = -R; j <= R; j++) { const xx = x + j; if (xx >= 0 && xx < w) { sm += a[y * w + xx]; k++; } } t[y * w + x] = sm / k; }
+    for (let y = 0; y < y1 - y0; y++) for (let x = 0; x < w; x++) { let sm = 0, k = 0; for (let j = -R; j <= R; j++) { const yy = y + j; if (yy >= 0 && yy < y1 - y0) { sm += t[yy * w + x]; k++; } } const al = Math.min(1, (sm / k) * 1.4 - 0.2); d[(y * w + x) * 4 + 3] = Math.max(0, al) * 255 * Math.min(1, y / ((y1 - y0) * 0.08)); }
+    const o = document.createElement('canvas'); o.width = w; o.height = h; o.getContext('2d').putImageData(src, 0, y0);
+    o.y0 = y0; o.y1 = y1; return o;
+  }
+  function dibujaOlas(ctx, A, x, top, k, t, W) {
+    const y0 = A.y0, y1 = A.y1, alto = y1 - y0, paso = 4;
+    const a0 = Math.max(0, Math.floor(-x / k) - 4), a1 = Math.min(A.width, Math.ceil((W - x) / k) + 4), w = a1 - a0;   // solo la parte visible
+    if (w <= 0) return;
+    for (let y = y0; y < y1; y += paso) {
+      const p = (y - y0) / alto, f = 0.15 + p,                       // más cerca de la orilla, olas más grandes y más separadas
+        fase = Math.pow(p, 1.5) * 7 * Math.PI * 2 - t * 1.7,
+        dy = Math.sin(fase) * 3.2 * f, dx = Math.sin(fase * 0.6 + t * 0.8) * 2.2 * f;
+      const sy = Math.max(0, Math.min(A.height - paso, y + dy));
+      ctx.drawImage(A, a0, sy, w, paso, x + (a0 + dx) * k, top + y * k, w * k, paso * k + 0.6);
+    }
+  }
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo) {
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
     const ref = H - H * (W < H ? 0.27 : 0.3), suelo = ref + u * 0.5;   // fijo en vertical: seguir al suelo daba saltos
@@ -510,7 +537,9 @@
     const off = cam.x * u * fac, i0 = Math.floor(off / ancho);
     for (let i = i0; ancho * i - off < W; i++) {
       const x = ancho * i - off;
-      ctx.drawImage(((i % 2) + 2) % 2 ? F.tileM : F.tile, x, top, ancho + 1, dib);
+      const esp = ((i % 2) + 2) % 2;
+      ctx.drawImage(esp ? F.tileM : F.tile, x, top, ancho + 1, dib);
+      if (F.agua && !(typeof window !== 'undefined' && window.SIN_OLAS)) dibujaOlas(ctx, esp ? F.aguaM : F.agua, x, top, k, t, W);
     }
     if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
@@ -550,7 +579,7 @@
   /* ---- Primer plano ---- */
   /* Plantas y piedras de Lanzarote dibujadas (flora.png): [x, y, ancho, alto] en el atlas y altura en el mundo */
   const FLO = { ok: false, img: null, m: {"palmera": [0, 0, 203, 179, 3.3], "tabaibal": [205, 0, 227, 164, 1.6], "tunera": [434, 0, 172, 158, 1.5], "pita": [608, 0, 188, 143, 1.25], "vid": [798, 0, 200, 124, 1.0], "aloe": [0, 181, 147, 116, 1.3], "gris": [149, 181, 166, 112, 1.0], "bejeque": [317, 181, 160, 110, 1.05], "aulaga": [479, 181, 156, 110, 1.0], "morada": [637, 181, 143, 106, 0.95], "muro": [782, 181, 210, 106, 0.9], "salado": [0, 299, 145, 104, 0.9], "roca": [147, 299, 151, 104, 1.0], "hierba": [300, 299, 120, 84, 0.8], "piedra": [422, 299, 104, 80, 0.6], "rosas": [528, 299, 120, 80, 0.55], "amarillas": [650, 299, 135, 73, 0.5], "piedras": [787, 299, 112, 64, 0.45], "rojas": [0, 405, 152, 62, 0.45]},
-    por: { tunera: ['tunera', 'tunera', 'bejeque', 'aloe'], cardon: ['tabaibal', 'aulaga', 'morada', 'gris', 'salado', 'bejeque', 'vid', 'palmera'], pita: ['pita', 'aloe'], piedra: ['piedra', 'piedras', 'roca', 'muro'], flor: ['rojas', 'amarillas', 'rosas', 'hierba'] } };
+    por: { tunera: ['tunera', 'tunera', 'bejeque', 'aloe'], cardon: ['tabaibal', 'aulaga', 'morada', 'gris', 'salado', 'bejeque', 'vid', 'palmera'], pita: ['pita', 'aloe'], piedra: ['piedra', 'piedras', 'roca', 'piedra'], flor: ['rojas', 'amarillas', 'rosas', 'hierba'] } };
   if (typeof Image !== 'undefined') { FLO.img = new Image(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.png'; }
   function decoSprite(ctx, d, x, y, u) {
     const l = FLO.por[d.t]; if (!l) return false;
@@ -582,26 +611,38 @@
       for (let i = 0; i < 13; i++) { const a = Math.PI + (i / 12) * Math.PI, r = s * (0.42 + hash(i + 3) * 0.14), x = Math.cos(a) * r * 1.05, y = Math.sin(a) * r * 0.85 - s * 0.08;
         ctx.fillStyle = i % 3 ? '#8fae3a' : '#b7c24a'; ctx.beginPath(); ctx.arc(x, y, s * (0.13 + hash(i) * 0.05), 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(240,230,120,.7)'; ctx.beginPath(); ctx.arc(x - s * 0.03, y - s * 0.04, s * 0.04, 0, TAU); ctx.fill(); }
     } else if (d.t === 'lagarto') {
-      const mov = d.px != null && d.px + 2.4 > d.x && d.px < d.x + 3.6, w = mov ? Math.sin(t * 28) : Math.sin(t * 2) * 0.2;
-      // lagarto atlántico (Gallotia atlantica): esbelto, cabeza en cuña, cola larguísima y motas azules en el costado
-      const L = s * 1.0, lw = Math.max(1, s * 0.022), ph = t * (mov ? 28 : 2);
+      // lagarto atlántico (Gallotia atlantica) de perfil: silueta continua del hocico a la punta de la cola, lomo pardo con
+      // escamas moteadas, vientre claro, manchas azules en el costado, patas con codo y dedos largos, ojo con brillo
+      const mov = d.px != null && d.px + 2.4 > d.x && d.px < d.x + 3.6, ph = t * (mov ? 22 : 1.5), sd = Math.floor(d.x * 13);
+      const L = s * 1.9, ancho = q => q < 0.07 ? 0.004 + q * 0.5 : q < 0.12 ? 0.039 : q < 0.16 ? 0.039 - (q - 0.12) * 0.2 : q < 0.37 ? 0.031 + Math.sin((q - 0.16) / 0.21 * Math.PI) * 0.01 : 0.029 * Math.pow(1 - (q - 0.37) / 0.63, 1.15) + 0.0015;
+      // columna: del hocico (q=0, a la derecha) a la punta de la cola (q=1); cuerpo levantado sobre las patas y cola que baja hasta el suelo y ondula
+      const esp = q => { const x = L * (0.36 - q), alto = q < 0.15 ? 0.1 - q * 0.05 : q < 0.37 ? 0.0925 - (q - 0.15) * 0.04 : 0.084 - (q - 0.37) / 0.63 * 0.074;
+        const ond = q > 0.4 ? Math.sin(q * 11 - ph * (mov ? 1 : 0.5)) * 0.006 * (q - 0.4) * 4 : 0; return [x, -L * (alto + ond)]; };
+      const N = 34, arr = [], aba = [];
+      for (let i = 0; i <= N; i++) { const q = i / N, [x, y] = esp(q), w = ancho(q) * L; arr.push([x, y - w * 1.05]); aba.push([x, y + w * 0.85]); }
+      const pataS = (bx, fase, lejos, atras) => {   // pata: muslo hacia abajo, codo/rodilla marcados, pie apoyado con dedos largos
+        const sw = Math.sin(ph + fase) * (mov ? 0.05 : 0.006), [px, py] = esp(bx), dir = atras ? -1 : 1;
+        const cx = px + L * (0.025 * dir + sw), cy = py * 0.45, fx = px + L * (0.012 * dir + sw * 1.8), fy = -L * 0.004;
+        ctx.strokeStyle = lejos ? '#2a2219' : '#4a3d2c'; ctx.lineWidth = L * 0.019; ctx.beginPath(); ctx.moveTo(px, py + L * 0.012); ctx.lineTo(cx, cy); ctx.lineTo(fx, fy); ctx.stroke();
+        ctx.lineWidth = Math.max(0.7, L * 0.0055); ctx.beginPath(); for (const k of [-1, 0, 1, 2]) { ctx.moveTo(fx, fy); ctx.lineTo(fx + L * (0.024 + k * 0.004) * (k === 2 ? -0.6 : 1), fy + k * L * 0.002); } ctx.stroke();
+      };
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      // cola larga y fina, ondulando
-      ctx.strokeStyle = '#2a2a22'; ctx.lineWidth = s * 0.075; ctx.beginPath(); ctx.moveTo(-L * 0.3, -s * 0.12); ctx.bezierCurveTo(-L * 0.6, -s * (0.1 - w * 0.07), -L * 0.85, -s * (0.04 + w * 0.08), -L * 1.35, -s * (0.1 - w * 0.06)); ctx.stroke();
-      ctx.strokeStyle = '#4a4636'; ctx.lineWidth = s * 0.06; ctx.stroke();
-      // patas con dedos largos (alternas al correr)
-      ctx.strokeStyle = '#3a3a2c'; ctx.lineWidth = s * 0.06;
-      for (const [lx, fase] of [[0.18, 0], [0.18, Math.PI], [-0.12, Math.PI], [-0.12, 0]]) { const sw2 = Math.sin(ph + fase) * (mov ? 0.12 : 0.03), far = fase > 1; ctx.globalAlpha = far ? 0.6 : 1; ctx.beginPath(); ctx.moveTo(s * lx, -s * 0.11); ctx.lineTo(s * (lx - 0.05 + sw2), -s * 0.04); ctx.lineTo(s * (lx + 0.12 + sw2), 0); ctx.stroke(); }
-      ctx.globalAlpha = 1;
-      // cuerpo en huso
-      ctx.fillStyle = '#4a4636'; ctx.strokeStyle = '#25231a'; ctx.lineWidth = lw;
-      ctx.beginPath(); ctx.moveTo(-L * 0.32, -s * 0.13); ctx.bezierCurveTo(-L * 0.1, -s * 0.27, L * 0.2, -s * 0.26, L * 0.36, -s * 0.17); ctx.bezierCurveTo(L * 0.2, -s * 0.05, -L * 0.1, -s * 0.04, -L * 0.32, -s * 0.13); ctx.closePath(); ctx.fill(); ctx.stroke();
-      // cabeza triangular
-      ctx.beginPath(); ctx.moveTo(L * 0.26, -s * 0.22); ctx.quadraticCurveTo(L * 0.45, -s * 0.24, L * 0.6, -s * 0.15); ctx.quadraticCurveTo(L * 0.45, -s * 0.07, L * 0.26, -s * 0.08); ctx.closePath(); ctx.fillStyle = '#524e3a'; ctx.fill(); ctx.stroke();
-      // franjas claras del lomo y motas azules del costado
-      ctx.strokeStyle = '#b9b48a'; ctx.lineWidth = s * 0.018; ctx.beginPath(); ctx.moveTo(-L * 0.28, -s * 0.2); ctx.quadraticCurveTo(0, -s * 0.28, L * 0.3, -s * 0.22); ctx.stroke();
-      ctx.fillStyle = '#4db3d9'; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-L * 0.2 + i * L * 0.12, -s * 0.11 - (i % 2) * s * 0.02, s * 0.022, 0, TAU); ctx.fill(); }
-      ctx.fillStyle = '#e9e2b0'; ctx.beginPath(); ctx.arc(L * 0.43, -s * 0.16, s * 0.02, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(L * 0.08, 0, L * 0.28, L * 0.012, 0, 0, TAU); ctx.fill();
+      pataS(0.17, Math.PI, true, false); pataS(0.36, 0, true, true);   // patas del lado de allá, más oscuras
+      const sil = () => { ctx.beginPath(); arr.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); for (let i = aba.length - 1; i >= 0; i--) ctx.lineTo(aba[i][0], aba[i][1]); ctx.closePath(); };
+      sil(); let g = ctx.createLinearGradient(0, -L * 0.14, 0, -L * 0.055); g.addColorStop(0, '#221c15'); g.addColorStop(0.5, '#3e3428'); g.addColorStop(0.8, '#6e604a'); g.addColorStop(1, '#9a8b6c'); ctx.fillStyle = g; ctx.fill();
+      ctx.save(); sil(); ctx.clip();
+      for (let i = 0; i < 46; i++) {   // escamas: motas oscuras y claras por el lomo y los flancos
+        const q = 0.05 + hash(sd + i) * 0.7, [x, y] = esp(q), w = ancho(q) * L, yy = y - w * (0.9 - hash(sd + i + 40) * 1.2);
+        ctx.fillStyle = i % 3 ? 'rgba(30,22,14,.45)' : 'rgba(220,205,160,.35)'; ctx.beginPath(); ctx.ellipse(x, yy, L * 0.008, L * 0.006, 0, 0, TAU); ctx.fill(); }
+      for (let i = 0; i < 6; i++) { const q = 0.19 + i * 0.03, [x, y] = esp(q); ctx.fillStyle = 'rgba(70,170,225,.85)'; ctx.beginPath(); ctx.arc(x, y + L * (i % 2 ? 0.006 : -0.004), L * 0.0085, 0, TAU); ctx.fill(); }   // manchas azules del costado
+      ctx.strokeStyle = 'rgba(25,18,10,.35)'; ctx.lineWidth = Math.max(0.6, L * 0.004); ctx.beginPath(); { const [x, y] = esp(0.13); ctx.moveTo(x, y - L * 0.06); ctx.quadraticCurveTo(x - L * 0.012, y, x + L * 0.005, y + L * 0.05); } ctx.stroke();   // pliegue del cuello
+      ctx.restore();
+      sil(); ctx.strokeStyle = 'rgba(28,20,12,.7)'; ctx.lineWidth = Math.max(0.7, L * 0.006); ctx.stroke();
+      pataS(0.18, 0, false, false); pataS(0.37, Math.PI, false, true);   // patas del lado de acá
+      { const [x, y] = esp(0.055); ctx.fillStyle = '#1a140c'; ctx.beginPath(); ctx.arc(x, y - L * 0.012, L * 0.011, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,250,230,.9)'; ctx.beginPath(); ctx.arc(x + L * 0.004, y - L * 0.016, L * 0.0035, 0, TAU); ctx.fill();   // ojo
+        const [ox, oy] = esp(0.1); ctx.fillStyle = 'rgba(25,18,10,.6)'; ctx.beginPath(); ctx.ellipse(ox, oy - L * 0.004, L * 0.006, L * 0.009, 0, 0, TAU); ctx.fill(); }   // oído
+      { const [x, y] = esp(0.01); ctx.strokeStyle = 'rgba(25,18,10,.6)'; ctx.lineWidth = Math.max(0.6, L * 0.004); ctx.beginPath(); ctx.moveTo(x, y + L * 0.004); ctx.lineTo(x - L * 0.05, y + L * 0.012); ctx.stroke(); }   // boca
     } else if (d.t === 'piedra') {
       for (const [dx, r, c] of [[0, 0.18, '#5d5254'], [0.26, 0.11, '#6f6264'], [-0.22, 0.09, '#4c4244']]) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(dx * s, -r * s * 0.6, r * s * 1.2, r * s * 0.8, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(dx * s - r * s * 0.3, -r * s * 0.95, r * s * 0.5, r * s * 0.22, 0, 0, TAU); ctx.fill(); }
     } else {
@@ -611,21 +652,48 @@
     ctx.restore();
   }
 
+  const VECINOS = new WeakMap();   // suelo de al lado de cada tramo (para saber qué parte de su lateral se ve)
+  function vecinos(sol) {
+    const gs = sol.filter(q => q.kind === 'ground' || q.kind === 'wall');
+    for (const q of gs) { if (VECINOS.has(q)) continue; const I = gs.find(o => o !== q && Math.abs(o.x1 - q.x0) < 0.06 && o.bot <= q.top), D = gs.find(o => o !== q && Math.abs(o.x0 - q.x1) < 0.06 && o.bot <= q.top); VECINOS.set(q, { i: I ? I.top : null, d: D ? D.top : null }); }
+  }
   function dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX) {
     if (TX.tierraP && TX.lavaP) {
-      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4, a = Math.max(x0, -6), b = Math.min(x1, W + 6); if (b <= a) return;
-      const kL = u * 2.2 / TX.lavaP.height, kT = u * 0.95 / TX.tierraP.height;
-      ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u * 1, yt, '#2a2122', kL); ctx.fillRect(a, yt, b - a, yb - yt);
-      let g = ctx.createLinearGradient(0, yt, 0, yt + u * 5); g.addColorStop(0, 'rgba(10,6,6,0)'); g.addColorStop(1, 'rgba(10,6,6,.6)'); ctx.fillStyle = g; ctx.fillRect(a, yt, b - a, yb - yt);
-      const th = Math.min(u * 0.7, yb - yt), paso = u * 0.3;
-      ctx.save(); ctx.beginPath(); ctx.moveTo(a, yt - 1);
-      { const ps = paso / u; let wx = Math.floor((a / u + cam.x) / ps) * ps; ctx.lineTo((wx - cam.x) * u, yt - 1); for (; (wx - cam.x) * u <= b + paso; wx += ps) ctx.lineTo((wx - cam.x) * u, yt + th * (0.72 + hash(Math.round(wx / ps)) * 0.5)); }   // puntos fijos en el mundo (antes se movían con la cámara y el borde temblaba)
-      ctx.lineTo(b, yt - 1); ctx.closePath(); ctx.clip();
-      ctx.fillStyle = relleno(ctx, TX.tierraP, -cam.x * u, yt, '#a5532f', kT); ctx.fillRect(a, yt - 1, b - a, th * 1.4);
-      g = ctx.createLinearGradient(0, yt, 0, yt + th * 1.3); g.addColorStop(0, 'rgba(255,220,160,.18)'); g.addColorStop(0.6, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,10,5,.35)'); ctx.fillStyle = g; ctx.fillRect(a, yt - 1, b - a, th * 1.4);
+      const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4, a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
+      const kL = u * 2.2 / TX.lavaP.height, kT = u * 0.95 / TX.tierraP.height, sd = Math.floor(s.x0 * 13 + s.top * 7);
+      // cuánto se ve de cada lateral: si al lado hay suelo, solo la parte que queda por encima de él (antes se sombreaba entero y salía una raya)
+      const vec = VECINOS.get(s) || {}, caraI = vec.i == null ? yb - yt : Math.max(0, sy(vec.i) - yt), caraD = vec.d == null ? yb - yt : Math.max(0, sy(vec.d) - yt);
+      const paso = u * 0.28, salta = (k, y, cara) => { const q = (y - yt) / Math.max(1, cara); return y - yt < u * 0.12 ? -u * 0.1 : u * (0.04 + hash(sd + k * 7) * 0.2) * Math.min(1, (cara - (y - yt)) / (u * 0.5)) * (q < 1 ? 1 : 0); };
+      const perfil = () => {   // canto de roca natural: esquinas redondeadas y laterales irregulares (solo en la parte visible)
+        ctx.beginPath(); ctx.moveTo(x0 + (caraI > 2 ? u * 0.14 : 0), yt - 1);
+        ctx.lineTo(x1 - (caraD > 2 ? u * 0.14 : 0), yt - 1);
+        if (caraD > 2) { let k = 0; for (let y = yt + u * 0.06; y < yt + caraD; y += paso, k++) ctx.lineTo(x1 + salta(k, y, caraD), y); }
+        ctx.lineTo(x1, Math.min(yb, yt + caraD)); ctx.lineTo(x1, yb); ctx.lineTo(x0, yb); ctx.lineTo(x0, Math.min(yb, yt + caraI));
+        if (caraI > 2) { const ys = []; for (let y = yt + u * 0.06; y < yt + caraI; y += paso) ys.push(y); for (let k = ys.length - 1; k >= 0; k--) ctx.lineTo(x0 - salta(k + 50, ys[k], caraI), ys[k]); }
+        ctx.closePath();
+      };
+      ctx.save(); perfil(); ctx.clip();
+      const ea = a - u * 0.4, eb = b + u * 0.4;
+      // textura y oscurecido anclados al tramo más bajo de alrededor: así dos bloques vecinos casan sin costura
+      const yr = sy(Math.min(s.top, vec.i == null ? s.top : vec.i, vec.d == null ? s.top : vec.d));
+      ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u * 1, sy(0), '#2a2122', kL); ctx.fillRect(ea, yt - 1, eb - ea, yb - yt + 1);
+      let g = ctx.createLinearGradient(0, yr, 0, yr + u * 5); g.addColorStop(0, 'rgba(10,6,6,0)'); g.addColorStop(1, 'rgba(10,6,6,.6)'); ctx.fillStyle = g; ctx.fillRect(ea, yt, eb - ea, yb - yt);
+      // laterales: sombra suave solo en la cara que se ve, con alguna arista iluminada
+      for (const [xx, dir, cara] of [[x0, 1, caraI], [x1, -1, caraD]]) {
+        if (cara < 2 || xx < -u * 2 || xx > W + u * 2) continue;
+        const ex = xx - dir * u * 0.25; g = ctx.createLinearGradient(ex, 0, ex + dir * u * 0.9, 0); g.addColorStop(0, 'rgba(0,0,0,.42)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.fillRect(Math.min(ex, ex + dir * u * 0.9), yt, u * 0.9, cara + u * 0.3);
+        ctx.strokeStyle = 'rgba(255,215,170,.13)'; ctx.lineWidth = Math.max(1, u * 0.03);
+        for (let k = 0; k < cara / (u * 0.9); k++) { const y = yt + u * (0.5 + k * 0.9 + hash(sd + k) * 0.3), x = xx - dir * u * (0.02 + hash(sd + k + 3) * 0.12); if (y > yt + cara - u * 0.2) break; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dir * u * (0.15 + hash(sd + k + 5) * 0.2), y + u * 0.12); ctx.stroke(); }
+      }
+      // capa de tierra con el borde inferior irregular
+      const th = Math.min(u * 0.7, yb - yt), pt = u * 0.3;
+      ctx.beginPath(); ctx.moveTo(ea, yt - 1);
+      { const ps = pt / u; let wx = Math.floor((ea / u + cam.x) / ps) * ps; ctx.lineTo((wx - cam.x) * u, yt - 1); for (; (wx - cam.x) * u <= eb + pt; wx += ps) ctx.lineTo((wx - cam.x) * u, yt + th * (0.72 + hash(Math.round(wx / ps)) * 0.5)); }   // puntos fijos en el mundo (antes se movían con la cámara y el borde temblaba)
+      ctx.lineTo(eb, yt - 1); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = relleno(ctx, TX.tierraP, -cam.x * u, yt, '#a5532f', kT); ctx.fillRect(ea, yt - 1, eb - ea, th * 1.4);
+      g = ctx.createLinearGradient(0, yt, 0, yt + th * 1.3); g.addColorStop(0, 'rgba(255,220,160,.14)'); g.addColorStop(0.6, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,10,5,.35)'); ctx.fillStyle = g; ctx.fillRect(ea, yt - 1, eb - ea, th * 1.4);
       ctx.restore();
-      ctx.fillStyle = 'rgba(255,225,170,.35)'; ctx.fillRect(a, yt - 1, b - a, Math.max(1, u * 0.03));
-      for (const [xx, dir] of [[x0, 1], [x1, -1]]) { if (xx < -u || xx > W + u) continue; g = ctx.createLinearGradient(xx, 0, xx + dir * u * 0.55, 0); g.addColorStop(0, 'rgba(0,0,0,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(dir > 0 ? xx : xx - u * 0.55, yt, u * 0.55, yb - yt); }
       return;
     }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4;
@@ -881,7 +949,7 @@
       const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.35)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       ctx.strokeStyle = 'rgba(90,50,40,.5)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let k = 1; k < 5; k++) { const y = yt + u * k * 1.1; if (y > H) break; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + (k % 2 ? u * 0.1 : -u * 0.1)); ctx.stroke(); }
     }
-    const st = esc.s;
+    const st = esc.s; vecinos(L.solids);
     for (const s of L.solids) {
       const x0 = sx(s.x0), x1 = sx(s.x1); if (x1 < -4 || x0 > W + 4) continue;
       let jit = 0;
