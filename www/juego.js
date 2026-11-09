@@ -78,8 +78,62 @@ const Sound = (() => {
       else if (kind === 'lava') { tone(c, t, 70, 45, 1.1, 0.09, 'sawtooth'); ruido(c, t, 0.9, 0.07); [440, 440].forEach((f, i) => tone(c, t + 0.3 + i * 0.25, f, f, 0.12, 0.04, 'square')); }
     } catch (e) {}
   }
-  return { play };
+  return { play, ac, out };
 })();
+
+/* ================= Música de fondo (sintetizada, muy suave) =================
+   Se programan las notas con medio segundo de adelanto desde un temporizador (no desde el bucle de dibujo):
+   apenas gasta. Mundo 1: aire de isa (3/4) con rasgueos de timple; Mundo 2: acordes suaves y olas; cueva: zumbido y gotas. */
+const Musica = (() => {
+  let on = false, estilo = '', timer = 0, tNext = 0, paso = 0, ruidoBuf = null;
+  const H = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const N = n => 440 * Math.pow(2, (n - 69) / 12);   // nota MIDI a Hz
+  function nota(c, t, f, dur, vol, tipo, ataque) {
+    const o = c.createOscillator(), g = c.createGain(); o.type = tipo || 'triangle'; o.frequency.value = f;
+    vol *= 0.6;   // la música queda por debajo de los efectos
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (ataque || 0.008)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(Sound.out(c)); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function ola(c, t, dur, vol) {
+    if (!ruidoBuf) { const len = c.sampleRate * 2, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; ruidoBuf = b; }
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = ruidoBuf; s.loop = true; f.type = 'lowpass'; f.frequency.value = 520;
+    vol *= 0.6;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.45); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(Sound.out(c)); s.start(t); s.stop(t + dur + 0.05);
+  }
+  const ACORDES = { D: [62, 66, 69], A: [57, 61, 64], G: [55, 59, 62], Bm: [59, 62, 66], Em: [52, 55, 59] };
+  const EST = {
+    // isa canaria en 3/4: bajo en el primer tiempo y rasgueo de timple en el segundo y el tercero; melodía de vez en cuando
+    sur: { pulso: 0.6, prog: ['D', 'D', 'A', 'A', 'D', 'D', 'G', 'A'], toca(c, t, p) { const bar = Math.floor(p / 3), b = p % 3, ac = ACORDES[this.prog[bar % 8]];
+      if (b === 0) nota(c, t, N(ac[0] - 24), 0.55, 0.05, 'sine', 0.01);
+      else ac.forEach((m, i) => nota(c, t + i * 0.018, N(m + 12), 0.32, 0.022, 'triangle'));
+      if (bar % 4 === 3 && b === 0) { const esc = [74, 76, 78, 81, 83, 86]; for (let k = 0; k < 3; k++) nota(c, t + k * this.pulso, N(esc[Math.floor(H(bar * 3 + k) * esc.length)]), 0.5, 0.02, 'sine', 0.02); } } },
+    // costa: acordes largos y suaves y el rumor de las olas cada dos compases
+    costa: { pulso: 0.9, prog: ['D', 'Bm', 'G', 'A'], toca(c, t, p) { const bar = Math.floor(p / 4), b = p % 4, ac = ACORDES[this.prog[bar % 4]];
+      if (b === 0) { ac.forEach(m => nota(c, t, N(m), this.pulso * 4.2, 0.016, 'sine', 0.6)); nota(c, t, N(ac[0] - 24), this.pulso * 3.5, 0.03, 'sine', 0.3); }
+      if (b === 0 && bar % 2 === 0) ola(c, t + 0.4, 4.5, 0.035);
+      if (b === 2 && H(bar) > 0.5) nota(c, t, N(ac[2] + 12), 1.2, 0.012, 'sine', 0.05); } },
+    // cueva: zumbido grave y gotas con eco
+    cueva: { pulso: 0.8, toca(c, t, p) { if (p % 8 === 0) nota(c, t, N(38), 7, 0.035, 'sine', 1.2);
+      if (H(p) > 0.62) { const f = 1100 + H(p + 7) * 900; nota(c, t, f, 0.18, 0.02, 'sine', 0.003); nota(c, t + 0.28, f * 0.98, 0.18, 0.008, 'sine', 0.003); } } }
+  };
+  function programa() {
+    const c = Sound.ac(); if (!on || !c) return;
+    const E = EST[estilo]; if (c.currentTime > tNext + 1) tNext = c.currentTime + 0.1;   // tras una pausa larga, empieza de nuevo
+    try { while (tNext < c.currentTime + 0.6) { E.toca(c, tNext, paso); tNext += E.pulso; paso++; } } catch (e) {}
+    timer = setTimeout(programa, 250);
+  }
+  // se llama en cada imagen: arranca o para la música según el estado (no hace nada si no cambia)
+  function tick(suena, est) {
+    const quiere = suena && S.musica !== false && S.sound !== false && !!EST[est];
+    if (quiere && (!on || est !== estilo)) { clearTimeout(timer); on = true; if (est !== estilo) { estilo = est; paso = 0; } const c = Sound.ac(); tNext = c ? c.currentTime + 0.15 : 0; programa(); }
+    else if (!quiere && on) { on = false; clearTimeout(timer); }
+  }
+  // para escuchar una muestra sin jugar (y para las pruebas): programa unos segundos en el contexto que se le pase
+  function muestra(c, est, seg) { const E = EST[est]; let t = 0.1, p = 0; while (t < seg) { E.toca(c, t, p); t += E.pulso; p++; } }
+  return { tick, muestra, estado: () => (on ? estilo : '') };
+})();
+const estiloMusica = i => i === 11 || secretoDe(i) === 0 ? 'cueva' : (i >= MUNDOS[1].desde ? 'costa' : 'sur');
 
 /* ================= Frutos y fantasma ================= */
 const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe');
@@ -125,7 +179,7 @@ const turbo = () => (typeof window.MARTIN_TURBO === 'number' ? window.MARTIN_TUR
 const jugando = () => !!RUN.s;
 const debugCaja = /hitbox/.test(location.search);
 function modalAbierto() { const m = document.getElementById('modal'); return !!(m && !m.classList.contains('hidden')); }
-function stopLoop(conTeclas) { RUN.on = false; cancelAnimationFrame(RUN.raf); RUN.raf = 0; if (!conTeclas) window.onkeydown = window.onkeyup = window.onblur = null; RUN.inp.pila = []; RUN.inp.salto = false; }
+function stopLoop(conTeclas) { Musica.tick(false, ''); RUN.on = false; cancelAnimationFrame(RUN.raf); RUN.raf = 0; if (!conTeclas) window.onkeydown = window.onkeyup = window.onblur = null; RUN.inp.pila = []; RUN.inp.salto = false; }
 
 function maskInput() {
   const p = RUN.inp.pila, d = p.length ? p[p.length - 1] : 0;
@@ -197,6 +251,7 @@ function startLoop() {
       if (RUN.nf > 90 && RUN.ema > 22) { if (!window.SIN_OLAS) window.SIN_OLAS = true; else if (RUN.dprMax > 1.25) RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }   // si va lento: primero fuera el oleaje, luego menos resolución
       if ((s.fase === 'meta' || s.fase === 'fallo') && RUN.tFin && !RUN.overlay && performance.now() - RUN.tFin > (s.fase === 'meta' ? 900 : 700) / Math.max(1, turbo() > 1 ? 4 : 1)) terminar();
     }
+    Musica.tick(!!(RUN.s && RUN.modo !== undefined && (RUN.s.fase === 'jugando' || RUN.s.fase === 'reaparece') && !document.hidden), RUN.s ? estiloMusica(RUN.idx) : '');
     if (RUN.on) RUN.raf = requestAnimationFrame(bucle);
   };
   RUN.raf = requestAnimationFrame(bucle);
@@ -335,7 +390,7 @@ function empezar() {
   M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; soltarTodo(); ponOverlay(); keepAwake();
   if (RUN.modo === 'nivel') prog(RUN.idx).plays++;
 }
-function pausar() {
+function pausar() { Musica.tick(false, '');
   if (!RUN.s || RUN.s.fase !== 'jugando') return;
   M.pausar(RUN.s); soltarTodo(); RUN.overlay = 'pausa'; ponOverlay();
 }

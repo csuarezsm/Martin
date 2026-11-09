@@ -2748,7 +2748,9 @@ window.I18N["it:martin"] = Object.assign(window.I18N["it:martin"] || {}, {
 "✨ Todos los frutos abren un nivel secreto": "✨ Tutti i frutti aprono un livello segreto",
 "✨ ¡Has abierto un nivel secreto!": "✨ Hai aperto un livello segreto!",
 "Encuentra todos los frutos del Mundo {0} para abrirlo.": "Trova tutti i frutti del Mondo {0} per aprirlo.",
-"Búscalo en el mapa, al final del Mundo {0}.": "Cercalo sulla mappa, alla fine del Mondo {0}."
+"Búscalo en el mapa, al final del Mundo {0}.": "Cercalo sulla mappa, alla fine del Mondo {0}.",
+"🎵 Música": "🎵 Musica",
+"Una melodía suave mientras juegas, distinta en cada mundo": "Una melodia dolce mentre giochi, diversa in ogni mondo"
 });
 window.I18N["it:poker"] = Object.assign(window.I18N["it:poker"] || {}, {
 "Carta alta": "Carta alta",

@@ -229,6 +229,18 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('2.2: en Timanfaya la lava alcanza a Martín si se para', await waitFor(p, () => __martin.RUN.s.fase === 'fallo' && __martin.RUN.s.causa === 'lava', null, 20000) && await waitFor(p, () => /lava/i.test(document.getElementById('mgOv').textContent)));
     await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); });
   }
+  { // música de fondo: suena al jugar (distinta por mundo) y se para al pausar, al salir o si se quita en ajustes
+    await p.evaluate(() => { S.musica = true; S.sound = true; jugar(0, 'nivel'); empezar(); }); await p.waitForTimeout(300);
+    check('música: suena al jugar el Mundo 1 (aire de isa)', await p.evaluate(() => Musica.estado() === 'sur'));
+    await p.evaluate(() => pausar()); await p.waitForTimeout(100);
+    check('música: se para al pausar', await p.evaluate(() => Musica.estado() === ''));
+    await p.evaluate(() => { salirAlMapa(); jugar(7, 'nivel'); empezar(); }); await p.waitForTimeout(300);
+    check('música: en el Mundo 2 cambia (acordes y olas)', await p.evaluate(() => Musica.estado() === 'costa'));
+    await p.evaluate(() => { S.musica = false; }); await p.waitForTimeout(200);
+    check('música: se puede quitar en ajustes', await p.evaluate(() => Musica.estado() === ''));
+    await p.evaluate(() => { S.musica = true; salirAlMapa(); }); await p.waitForTimeout(100);
+    check('música: al salir al mapa no suena', await p.evaluate(() => Musica.estado() === ''));
+  }
   { // mapa de Lanzarote: un punto por nivel en su sitio, y se puede entrar desde el mapa
     await p.evaluate(() => salirAlMapa());
     check('mapa: Lanzarote con los 11 niveles y los 2 secretos', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 13 && !!document.querySelector('.mp-map path')));
