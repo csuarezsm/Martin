@@ -1,97 +1,101 @@
 /* Martín: Los Caminos del Volcán — Guía de la naturaleza
-   Las plantas y animales que salen en el juego. Cada especie se descubre al terminar el nivel del lugar donde vive (descubre: level_id) y sale dibujada en él.
-   Datos de fuentes oficiales (Banco de Datos de Biodiversidad del Gobierno de Canarias, MITECO, Cabildo de Lanzarote, BOC).
-   origen: 'endemica-lz' (solo en Lanzarote), 'endemica' (solo en Canarias), 'nativa', 'introducida', 'invasora', 'cultivo', 'salinas'.
+   Las plantas y animales que salen en el juego. Cada especie se descubre al terminar un nivel donde sale (descubre: level_id).
+   Cada frase está sacada de sus fuentes oficiales (Gobierno de Canarias, Banco de Datos de Biodiversidad de Canarias, MITECO, Ministerio de Agricultura, BOC, Turismo de Islas Canarias); no se añade nada que no digan.
+   origen: 'endemica-lz' (solo en Lanzarote), 'endemica' (endemismo canario), 'nativa', 'introducida', 'invasora', 'cultivo', 'salinas', 'raza', 'simbolo'.
    © 2026 IT Canarias. Todos los derechos reservados. */
 (function () {
+  const GC = t => 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=' + t;
   window.NATURALEZA = [
     {
       id: 'bejeque', descubre: 'norte_l09_famara', nombre: 'Bejeque del malpaís', cientifico: 'Aeonium lancerottense', origen: 'endemica-lz',
       texto: [
-        'Solo existe en Lanzarote. Crece en el risco de Famara, en el valle de Haría y en las lavas de Timanfaya.',
-        'Sus rosetas de hojas carnosas guardan el agua, y en junio y julio se llena de flores rosadas.'
+        'Solo existe en Lanzarote. Abunda en el macizo de Famara, entre los 200 y los 500 metros de altitud, y también crece en el valle de Malpaso-Haría y en el Parque Nacional de Timanfaya.',
+        'Sus hojas carnosas forman rosetas de hasta 18 centímetros. Florece en junio y julio, con flores de color blanco rosado.'
       ],
-      fuente: ['Gobierno de Canarias: bejeque del malpaís', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Bejeque_del_malpa%C3%ADs']
+      fuentes: [['Gobierno de Canarias: bejeque del malpaís', GC('Bejeque_del_malpa%C3%ADs')]]
     },
     {
       id: 'palmera', descubre: 'norte_l10_haria', nombre: 'Palmera canaria', cientifico: 'Phoenix canariensis', origen: 'endemica',
       texto: [
-        'Solo crece de forma natural en las islas Canarias. Puede superar los 20 metros de altura y vivir dos o tres siglos.',
-        'Las palmeras hembra dan dátiles; las macho, no. En Lanzarote, el gran palmeral está en el valle de Haría.'
+        'Es un endemismo canario: de forma natural solo crecía en las islas Canarias. Hoy se planta como adorno en muchos lugares y crece asilvestrada en otros países.',
+        'Tiene un solo tronco, que no se ramifica. En los palmerales silvestres crece más o menos un metro cada siete años y medio.'
       ],
-      fuente: ['Gobierno de Canarias: palmera canaria', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Palmera_canaria_%28Phoenix_canariensis%29']
+      fuentes: [['MITECO: Atlas y Libro Rojo de la Flora Vascular Amenazada (palmera canaria)', 'https://www.miteco.gob.es/es/biodiversidad/temas/inventarios-nacionales/09047122801a3450_tcm30-99687.pdf'],
+        ['MITECO: palmerales de Phoenix canariensis', 'https://www.miteco.gob.es/content/dam/miteco/es/biodiversidad/temas/espacios-protegidos/9370_tcm30-196903.pdf']]
     },
     {
       id: 'lagarto', descubre: 'uga_l03_dry_ravine', nombre: 'Lagarto atlántico', cientifico: 'Gallotia atlantica', origen: 'endemica',
       texto: [
-        'Solo vive de forma natural en las islas orientales de Canarias: Lanzarote, Fuerteventura y sus islotes.',
-        'Es el vertebrado más abundante de Timanfaya. Tiene manchas de colores a los lados del cuerpo y está protegido.'
+        'Es un endemismo canario. Vive en las islas e islotes orientales del archipiélago, sobre todo en Lanzarote y Fuerteventura.',
+        'Es el vertebrado más abundante en Timanfaya. En Lanzarote está catalogado como especie de protección especial.'
       ],
-      fuente: ['MITECO: el lagarto de Timanfaya', 'https://www.miteco.gob.es/en/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/visita-virtual.html']
+      fuentes: [['MITECO: Parque Nacional de Timanfaya', 'https://www.miteco.gob.es/en/parques-nacionales-oapn/red-parques-nacionales/parques-nacionales/timanfaya/visita-virtual.html'],
+        ['Banco de Datos de Biodiversidad de Canarias: lagarto atlántico', 'https://www.biodiversidadcanarias.es/centinela/especie/V00169']]
     },
     {
-      id: 'tabaiba', descubre: 'uga_l02_after_the_storm', nombre: 'Tabaiba dulce', cientifico: 'Euphorbia balsamifera', origen: 'nativa',
+      id: 'tabaiba', descubre: 'uga_l02_after_the_storm', nombre: 'Tabaiba dulce', cientifico: 'Euphorbia balsamifera', origen: 'simbolo',
       texto: [
-        'Un arbusto de ramas gruesas y hojas pequeñas que aguanta muy bien la sequía.',
-        'Es el símbolo vegetal de Lanzarote.'
+        'La tabaiba dulce es el símbolo vegetal de Lanzarote.',
+        'En el malpaís de La Corona crece un extenso tabaibal, uno de los más ricos de Canarias.'
       ],
-      fuente: ['Gobierno de Canarias: Malpaís de La Corona', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Malpa%C3%ADs_de_La_Corona']
+      fuentes: [['Gobierno de Canarias: Malpaís de La Corona', GC('Malpa%C3%ADs_de_La_Corona')]]
     },
     {
       id: 'aulaga', descubre: 'uga_l02_after_the_storm', nombre: 'Aulaga', cientifico: 'Launaea arborescens', origen: 'nativa',
       texto: [
-        'Un arbusto espinoso de tallos en zigzag, casi sin hojas, con flores amarillas.',
-        'Vive en los sitios más secos y soleados. Además de en Canarias, crece en el norte de África y el sudeste de España.'
+        'Un arbusto espinoso de tallos en zigzag, que normalmente no tiene hojas. Sus flores son amarillas.',
+        'Crece en todas las islas, sobre todo en Fuerteventura, en zonas soleadas y calurosas. Fuera de Canarias vive en el norte de África y en la costa del sudeste de España.'
       ],
-      fuente: ['Gobierno de Canarias: ahulaga', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Ahulaga']
+      fuentes: [['Gobierno de Canarias: ahulaga', GC('Ahulaga')]]
     },
     {
-      id: 'vid', descubre: 'uga_l04_basin_descent', nombre: 'Viña de malvasía', cientifico: 'Vitis vinifera', origen: 'cultivo',
+      id: 'vid', descubre: 'uga_l04_basin_descent', nombre: 'Vid', cientifico: 'Vitis vinifera', origen: 'cultivo',
       texto: [
-        'En La Geria, cada viña se planta en un hoyo excavado en el picón y se protege del viento con un pequeño muro de piedra, el zoco.',
-        'De todas las uvas de la isla, la malvasía es la que más destaca por la calidad de su vino.'
+        'En La Geria, cada vid se planta en un hoyo en forma de cono excavado en las capas de grava volcánica, y alrededor se levanta un muro de piedra en forma de media luna que la protege del viento.',
+        'En las bodegas de La Geria se venden vinos premiados, entre ellos algunos de los más conocidos de uva malvasía.'
       ],
-      fuente: ['Cabildo de Lanzarote: ficha técnica del cultivo de la vid', 'https://www.cabildodelanzarote.com/documents/35307/78425/ficha_tecnica_del_cultivo_de_la_vid.pdf/3928871f-28d8-f2f2-d7a5-c9505b2afa16?t=1620735957625']
+      fuentes: [['Turismo de Islas Canarias: Paisaje Protegido de La Geria', 'https://www.hellocanaryislands.com/nature-areas/lanzarote/protected-landscape-la-geria/']]
     },
     {
-      id: 'tunera', descubre: 'uga_l01_water_delivery', nombre: 'Tunera', cientifico: 'Opuntia', origen: 'introducida',
+      id: 'tunera', descubre: 'uga_l01_water_delivery', nombre: 'Tunera', cientifico: 'Opuntia ficus-indica', origen: 'cultivo',
       texto: [
-        'Llegó de América. Se plantó en Lanzarote para criar la cochinilla, un insecto del que se saca un tinte rojo.',
+        'En Guatiza y Mala hay grandes extensiones de cultivo de tunera. Sobre sus pencas se cría la cochinilla, un cultivo que llegó a Canarias desde México en el primer cuarto del siglo XIX.',
         'Su fruto es el tuno, uno de los frutos que recoge Martín por el camino.'
       ],
-      fuente: ['BOC: Jardín de Cactus, Bien de Interés Cultural', 'https://www.gobiernodecanarias.org/boc/2022/094/018.html']
+      fuentes: [['BOC: Jardín de Cactus, Bien de Interés Cultural', 'https://www.gobiernodecanarias.org/boc/2022/094/018.html']]
     },
     {
       id: 'pita', descubre: 'uga_l05_two_roads', nombre: 'Pita', cientifico: 'Agave americana', origen: 'invasora',
       texto: [
-        'Viene de México y llegó a Canarias en el siglo XVI. Florece una sola vez en su vida, entre los 20 y los 30 años, y después muere.',
-        'Hoy es una especie invasora: se extiende sola y quita sitio a las plantas de aquí.'
+        'Viene del este de México y Centroamérica, y llegó a Canarias en el siglo XVI. Florece una sola vez en su vida, entre los 20 y los 30 años, y después muere.',
+        'Está catalogada como especie invasora en todas las islas, también en Lanzarote.'
       ],
-      fuente: ['Gobierno de Canarias: pita (especies introducidas)', 'https://www.biodiversidadcanarias.es/exos/especie/F00962']
+      fuentes: [['Banco de Datos de Biodiversidad de Canarias: pita', 'https://www.biodiversidadcanarias.es/exos/especie/F00962']]
     },
     {
       id: 'aloe', descubre: 'uga_l06_great_delivery', nombre: 'Aloe vera', cientifico: 'Aloe vera', origen: 'introducida',
       texto: [
         'Viene del norte y del este de África y de Arabia. En Canarias se cultiva sobre todo en Lanzarote, Gran Canaria y Fuerteventura.',
-        'De sus hojas se saca un jugo que se usa para cuidar la piel.'
+        'Tiene hojas grandes y carnosas, y Canarias es la primera región de Europa en producción de aloe.'
       ],
-      fuente: ['Cabildo de Lanzarote: ficha técnica del cultivo del aloe', 'https://www.cabildodelanzarote.com/documents/35307/78325/ficha_tecnica_del_cultivo_de__aloe_vera.pdf/6d484d29-6142-b195-ec78-c48a7d17793d?t=1620721613744']
+      fuentes: [['Gobierno de Canarias: aloe', GC('Aloe')]]
     },
     {
       id: 'camello', descubre: 'uga_l01_water_delivery', nombre: 'Camello canario', cientifico: 'Camelus dromedarius', origen: 'raza',
       texto: [
-        'Tiene una sola joroba, como los dromedarios, pero en Canarias siempre se le ha llamado camello. Y con razón: el camello canario es una raza propia, reconocida en el Catálogo Oficial de Razas de Ganado de España.',
-        'Es una raza autóctona en peligro de extinción. Llegó a las islas para el trabajo del campo y hoy, desde Uga, pasea a los visitantes por Timanfaya. Martín es uno de ellos.'
+        'En Canarias siempre se le ha llamado camello, aunque tiene una sola joroba, como los dromedarios. El camello canario es una raza propia: el Catálogo Oficial de Razas de Ganado de España la clasifica como raza autóctona en peligro de extinción.',
+        'Fue una herramienta básica para trabajar los campos y para llevar personas y mercancías. Hoy vive casi solo en las islas orientales y se usa sobre todo para pasear a los visitantes. Martín es un camello canario.'
       ],
-      fuente: ['Ministerio de Agricultura: raza Camello Canario', 'https://www.mapa.gob.es/en/ganaderia/temas/zootecnia/razas-ganaderas/arca/logotipo-camello-canario']
+      fuentes: [['Ministerio de Agricultura: raza Camello Canario', 'https://www.mapa.gob.es/en/ganaderia/temas/zootecnia/razas-ganaderas/arca/logotipo-camello-canario'],
+        ['Ministerio de Agricultura: libro genealógico de la raza Camello Canario', 'https://servicio.mapama.gob.es/es/ganaderia/temas/zootecnia/ordende2deoctubrede2015porlaqueseapruebalareglamentaciondellgrazacamellocanario_tcm30-117770.pdf']]
     },
     {
       id: 'artemia', descubre: 'norte_l08_janubio', nombre: 'Artemia', cientifico: 'Artemia parthenogenetica', origen: 'salinas',
       texto: [
-        'Un crustáceo diminuto que vive en el agua muy salada de las salinas.',
-        'Junto con un alga, Dunaliella salina, tiñe de rosa algunos estanques de Janubio.'
+        'Un pequeño crustáceo de color rojo que vive en las salinas.',
+        'Junto con un alga, Dunaliella salina, da a las salinas de Janubio su color rojizo.'
       ],
-      fuente: ['Gobierno de Canarias: Salinas del Janubio', 'https://www3.gobiernodecanarias.org/medusa/wiki/index.php?title=Salinas_del_Janubio']
+      fuentes: [['Gobierno de Canarias: Salinas del Janubio', GC('Salinas_del_Janubio')]]
     }
   ];
 })();

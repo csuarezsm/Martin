@@ -628,7 +628,7 @@ function mapaIsla(sig) {
 }
 /* Guía de la naturaleza: las especies de cada nivel se descubren al terminarlo */
 const NAT = window.NATURALEZA || [];
-const ORIGEN = { 'endemica-lz': ['Solo en Lanzarote', '#3fb27f'], endemica: ['Solo en Canarias', '#3fb27f'], nativa: ['Nativa', '#5aa0d8'], introducida: ['Llegó de fuera', '#d89a3f'], invasora: ['Llegó de fuera · invasora', '#e0604a'], cultivo: ['De cultivo', '#b98ad8'], salinas: ['Vive en las salinas', '#e07a9a'], raza: ['Raza canaria reconocida', '#3fb27f'] };
+const ORIGEN = { 'endemica-lz': ['Solo en Lanzarote', '#3fb27f'], endemica: ['Endemismo canario', '#3fb27f'], nativa: ['Nativa', '#5aa0d8'], introducida: ['Llegó de fuera', '#d89a3f'], invasora: ['Llegó de fuera · invasora', '#e0604a'], cultivo: ['De cultivo', '#b98ad8'], salinas: ['Vive en las salinas', '#e07a9a'], raza: ['Raza canaria reconocida', '#3fb27f'], simbolo: ['Símbolo vegetal de Lanzarote', '#3fb27f'] };
 const ESP_NIV = [];
 const especiesNivel = i => ESP_NIV[i] || (ESP_NIV[i] = NIV[i] && NIV[i].ok ? especiesDe(NIV[i].nivel, i) : []);
 const descubreEn = i => NAT.filter(e => NIV[i] && NIV[i].ok && e.descubre === NIV[i].nivel.level_id).map(e => e.id);   // cada especie se descubre en el nivel de su lugar
@@ -645,12 +645,12 @@ function openGuia() {
 }
 function openEspecie(id) {
   const e = NAT.find(x => x.id === id); if (!e) return; const o = ORIGEN[e.origen] || ['', '#888'];
-  const iv = NIV.findIndex(n => n.ok && n.nivel.level_id === e.descubre), lugar = iv >= 0 && LUG[iv] ? LUG[iv].lugar : '', veces = NIV.filter((n, i) => n.ok && especiesNivel(i).includes(id)).length;
+  const iv = NIV.findIndex(n => n.ok && n.nivel.level_id === e.descubre), lugar = iv >= 0 ? nomNivel(iv) + (LUG[iv] ? ' · ' + LUG[iv].lugar : '') : '', veces = NIV.filter((n, i) => n.ok && especiesNivel(i).includes(id)).length;
   openModal(`<div class="es"><canvas id="esC" width="320" height="240" aria-hidden="true"></canvas>
     <h3>${esc(e.nombre)}</h3><div class="es-c"><i>${esc(e.cientifico)}</i></div><span class="es-o" style="background:${o[1]}">${esc(o[0])}</span>
     ${e.texto.map(p => `<p>${esc(p)}</p>`).join('')}
-    ${lugar ? `<div class="es-d"><b>Vive en:</b> <span>${esc(lugar)}</span></div>` : ''}${veces ? `<div class="es-d"><b>Sale en ${veces} niveles</b></div>` : ''}
-    <div class="fi-f">Fuente: <a href="#" data-url="${esc(e.fuente[1])}">${esc(e.fuente[0])}</a></div></div>
+    ${lugar ? `<div class="es-d"><b>La descubres en:</b> <span>${esc(lugar)}</span></div>` : ''}${veces ? `<div class="es-d"><b>Aparece en ${veces} niveles del juego</b></div>` : ''}
+    <div class="fi-f">${e.fuentes.length > 1 ? 'Fuentes:' : 'Fuente:'} ${e.fuentes.map(([t, u]) => `<a href="#" data-url="${esc(u)}">${esc(t)}</a>`).join(' · ')}</div></div>
     <div class="acts"><button class="btn-ghost" id="esVol">‹ Guía</button><button class="btn-gold" id="esOk">Cerrar</button></div>`);
   dibujaEspecie($('#esC').getContext('2d'), id, 320, 240);
   document.querySelectorAll('.es .fi-f a').forEach(a => a.onclick = ev => { ev.preventDefault(); openExternal(a.dataset.url); });
