@@ -30,7 +30,7 @@ const EPS = 1e-6;
 const DANO_PIEDRA = 12, DANO_VAPOR = 8, DANO_OLA = 8;            // peligros vivos (2.1)
 const DERRUMBE = 60;                                              // 1 s desde que se pisa una repisa frágil hasta que cae
 const PELIGROS = ['piedra', 'geiser', 'viento', 'ola', 'lava'];
-const OBJETOS = ['aljibe', 'tuno', 'higo', 'malvasia', 'biberon'];
+const OBJETOS = ['aljibe', 'tuno', 'higo', 'malvasia', 'biberon', 'toma'];   // toma: el camellero espera con el biberón (Mundo 3)
 const AGUA_ALJIBE = 20;
 const SAL_ACC = 0.4, SAL_FRENO = 0.1;                             // salinas (2.3): sobre la sal se arranca despacio y se resbala al frenar                                           // un aljibe repone 20 de agua (sin pasar de la inicial)
 const MODS = { normal: { dano: 1, agua: 100 }, fragil: { dano: 1.5, agua: 100 }, poca: { dano: 1, agua: 70 }, peque: { dano: 0.5, agua: 100, lava: 0.7 } };   // peque: para los más pequeños (nunca en el reto diario)
@@ -267,7 +267,7 @@ function paso(L, s, m) {
     const it = O[i]; if (s.obj[it.id]) continue;
     if (Math.abs(s.x - it.x) < hw + 0.45 && s.y < it.y + 0.45 && s.y + hh > it.y - 0.45) {
       s.obj[it.id] = it.kind;
-      if (it.kind === 'aljibe') { const antes = s.agua; s.agua = Math.min(s.ag0, s.agua + AGUA_ALJIBE); emite(s, { t: 'recoge', id: it.id, kind: it.kind, mas: s.agua - antes }); }
+      if (it.kind === 'aljibe' || it.kind === 'toma' || it.kind === 'biberon') { const mas = it.kind === 'biberon' ? 10 : AGUA_ALJIBE; const antes = s.agua; s.agua = Math.min(s.ag0, s.agua + mas); emite(s, { t: 'recoge', id: it.id, kind: it.kind, mas: s.agua - antes }); }
       else emite(s, { t: 'recoge', id: it.id, kind: it.kind });
     }
   }
@@ -336,7 +336,7 @@ function retoDelDia(dia, ids) {
   const mods = ['normal', 'fragil', 'poca'];
   return { nivel: lista.length ? lista[h % lista.length] : '', mod: mods[Math.floor(h / 7) % mods.length] };
 }
-const resultado = s => ({ fase: s.fase, pasos: s.t, ms: Math.round(s.t * 1000 / 60), agua: s.agua, danos: s.danos, caidas: s.caidas, golpes: s.golpes, estrellas: s.estrellas, causa: s.causa, objetos: Object.keys(s.obj || {}).filter(k => s.obj[k] !== 'aljibe') });
+const resultado = s => ({ fase: s.fase, pasos: s.t, ms: Math.round(s.t * 1000 / 60), agua: s.agua, danos: s.danos, caidas: s.caidas, golpes: s.golpes, estrellas: s.estrellas, causa: s.causa, objetos: Object.keys(s.obj || {}).filter(k => s.obj[k] !== 'aljibe' && s.obj[k] !== 'toma') });
 
 /* ---------- Ayudas para la app y el robot de pruebas ---------- */
 function clonar(s) { const c = Object.assign({}, s); c.der = Object.assign({}, s.der); c.obj = Object.assign({}, s.obj); c.ev = []; c.conEv = false; return c; }

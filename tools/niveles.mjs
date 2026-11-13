@@ -565,7 +565,9 @@ const mundo3 = [
   { tipo: 'secreto', L: guelfo(objetos(sinPeligros(m3s()), B3), 0.8, 0.93) },
   { tipo: 'premio', L: guelfo(sinPeligros(m3p()), 0.8, 0.93) }
 ];
-for (const x of mundo3) { sinAljibes(x.L); const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
+const tomas = L => { const cps = [L.checkpoint].concat(L.checkpoints_extra || []).sort((a, b) => a.x - b.x).slice(0, 2);   // el camellero espera con el biberón junto a los dos primeros puntos de control
+  cps.forEach((c, k) => { const s = L.solids.find(q => q.kind === 'ground' && !q.route && q.x0 <= c.x + 2 && q.x1 >= c.x + 2.5); if (s) L.items.push({ id: 'TOM-' + (k + 1), kind: 'toma', x: r2(c.x + 2.2), y: r2(s.top + 0.9) }); }); return L; };
+for (const x of mundo3) { sinAljibes(x.L); tomas(x.L); const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
 const out3 = '/* Mundo 3 de Martín, «El guelfo de Uga» (3.0). GENERADO por tools/niveles.mjs: no editar a mano.\n'
   + '   Va aparte para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst S = [\n' + mundo3.map(x => '  { tipo: ' + JSON.stringify(x.tipo) + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'

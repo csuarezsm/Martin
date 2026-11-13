@@ -1057,6 +1057,11 @@
     const tom = (st && st.obj) || {};
     for (const it of L.objetos) {
       const x = sx(it.x), y = sy(it.y); if (x < -u * 2 || x > W + u * 2) continue;
+      if (it.kind === 'toma') {   // el camellero espera con el biberón en la mano; cuando Martín bebe, el biberón ya no está
+        const gy = y + u * 0.9; camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
+        if (!tom[it.id]) { const b = Math.sin(t * 3) * u * 0.06; fruto(ctx, 'biberon', x + u * 0.35, gy - u * 1.15 + b, u * 0.32); ctx.fillStyle = 'rgba(255,240,150,.25)'; ctx.beginPath(); ctx.arc(x + u * 0.35, gy - u * 1.15 + b, u * 0.55, 0, TAU); ctx.fill(); }
+        continue;
+      }
       if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
         const lleno = !tom[it.id], gy = y + u * 0.9, w = u * 1.3, h = u * 0.95;
         ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(x, gy, w * 0.62, u * 0.12, 0, 0, TAU); ctx.fill();

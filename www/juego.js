@@ -191,7 +191,7 @@ const Musica = (() => {
 const estiloMusica = i => secretoDe(i) === 0 ? 'cueva' : INFO[i] && INFO[i].tipo === 'premio' ? 'costa' : INFO[i] && INFO[i].mundo === 2 ? 'pueblo' : (INFO[i] && INFO[i].mundo === 1 ? 'costa' : 'sur');
 
 /* ================= Frutos y fantasma ================= */
-const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe');
+const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe' && o.kind !== 'toma');
 const frutosHechos = i => { const n = NIV[i]; if (!n || !n.ok) return 0; const ids = new Set(progR(i).obj || []); return frutosDe(n.nivel).filter(o => ids.has(o.id)).length; };
 const firmaNivel = L => L._firma || (L._firma = M.fnv(JSON.stringify([L.solids.map(q => [q.id, q.x0, q.x1, q.top, q.kind, !!q.fragil]), L.objetos, L.peligros, L.lava, L.goals, L.spawn])));
 function iconoFruto(k, ok, px) {
@@ -295,8 +295,8 @@ function evento(e) {
   else if (e.t === 'fallo') Sound.play('fallo');
   else if (e.t === 'ruta') RUN.rutaVista = e.id;
   else if (e.t === 'recoge') {
-    if (e.kind === 'aljibe') { Sound.play('aljibe'); RUN.avisado = s.agua < 30 && RUN.avisado; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: e.mas > 0 ? (RUN.L.cuerpo ? '💛 +' : '💧 +') + e.mas : TR(RUN.L.cuerpo ? '💛 a tope' : '💧 lleno') }); }
-    else { Sound.play('fruto'); vibrate(15); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.6, v: 0, n: 80, txt: '✨ ' + TR(FRUTOS[e.kind]) }); for (let i = 0; i < 14; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 2.2, v: 0, n: 50, vx: (hash(i * 3 + 1) - 0.5) * 6, vy: 2 + hash(i * 5 + 2) * 4, rot: 6, c: ['#f6d65a', '#fff3b0', '#ffb347'][i % 3] }); }
+    if (e.kind === 'aljibe' || e.kind === 'toma') { Sound.play('aljibe'); RUN.avisado = s.agua < 30 && RUN.avisado; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: e.mas > 0 ? (e.kind === 'toma' ? '🍼 💛 +' : RUN.L.cuerpo ? '💛 +' : '💧 +') + e.mas : TR(RUN.L.cuerpo ? '💛 a tope' : '💧 lleno') }); }
+    else { Sound.play('fruto'); vibrate(15); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.6, v: 0, n: 80, txt: '✨ ' + TR(FRUTOS[e.kind]) + (e.kind === 'biberon' && e.mas > 0 ? ' 💛 +' + e.mas : '') }); for (let i = 0; i < 14; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 2.2, v: 0, n: 50, vx: (hash(i * 3 + 1) - 0.5) * 6, vy: 2 + hash(i * 5 + 2) * 4, rot: 6, c: ['#f6d65a', '#fff3b0', '#ffb347'][i % 3] }); }
   } else if (e.t === 'perdido') { Sound.play('silbido'); vibrate(40); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 90, txt: TR(RUN.L.guia && RUN.L.guia.manada ? '🎵 Has perdido la fila' : '🎵 Has perdido al camellero') }); }
   else if (e.t === 'sofoco') { Sound.play('sofoco'); vibrate(40); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 90, txt: TR('🥵 ¡Qué calor! A la sombra') }); }
   else if (e.t === 'lava') { Sound.play('lava'); vibrate(80); RUN.shake = Math.max(RUN.shake || 0, 1.2); RUN.lavaAviso = performance.now(); }
