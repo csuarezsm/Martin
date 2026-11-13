@@ -1376,7 +1376,7 @@
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
-    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
     if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
       if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
@@ -1389,6 +1389,7 @@
     const ilus = fo && fo[2] && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth;
     if (ilus) { const im = HIST_IMG[fo[0]], kk = Math.max(W / im.naturalWidth, H / im.naturalHeight); ctx.drawImage(im, (W - im.naturalWidth * kk) / 2, (H - im.naturalHeight * kk) / 2, im.naturalWidth * kk, im.naturalHeight * kk); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H);
       if (k === 5) dibujaMartin(ctx, H * 0.055, W * 0.955, H * 0.475, { dir: -1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });   // el último de la fila, al fondo
+      else if (k === 9) dibujaMartin(ctx, H * 0.2, W * 0.5, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });
       else dibujaMartin(ctx, H * 0.11, W * 0.12, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
     if (k === 4 || k === 7) for (let i = 0; i < 3; i++) camelloManada(ctx, W * (0.06 + i * 0.17), suelo, u * 0.62, k === 7 ? null : i * 0.8, 0.95);
     const mx = k === 1 ? W * 0.5 : k === 5 ? W * 0.68 : k === 8 ? W * 0.56 : W * 0.6;

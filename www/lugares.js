@@ -239,7 +239,7 @@
     },
     null, null,
     {
-      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'caravana-paseo.jpg', pos: '30% 50%',
+      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'echadero.jpg', pos: '60% 60%',
       texto: [
         'En Timanfaya, los camellos de Uga pasean a los visitantes: es la actividad turística del sector camellar.',
         'Los primeros paseos a lomo de camello fueron en los años cincuenta.'

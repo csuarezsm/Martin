@@ -499,6 +499,7 @@ function terminar() {
       { const nuevas = descubreEn(RUN.idx).filter(e => !espAntes.has(e)); if (nuevas.length) { nu.especies = nuevas.map(e => (NAT.find(x => x.id === e) || {}).nombre).filter(Boolean); nu.espIds = nuevas; } }
       if (ORDEN.filter(i => premioDe(i) && desbloqueado(i)).length > premioAntes) nu.premio = true;
       if (nu.primera && esM3(RUN.idx) && INFO[RUN.idx].tipo === 'nivel') { const k = +INFO[RUN.idx].num.split('-')[1]; nu.escena = k === 6 ? 8 : k < 6 ? k + 1 : 0; }
+      if (nu.primera && secretoDe(RUN.idx) === 2) nu.escena = 9;
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -616,7 +617,8 @@ const HISTORIA = {
   5: 'Era el último de la fila y el más pequeño. Pero ya conocía el camino.',
   6: 'El verano enseña a buscar la sombra. Y a no alejarse de quien te cuida.',
   7: '12 de agosto. El Sol empezó a apagarse por un borde, como si alguien le diera un bocado. La manada levantó la cabeza. Martín buscó al camellero.',
-  8: 'Los encontró juntos, bajo una media luna de luz. Alguien apretó un botón, y aquel momento se quedó para siempre. Martín existe. Este juego es suyo.'
+  8: 'Los encontró juntos, bajo una media luna de luz. Alguien apretó un botón, y aquel momento se quedó para siempre. Martín existe. Este juego es suyo.',
+  9: 'Por fin, el Echadero. Los camellos de la manada descansan con sus sillas vacías, esperando el trabajo del día. Martín los mira desde abajo: algún día él también será uno de ellos.'
 };
 const historiaVista = k => !!(S.historia && S.historia.includes(k));
 const historiaVistas = () => Object.keys(HISTORIA).map(Number).filter(historiaVista);
@@ -624,7 +626,7 @@ function openHistoria(k, repaso, luego) {
   if (!HISTORIA[k]) { if (luego) luego(); return; }
   S.historia = S.historia || []; if (!S.historia.includes(k)) { S.historia.push(k); save(); }
   const vistas = historiaVistas(), sig = repaso ? vistas[vistas.indexOf(k) + 1] : null;
-  openModal(`<div class="hi"><canvas id="hiC" width="640" height="360" aria-hidden="true"></canvas><p class="hi-t">${esc(HISTORIA[k])}</p><small class="mut">La historia de Martín · ${k}/8</small></div>
+  openModal(`<div class="hi"><canvas id="hiC" width="640" height="360" aria-hidden="true"></canvas><p class="hi-t">${esc(HISTORIA[k])}</p><small class="mut">${k <= 8 ? `La historia de Martín · ${k}/8` : 'La historia de Martín · El Echadero'}</small></div>
     <div class="acts">${sig ? '<button class="btn-ghost" id="hiSig">Siguiente ›</button>' : ''}<button class="btn-gold" id="hiOk">${luego ? 'Seguir ›' : 'Cerrar'}</button></div>`);
   window.Dibujo.dibujaHistoria($('#hiC').getContext('2d'), 640, 360, k);
   const fin = () => { closeModal(); if (luego) luego(); };
