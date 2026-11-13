@@ -1053,15 +1053,20 @@
       for (const [a, b] of pos) esfera(ctx, x + a * r, y + b * r, r * 0.3, '#f0f0a0', '#7f9a2a');
     }
   }
+  const CLL = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: 'camellero-llama.png' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
   const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.png' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.png' }) } : {};
   function dibujaObjetos(ctx, W, H, u, sx, sy, L, st, t) {
     const tom = (st && st.obj) || {};
     for (const it of L.objetos) {
       const x = sx(it.x), y = sy(it.y); if (x < -u * 2 || x > W + u * 2) continue;
-      if (it.kind === 'toma') {   // el camellero, agachado, ofrece el biberón a Martín; cuando bebe, la mano queda vacía
-        const im = tom[it.id] ? CAG.vacio : CAG.lleno, gy = y + u * 0.9, h = u * 1.85;
-        if (im.complete && im.naturalWidth) { const w = h * im.naturalWidth / im.naturalHeight, dcha = x + h * 588 / 640 * 0.88; ctx.drawImage(im, dcha - w, gy - h, w, h); }   // alineados por la derecha (las botas), aunque los dos dibujos no midan lo mismo
-        else camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
+      if (it.kind === 'toma') {   // el camellero llama a Martín con la mano, se agacha cuando se acerca y le ofrece el biberón; cuando bebe, la mano queda vacía
+        const gy = y + u * 0.9, h = u * 2.35 * 506 / 470;
+        if (tom[it.id]) { const im = CAG.vacio; if (im.complete && im.naturalWidth) { const hv = u * 1.85, w = hv * im.naturalWidth / im.naturalHeight, dcha = x + hv * 588 / 640 * 0.88; ctx.drawImage(im, dcha - w, gy - hv, w, hv); } }
+        else if (CLL.complete && CLL.naturalWidth) {
+          const d = it.x - (st ? st.x : -1e9), fw = 360, k = h / 506;
+          const f = d > 9 ? Math.floor(t * 2.5) % 2 : d > 3 ? 2 + Math.min(2, Math.floor((9 - d) / 2)) : 5 + Math.floor(t * 2.5) % 3;
+          ctx.drawImage(CLL, f * fw, 0, fw, 506, x - 100 * k, gy - 503 * k, fw * k, 506 * k);
+        } else camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
         continue;
       }
       if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
