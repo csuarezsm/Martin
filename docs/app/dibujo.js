@@ -582,10 +582,8 @@
     { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
     { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
-    // Mundo 3: las calles de Uga
-    { src: 'paisaje-calle-iglesia.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 0, 11, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
+    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 0, 0, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
