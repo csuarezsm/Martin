@@ -299,7 +299,9 @@
   const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
   // el paso del camellero: 8 dibujos (camellero-paso.png, 328×650 cada uno): un ciclo completo, las dos piernas
   const CW = { img: null, ok: false, n: 8, fw: 328, fh: 650, ax: 157, ay: 646, alto: 2.35, pie: 0, cache: {} };
-  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
+  // subir y bajar un escalón (8 dibujos cada uno, a la misma escala que el paso: el camellero no cambia de tamaño)
+  const CSU = { img: null, ok: false, n: 8, fw: 360, fh: 650, ax: 170, ay: 646, alto: 2.35, pie: 0, cache: {} }, CBA = { img: null, ok: false, n: 8, fw: 360, fh: 650, ax: 170, ay: 646, alto: 2.35, pie: 0, cache: {} };
+  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png'], [CSU, 'camellero-sube.png'], [CBA, 'camellero-baja.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
     const s = k / GW.fh, c = document.createElement('canvas'); c.width = Math.ceil(GW.fw * GW.n * s); c.height = k;
@@ -1402,6 +1404,21 @@
       }
     }
   }
+  // el camellero que guía sube o baja un escalón (piedra o bordillo) poco a poco y con sus propios dibujos, en vez de aparecer arriba de golpe
+  const TRAMO = 1.3;   // tramo (en unidades) que dura el paso de subir o de bajar
+  function camelleroEscalon(ctx, x, sy, top, gx, u) {
+    const h0 = top(gx); let SP = null, p = 0, ya = h0, yb = h0;
+    for (let d = 0.1; d <= TRAMO + 0.01; d += 0.1) {
+      const ha = top(gx + d); if (ha > h0 + 0.25) { SP = CSU; p = 1 - d / TRAMO; yb = ha; break; }          // sube: el escalón está delante
+      const hb = top(gx - d); if (hb > h0 + 0.25) { SP = CBA; p = d / TRAMO; ya = hb; break; }              // baja: acaba de pasar el borde
+    }
+    if (!SP || !SP.ok) return false;
+    const q = SP === CSU ? Math.min(1, Math.max(0, (p - 0.5) / 0.5)) : Math.min(1, Math.max(0, (p - 0.15) / 0.55)), e = q * q * (3 - 2 * q);
+    const gy = sy(SP === CSU ? h0 + (yb - h0) * e : ya + (h0 - ya) * e), f = Math.min(7, Math.floor(p * 8));
+    const c = pasoEscalado(SP.alto * u, SP), s = c.s, fw = SP.fw * s;
+    ctx.drawImage(c, f * fw, 0, fw, c.height, x - SP.ax * s, gy - SP.ay * s, fw, c.height);
+    return true;
+  }
   // capa por encima de la escena: el camellero o la manada, la escultura y los camellos del Echadero (no cambia nada de las reglas)
   function dibujaMundo3(ctx, W, H, u, cam, L, st, t) {
     const sx = wx => (wx - cam.x) * u, sy = wy => H - (wy - cam.y) * u;
@@ -1413,7 +1430,7 @@
       const gx = st.guia, PA0 = G.paradas || [], anda = gx < G.hasta && (st.fase === 'jugando') && !(st.gp < PA0.length && gx >= PA0[st.gp] - 0.01), f = gx * 1.9;
       for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
       const PA = G.paradas || [], espera = st.gp < PA.length && gx >= PA[st.gp] - 0.01;
-      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) { if (espera && CLL.complete && CLL.naturalWidth) camelleroBiberon(ctx, x, sy(top(gx)), u, gx - st.x, t); else camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 7.3 : 0, 1); }
+      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) { if (espera && CLL.complete && CLL.naturalWidth) camelleroBiberon(ctx, x, sy(top(gx)), u, gx - st.x, t); else if (!(anda && camelleroEscalon(ctx, x, sy, top, gx, u * 0.95))) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 7.3 : 0, 1); }
     } else if (L.camellero != null || L.cuerpo) { const cx = L.camellero != null ? L.camellero : L.goals.finish_x + 1.5, x = sx(cx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(cx, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
   // eclipse del 12 de agosto (parcial en Lanzarote, a la caída de la tarde): la luz baja y se enfría poco a poco y el Sol se vuelve media luna
