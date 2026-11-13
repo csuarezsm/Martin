@@ -718,7 +718,17 @@
     ctx.fillStyle = 'rgba(255,255,255,.18)'; for (let k = 0; k < 6; k++) { const q = hash(Math.floor(wx0 * 10) + k), x = x0 + (x1 - x0) * ((q + t * 0.03 * (k % 2 ? 1 : -1)) % 1 + 1) % 1, y = ys + u * (0.5 + hash(k + 7) * 2.2); ctx.fillRect(x, y, u * 0.5, Math.max(1, u * 0.04)); }
   }
   /* 3.1 · Barca de pesca de Lanzarote (casco blanco con franjas de color) que va y viene de muelle a muelle */
+  // barca ilustrada (barca.png, 600×300): la cubierta pisable va de x 106,5 a 582,4 y está a y 192 del dibujo
+  const BARCA = { img: null, ok: false, d0: 106.5, d1: 582.4, dy: 192.1 };
+  if (typeof Image !== 'undefined') { BARCA.img = new Image(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.png'; }
   function dibujaBarca(ctx, s, u, sx, sy, t) {
+    if (BARCA.ok) {
+      const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), k = (x1 - x0) / (BARCA.d1 - BARCA.d0), im = BARCA.img;
+      ctx.fillStyle = 'rgba(0,30,50,.3)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, yd + u * 0.62, (x1 - x0) * 0.55, u * 0.1, 0, 0, TAU); ctx.fill();
+      ctx.drawImage(im, x0 - BARCA.d0 * k, yd - BARCA.dy * k, im.width * k, im.height * k);
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = Math.max(1, u * 0.05); ctx.beginPath(); const yw = yd + u * 0.5 + Math.sin(t * 2.2) * u * 0.05; ctx.moveTo(x0 - u * 0.3, yw); ctx.quadraticCurveTo((x0 + x1) / 2, yw + u * 0.06, x1 + u * 0.2, yw); ctx.stroke();   // espuma
+      return;
+    }
     const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), h = u * 0.85, w = x1 - x0;
     const casco = () => { ctx.beginPath(); ctx.moveTo(x0 - u * 0.12, yd - u * 0.14); ctx.lineTo(x1 + u * 0.3, yd - u * 0.26); ctx.quadraticCurveTo(x1 + u * 0.05, yd + h * 0.8, x1 - w * 0.22, yd + h); ctx.lineTo(x0 + w * 0.12, yd + h); ctx.quadraticCurveTo(x0 - u * 0.1, yd + h * 0.55, x0 - u * 0.12, yd - u * 0.14); ctx.closePath(); };
     ctx.fillStyle = 'rgba(0,30,50,.35)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, yd + h * 0.95, w * 0.6, u * 0.12, 0, 0, TAU); ctx.fill();
