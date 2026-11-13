@@ -74,7 +74,13 @@
       if (s.kind === 'rock') {
         let base = L.world.kill_y;
         for (const g of L.solids) if (g.kind === 'ground' && g.x0 < s.x1 && g.x1 > s.x0 && g.top < s.top && g.top > base) base = g.top;
-        sc.rocas.push({ id: s.id, base });
+        // piedra entre dos tramos de suelo (debajo no hay suelo): se apoya en el suelo de los lados, que sigue por debajo de ella sin escalón
+        let relleno = null;
+        if (base === L.world.kill_y) {
+          const I = L.solids.find(g => g.kind === 'ground' && Math.abs(g.x1 - s.x0) < 0.06 && g.top < s.top), D = L.solids.find(g => g.kind === 'ground' && Math.abs(g.x0 - s.x1) < 0.06 && g.top < s.top);
+          if (I || D) { base = I ? I.top : D.top; relleno = { kind: 'ground', id: s.id + '-suelo', x0: s.x0 - 0.03, x1: s.x1 + 0.03, top: base, bot: -1e9 }; }
+        }
+        sc.rocas.push({ id: s.id, base, relleno });
       }
     }
     for (const o of L.obstacles || []) if (o.kind === 'gap') {
@@ -586,10 +592,10 @@
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
     { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
     // Mundo 3: las calles de Uga (panorámicas)
-    { src: 'paisaje-uga-iglesia.jpg', esc: 0.68, cielo: ['#217fd2', '#217fd2'] },
-    { src: 'paisaje-uga-calle.jpg', esc: 0.68, cielo: ['#1785f3', '#1785f3'] },
-    { src: 'paisaje-uga-vallito.jpg', esc: 0.68, cielo: ['#0e7ff4', '#0e7ff4'] },
-    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#2c74b0', '#2c74b0'] }],
+    { src: 'paisaje-uga-iglesia.jpg', esc: 0.68, cielo: ['#1484f2', '#1484f2'] },
+    { src: 'paisaje-uga-calle.jpg', esc: 0.68, cielo: ['#027df2', '#027df2'] },
+    { src: 'paisaje-uga-vallito.jpg', esc: 0.68, cielo: ['#037cf4', '#037cf4'] },
+    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#077df8', '#077df8'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
@@ -660,7 +666,7 @@
     else { const pp = (cam.x * u * 0.18) % Math.max(1, 2 * sobra); off = pp < sobra ? pp : 2 * sobra - pp; }
     ctx.drawImage(F.tile, -off, top, ancho + 1, dib);
     if (F.agua && !(typeof window !== 'undefined' && window.SIN_OLAS)) dibujaOlas(ctx, F.agua, -off, top, k, t, W);
-    if (top > 0) { const fz = alto * 0.14, gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
+    if (top > 0) { const fz = alto * (F.esc ? 0.32 : 0.14), gf = ctx.createLinearGradient(0, top - 1, 0, top + fz); gf.addColorStop(0, F.cielo[1]); gf.addColorStop(0.3, F.cielo[1] + '80'); gf.addColorStop(1, F.cielo[1] + '00'); ctx.fillStyle = gf; ctx.fillRect(0, top - 1, W, fz + 1); }   // empalme suave entre el cielo y el dibujo
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
@@ -879,7 +885,7 @@
   function dibujaRoca(ctx, s, base, W, H, u, sx, sy) {
     if (FLO.ok) { const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = sy(base), m = FLO.m.roca, w = x1 - x0, h = yb - yt, sp = u * 0.25;
       ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x0 + w / 2, yb, w * 0.62, u * 0.13, 0, 0, TAU); ctx.fill();
-      ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], x0 - sp, yt - h * 0.08, w + sp * 2, h * 1.12); return; }
+      ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], x0 - sp, yt - h * 0.08, w + sp * 2, h * 1.12 + u * 0.22); return; }   // un poco hundida en la tierra: asienta y no parece aplastada
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = sy(base), w = x1 - x0, h = yb - yt, sd = Math.floor(s.x0 * 7);
     const P = [[0, 1], [0.0, 0.3], [0.1, 0.08], [0.32, 0.0], [0.58, 0.05], [0.82, 0.02], [1.0, 0.22], [1.0, 1]];
     const pts = P.map(([a, b], i) => [x0 + w * (a + (i > 0 && i < 6 ? (hash(sd + i) - 0.5) * 0.04 : 0)), yt + h * (b + (i > 0 && i < 6 ? hash(sd + i + 9) * 0.03 : 0))]);
@@ -1182,7 +1188,7 @@
       const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.35)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       ctx.strokeStyle = 'rgba(90,50,40,.5)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let k = 1; k < 5; k++) { const y = yt + u * k * 1.1; if (y > H) break; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + (k % 2 ? u * 0.1 : -u * 0.1)); ctx.stroke(); }
     }
-    const st = esc.s; vecinos(L.solids);
+    const st = esc.s; if (!esc.solCon) esc.solCon = L.solids.concat(esc.rocas.filter(r => r.relleno).map(r => r.relleno)); vecinos(esc.solCon);
     for (const s of L.solids) {
       const x0 = sx(s.x0), x1 = sx(s.x1); if (x1 < -4 || x0 > W + 4) continue;
       let jit = 0;
@@ -1197,6 +1203,7 @@
         for (let wx = Math.ceil(s.x0 * 2) / 2; wx < s.x1; wx += 0.5) { const px = sx(wx); if (px < -4 || px > W + 4) continue; const k = Math.floor(wx * 2), q = Math.sin(t * 2.2 + k * 1.7); if (q > 0.8) { const r = u * 0.05 * (q - 0.8) * 5; ctx.fillRect(px - r, yt - u * 0.02, r * 2, u * 0.03); ctx.fillRect(px - u * 0.012, yt - r, u * 0.024, r * 2); } }
       }
       else if (s.kind === 'rock') { const r = esc.rocas.find(q => q.id === s.id), base = r ? r.base : s.top - 1;
+        if (r && r.relleno) dibujaSuelo(ctx, r.relleno, W, H, u, cam, sx, sy, TX);
         if (s.top - base > 1.7) { dibujaSuelo(ctx, { x0: s.x0, x1: s.x1, top: s.top - 1.1, bot: -1e9 }, W, H, u, cam, sx, sy, TX); dibujaRoca(ctx, s, s.top - 1.2, W, H, u, sx, sy); }
         else dibujaRoca(ctx, s, base, W, H, u, sx, sy); }
       else if (s.kind === 'oneway') { if (esc.tema === 9 && s.route && FLO.ok) dibujaCopa(ctx, s, W, H, u, sx, sy, L, t); else dibujaRepisa(ctx, s, W, H, u, sx, sy); }
@@ -1422,7 +1429,9 @@
   // capa por encima de la escena: el camellero o la manada, la escultura y los camellos del Echadero (no cambia nada de las reglas)
   function dibujaMundo3(ctx, W, H, u, cam, L, st, t) {
     const sx = wx => (wx - cam.x) * u, sy = wy => H - (wy - cam.y) * u;
-    const top = x => { let b = null; for (const s of L.solids) if (s.kind !== 'oneway' && s.x0 <= x && s.x1 >= x && (b == null || s.top > b)) b = s.top; return b == null ? 0 : b; };
+    const suelo = x => { let b = null; for (const s of L.solids) if (s.kind !== 'oneway' && s.x0 <= x && s.x1 >= x && (b == null || s.top > b)) b = s.top; return b; };
+    // en un agujero no hay suelo: el camellero y la manada lo cruzan a la altura de los bordes (de un paso), sin hundirse en él
+    const top = x => { const b = suelo(x); if (b != null) return b; let a = null, c = null; for (let d = 0.2; d <= 4 && (a == null || c == null); d += 0.2) { if (a == null) a = suelo(x - d); if (c == null) c = suelo(x + d); } return a == null && c == null ? 0 : Math.max(a == null ? -99 : a, c == null ? -99 : c); };
     if (L.escultura != null) { const x = sx(L.escultura); if (x > -u * 5 && x < W + u * 5) escultura(ctx, x, sy(top(Math.min(L.escultura, L.world.max_x - 0.5))), u); }
     if (L.manadaFin) for (let k = 0; k < 4; k++) { const wx = L.goals.finish_x + 1.5 + k * 2.6, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(Math.min(wx, L.world.max_x - 0.5))), u * 0.95, null, 0.95); }
     const G = L.guia;
