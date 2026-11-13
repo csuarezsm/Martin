@@ -218,7 +218,19 @@
         ['Ayuntamiento de Yaiza: los paseos a camello en Timanfaya', 'https://yaiza.es/yaiza-promueve-la-declaracion-de-los-paseos-a-camello-en-timanfaya-como-patrimonio-de-interes-social-y-cultural/']
       ]
     },
-    null,
+    {
+      lugar: 'Uga', titulo: 'El mercado del pueblo', img: 'mercado-uga.jpg', pos: '70% 50%',
+      texto: [
+        'El Mercado Municipal de Uga está junto a la iglesia del pueblo y abre los sábados y los domingos.',
+        'Vende productos de kilómetro cero: frutas, verduras, quesos, carnes, pan, dulces, mermeladas, infusiones y artesanía.'
+      ],
+      dato: 'El Ayuntamiento de Yaiza invirtió 70.000 euros en mejorar el edificio y comprar maquinaria, y el mercado volvió a abrir en octubre de 2022.',
+      fuentes: [
+        ['Ayuntamiento de Yaiza: Mercado Municipal de Uga', 'https://yaiza.es/mercado-municipal-de-uga/'],
+        ['Ayuntamiento de Yaiza: el Mercado de Uga se viste de fiesta', 'https://yaiza.es/el-mercado-de-uga-se-viste-de-fiesta-este-fin-de-semana/'],
+        ['Ayuntamiento de Yaiza: degustación en el Mercado de Uga', 'https://yaiza.es/degustacion-de-productos-tipicos-este-sabado-en-el-mercado-de-uga/']
+      ]
+    },
     {
       lugar: 'El Vallito de Uga', titulo: 'Donde vive la manada', img: 'paisaje-uga.jpg', pos: '75% 55%',
       texto: [
