@@ -57,7 +57,7 @@
         for (let i = 0; i < 160; i++) { const x = hash(i * 5 + 1) * w, y = hash(i * 5 + 2) * h; g.fillStyle = hash(i * 5 + 3) < 0.5 ? 'rgba(255,190,120,.18)' : 'rgba(60,20,10,.22)'; g.fillRect(x, y, 1 + hash(i) * 3, 1 + hash(i + 9) * 2); }
       });
       // texturas pintadas sacadas de los paisajes (mismo estilo que el fondo)
-      for (const [k, src] of [['tierraP', 'suelo-tierra.jpg'], ['lavaP', 'suelo-lava.jpg']]) { const im = new Image(); im.onload = () => { TEX[k] = im; }; im.src = src; }
+      for (const [k, src] of [['tierraP', 'suelo-tierra.webp'], ['lavaP', 'suelo-lava.webp']]) { const im = new Image(); im.onload = () => { TEX[k] = im; }; im.src = src; }
     } catch (e) { TEX = {}; }
     return TEX;
   }
@@ -190,13 +190,13 @@
 
   }
 
-  /* Martín a partir de la ilustración (camello.png, 551×560, mirando a la derecha). Si aún no ha cargado, se usa el dibujo vectorial. */
+  /* Martín a partir de la ilustración (camello.webp, 551×560, mirando a la derecha). Si aún no ha cargado, se usa el dibujo vectorial. */
   const SPR = { img: null, ok: false, cache: {}, ax: 232, ay: 553, alto: 2.4, win: [184, 315, 19, 32], cad: 366, cx0: 172, cx1: 236,
     // altura de las pezuñas en el dibujo (en perspectiva las traseras quedan más arriba): se estiran sus columnas hasta el suelo
     corte: [[235, 340], [222, 440], [214, 465], [200, 485], [196, 600]],
     pies: [[0, 484], [120, 484], [165, 500], [200, 520], [270, 522], [320, 553], [551, 553]] };
   const pieY = x => { const P = SPR.pies; for (let i = 1; i < P.length; i++) if (x <= P[i][0]) { const a = P[i - 1], b = P[i], q = (x - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * q; } return 553; };
-  if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.png'; }
+  if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.webp'; }
   function sprEscalado(hp) {
     const k = Math.max(16, Math.round(hp)); if (SPR.cache[k]) return SPR.cache[k];
     const s = k / 560, c = document.createElement('canvas'); c.width = Math.ceil(551 * s); c.height = k;
@@ -270,13 +270,13 @@
     ctx.restore();
   }
 
-  /* Martín de guelfo (Mundo 3): ilustración guelfo.png (461×640, mirando a la derecha, las cuatro pezuñas en la misma línea).
+  /* Martín de guelfo (Mundo 3): ilustración guelfo.webp (461×640, mirando a la derecha, las cuatro pezuñas en la misma línea).
      Las patas se mueven inclinando la franja de debajo de la cadera: traseras y delanteras a contratiempo. Los fotogramas se pintan una vez y se guardan. */
   const GSP0 = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 376, corte: 0.45, cache: {}, paso: 0.24, alza: 0.1,
     patas: [[0, 95, 0, 0], [95, 125, 0, 1], [125, 240, 1, 1], [240, 290, 1, 0], [290, 461, 0, 0]] };
-  const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.png'; }
-  const CSP = { img: null, ok: false, w: 380, h: 640, ax: 190, ay: 636, alto: 2.25, cad: 330, corte: 0.5, cache: {} };   // el camellero (camellero.png, 380×640, de lado mirando a la derecha)
-  if (typeof Image !== 'undefined') { CSP.img = new Image(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.png'; }
+  const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.webp'; }
+  const CSP = { img: null, ok: false, w: 380, h: 640, ax: 190, ay: 636, alto: 2.25, cad: 330, corte: 0.5, cache: {} };   // el camellero (camellero.webp, 380×640, de lado mirando a la derecha)
+  if (typeof Image !== 'undefined') { CSP.img = new Image(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.webp'; }
   function guelfoFoto(hp, clave, ang, GSP) {
     const k = Math.max(16, Math.round(hp)), C = GSP.cache[k] || (GSP.cache[k] = {});
     if (!C.base) {
@@ -302,13 +302,13 @@
     } else for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
     return (C[clave] = f);
   }
-  // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
+  // el paso del guelfo: 12 dibujos (guelfo-paso.webp, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
   const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
-  // el paso del camellero: 8 dibujos (camellero-paso.png, 328×650 cada uno): un ciclo completo, las dos piernas
-  const CW = { img: null, ok: false, n: 8, fw: 328, fh: 650, ax: 157, ay: 646, alto: 2.35, pie: 0, cache: {} };
+  // el paso del camellero: 8 dibujos (camellero-paso.webp, 328×650 cada uno): un ciclo completo, las dos piernas
+  const CW = { img: null, ok: false, n: 8, fw: 205, fh: 406, ax: 98, ay: 404, alto: 2.35, pie: 0, cache: {} };   // hoja a 0,625 (3.3): pesa y gasta menos y en pantalla se ve igual
   // subir y bajar un escalón (8 dibujos cada uno, a la misma escala que el paso: el camellero no cambia de tamaño)
-  const CSU = { img: null, ok: false, n: 8, fw: 360, fh: 650, ax: 170, ay: 646, alto: 2.35, pie: 0, cache: {} }, CBA = { img: null, ok: false, n: 8, fw: 360, fh: 650, ax: 170, ay: 646, alto: 2.35, pie: 0, cache: {} };
-  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png'], [CSU, 'camellero-sube.png'], [CBA, 'camellero-baja.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
+  const CSU = { img: null, ok: false, n: 8, fw: 225, fh: 406, ax: 106, ay: 404, alto: 2.35, pie: 0, cache: {} }, CBA = { img: null, ok: false, n: 8, fw: 225, fh: 406, ax: 106, ay: 404, alto: 2.35, pie: 0, cache: {} };
+  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.webp'], [CW, 'camellero-paso.webp'], [CSU, 'camellero-sube.webp'], [CBA, 'camellero-baja.webp']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
     const s = k / GW.fh, c = document.createElement('canvas'); c.width = Math.ceil(GW.fw * GW.n * s); c.height = k;
@@ -577,28 +577,28 @@
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, by + u * 0.8, W, H);
   }
 
-  /* Paisaje ilustrado (paisaje.jpg, 1672×640): se repite en espejo para que empalme sin cortes y se desplaza despacio (paralaje) */
+  /* Paisaje ilustrado (paisaje.webp, 1672×640): se repite en espejo para que empalme sin cortes y se desplaza despacio (paralaje) */
   // un paisaje por nivel: Uga, tras la tormenta, Timanfaya, La Geria (la hoya), la costa y el atardecer
   const PAI = { w: 1672, h: 640, suelo: null, fotos: [
-    { src: 'paisaje-uga.jpg', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
-    { src: 'paisaje.jpg', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
-    { src: 'paisaje-timanfaya.jpg', cielo: ['#006fae', '#0182bf'] },
-    { src: 'paisaje-geria.jpg', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
-    { src: 'paisaje-costa.jpg', mar: [0.42, 1], cielo: ['#1688d0', '#209be4'] },
-    { src: 'paisaje-ocaso.jpg', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
+    { src: 'paisaje-uga.webp', ini: 0.36, fin: 0.83, cielo: ['#0070c8', '#0281d4'] },
+    { src: 'paisaje.webp', ini: 0.24, fin: 0.9, cielo: ['#0070e0', '#028dfc'] },
+    { src: 'paisaje-timanfaya.webp', cielo: ['#006fae', '#0182bf'] },
+    { src: 'paisaje-geria.webp', ini: 0.34, cielo: ['#1a96b8', '#25aac6'] },
+    { src: 'paisaje-costa.webp', mar: [0.42, 1], cielo: ['#1688d0', '#209be4'] },
+    { src: 'paisaje-ocaso.webp', ini: 0.17, cielo: ['#41629c', '#6b8ccc'] },
     // Mundo 2: El Golfo, Janubio, Famara, Haría y el Mirador del Río
-    { src: 'paisaje-golfo.jpg', mar: [0.5, 1], cielo: ['#007cf0', '#008bfd'] },
-    { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
-    { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
-    { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
+    { src: 'paisaje-golfo.webp', mar: [0.5, 1], cielo: ['#007cf0', '#008bfd'] },
+    { src: 'paisaje-janubio.webp', cielo: ['#007cf0', '#0089fe'] },
+    { src: 'paisaje-famara.webp', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
+    { src: 'paisaje-haria.webp', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
+    { src: 'paisaje-mirador.webp', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
     // Mundo 3: las calles de Uga (panorámicas)
-    { src: 'paisaje-uga-iglesia.jpg', esc: 0.68, cielo: ['#1484f2', '#1484f2'] },
-    { src: 'paisaje-uga-calle.jpg', esc: 0.68, cielo: ['#027df2', '#027df2'] },
-    { src: 'paisaje-uga-vallito.jpg', esc: 0.68, cielo: ['#037cf4', '#037cf4'] },
-    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#077df8', '#077df8'] },
+    { src: 'paisaje-uga-iglesia.webp', esc: 0.68, cielo: ['#1484f2', '#1484f2'] },
+    { src: 'paisaje-uga-calle.webp', esc: 0.68, cielo: ['#027df2', '#027df2'] },
+    { src: 'paisaje-uga-vallito.webp', esc: 0.68, cielo: ['#037cf4', '#037cf4'] },
+    { src: 'paisaje-uga-mercado.webp', esc: 0.68, cielo: ['#077df8', '#077df8'] },
     // 3.3: el jable de Famara (dunas con el risco al fondo)
-    { src: 'paisaje-jable.jpg', esc: 0.8, cielo: ['#4db6fc', '#4db6fc'] }],
+    { src: 'paisaje-jable.webp', esc: 0.8, cielo: ['#4db6fc', '#4db6fc'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6, 15] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
@@ -675,7 +675,7 @@
   }
   // textura de arena de verdad (sacada de las ilustraciones del jable): se repite sin costuras
   const ARENA = { img: null, ok: false };
-  if (typeof Image !== 'undefined') { ARENA.img = new Image(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.jpg'; }
+  if (typeof Image !== 'undefined') { ARENA.img = new Image(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.webp'; }
   /* 3.1 · Jable de Famara: arena dorada con rizos del viento. Sirve para las dunas (cuesta) y para el suelo llano de arena */
   function dibujaArena(ctx, s, W, H, u, sx, sy) {
     const x0 = sx(s.x0), x1 = sx(s.x1), a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
@@ -718,9 +718,9 @@
     ctx.fillStyle = 'rgba(255,255,255,.18)'; for (let k = 0; k < 6; k++) { const q = hash(Math.floor(wx0 * 10) + k), x = x0 + (x1 - x0) * ((q + t * 0.03 * (k % 2 ? 1 : -1)) % 1 + 1) % 1, y = ys + u * (0.5 + hash(k + 7) * 2.2); ctx.fillRect(x, y, u * 0.5, Math.max(1, u * 0.04)); }
   }
   /* 3.1 · Barca de pesca de Lanzarote (casco blanco con franjas de color) que va y viene de muelle a muelle */
-  // barca ilustrada (barca.png, 600×300): la cubierta pisable va de x 106,5 a 582,4 y está a y 192 del dibujo
+  // barca ilustrada (barca.webp, 600×300): la cubierta pisable va de x 106,5 a 582,4 y está a y 192 del dibujo
   const BARCA = { img: null, ok: false, d0: 106.5, d1: 582.4, dy: 192.1 };
-  if (typeof Image !== 'undefined') { BARCA.img = new Image(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.png'; }
+  if (typeof Image !== 'undefined') { BARCA.img = new Image(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.webp'; }
   function dibujaBarca(ctx, s, u, sx, sy, t) {
     if (BARCA.ok) {
       const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), k = (x1 - x0) / (BARCA.d1 - BARCA.d0), im = BARCA.img;
@@ -805,10 +805,10 @@
   }
 
   /* ---- Primer plano ---- */
-  /* Plantas y piedras de Lanzarote dibujadas (flora.png): [x, y, ancho, alto] en el atlas y altura en el mundo */
+  /* Plantas y piedras de Lanzarote dibujadas (flora.webp): [x, y, ancho, alto] en el atlas y altura en el mundo */
   const FLO = { ok: false, img: null, m: {"palmera": [0, 0, 203, 179, 3.3], "tabaibal": [205, 0, 227, 164, 1.6], "tunera": [434, 0, 172, 158, 1.5], "pita": [608, 0, 188, 143, 1.25], "vid": [798, 0, 200, 124, 1.0], "vid2": [0, 470, 200, 124, 1.0], "aloe": [0, 181, 147, 116, 1.3], "gris": [149, 181, 166, 112, 1.0], "bejeque": [317, 181, 160, 110, 1.05], "aulaga": [479, 181, 156, 110, 1.0], "morada": [637, 181, 143, 106, 0.95], "muro": [782, 181, 210, 106, 0.9], "salado": [0, 299, 145, 104, 0.9], "roca": [147, 299, 151, 104, 1.0], "hierba": [300, 299, 120, 84, 0.8], "piedra": [422, 299, 104, 80, 0.6], "rosas": [528, 299, 120, 80, 0.55], "amarillas": [650, 299, 135, 73, 0.5], "piedras": [787, 299, 112, 64, 0.45], "rojas": [0, 405, 152, 62, 0.45]},
     por: { tunera: ['tunera', 'tunera', 'bejeque', 'aloe'], cardon: ['tabaibal', 'aulaga', 'morada', 'gris', 'salado', 'bejeque', 'vid', 'palmera'], pita: ['pita', 'aloe'], piedra: ['piedra', 'piedras', 'roca', 'piedra'], flor: ['rojas', 'amarillas', 'rosas', 'hierba'] } };
-  if (typeof Image !== 'undefined') { FLO.img = new Image(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.png'; }
+  if (typeof Image !== 'undefined') { FLO.img = new Image(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.webp'; }
   function decoSprite(ctx, d, x, y, u) {
     const l = FLO.por[d.t]; if (!l) return false;
     let n = l[Math.floor(hash(Math.floor(d.x * 7) + 5) * l.length)];
@@ -1134,8 +1134,8 @@
       for (const [a, b] of pos) esfera(ctx, x + a * r, y + b * r, r * 0.3, '#f0f0a0', '#7f9a2a');
     }
   }
-  const CLL = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: 'camellero-llama.png' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
-  const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.png' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.png' }) } : {};
+  const CLL = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: 'camellero-llama.webp' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
+  const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.webp' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.webp' }) } : {};
   // el camellero llama con la mano, se agacha según se acerca Martín (d = distancia) y le ofrece el biberón; mismo tamaño que cuando camina
   function camelleroBiberon(ctx, x, gy, u, d, t) {
     const h = u * 0.95 * CW.alto * 506 / 500, k = h / 506, fw = 360;
@@ -1539,7 +1539,7 @@
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
-    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['escena-biberon.jpg', 'rgba(0,0,0,0)', 1], 3: ['escena-calle-farolas.jpg', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    const fotos = { 1: ['paisaje-uga.webp', 'rgba(20,24,70,.55)'], 2: ['escena-biberon.webp', 'rgba(0,0,0,0)', 1], 3: ['escena-calle-farolas.webp', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.webp', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.webp', 'rgba(255,190,140,.06)', 1], 9: ['echadero.webp', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.webp', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.webp', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.webp', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
     if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
       if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }

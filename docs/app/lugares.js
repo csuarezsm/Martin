@@ -5,7 +5,7 @@
 (function () {
   window.LUGARES = [
     {
-      lugar: 'Uga', titulo: 'El pueblo de los camellos', img: 'paisaje-uga.jpg', pos: '60% 40%',
+      lugar: 'Uga', titulo: 'El pueblo de los camellos', img: 'paisaje-uga.webp', pos: '60% 40%',
       texto: [
         'Uga es un pequeño pueblo del municipio de Yaiza, en el sur de Lanzarote.',
         'En una isla donde casi no llueve, cada gota cuenta: en Uga los tejados se hacían inclinados para llevar el agua de lluvia a un aljibe.',
@@ -20,7 +20,7 @@
       ]
     },
     {
-      lugar: 'Tiagua y Teguise', titulo: 'Los molinos de gofio', img: 'paisaje.jpg', pos: '85% 30%',
+      lugar: 'Tiagua y Teguise', titulo: 'Los molinos de gofio', img: 'paisaje.webp', pos: '85% 30%',
       texto: [
         'El gofio fue el alimento básico de la gente de Lanzarote, y los molinos de viento, la industria que lo producía. Se hace moliendo grano: millo, trigo, cebada o garbanzos.',
         'El molino típico de Lanzarote es una torre de planta circular: es la construcción más característica de la producción de cereales en la isla. El antiguo molino de La Villa de Teguise, del siglo XIX, tiene dos pisos.',
@@ -34,7 +34,7 @@
       ]
     },
     {
-      lugar: 'Timanfaya', titulo: 'Las Montañas del Fuego', img: 'paisaje-timanfaya.jpg', pos: '30% 40%',
+      lugar: 'Timanfaya', titulo: 'Las Montañas del Fuego', img: 'paisaje-timanfaya.webp', pos: '30% 40%',
       texto: [
         'La noche del 1 de septiembre de 1730, entre las nueve y las diez, la tierra se abrió de pronto cerca de Timanfaya, a dos leguas de Yaiza. Las erupciones siguieron hasta 1736.',
         'Las erupciones afectaron a unos 174 km², una cuarta parte de la isla. La lava destruyó pueblos como Maretas y Santa Catalina, y cubrió el de Mazo.',
@@ -49,7 +49,7 @@
       ]
     },
     {
-      lugar: 'La Geria', titulo: 'Viñas en la ceniza', img: 'paisaje-geria.jpg', pos: '55% 50%',
+      lugar: 'La Geria', titulo: 'Viñas en la ceniza', img: 'paisaje-geria.webp', pos: '55% 50%',
       texto: [
         'Las erupciones de Timanfaya, entre 1730 y 1736, cubrieron estas tierras con una gruesa capa de ceniza volcánica: el picón.',
         'Para plantar las parras se excava la capa de picón, de unos dos metros y medio, hasta llegar a la tierra que quedó enterrada. El hoyo suele protegerse del viento con un pequeño muro de piedra.',
@@ -63,7 +63,7 @@
       ]
     },
     {
-      lugar: 'Los Hervideros', titulo: 'Donde el mar hierve', img: 'paisaje-costa.jpg', pos: '60% 50%',
+      lugar: 'Los Hervideros', titulo: 'Donde el mar hierve', img: 'paisaje-costa.webp', pos: '60% 50%',
       texto: [
         'Los Hervideros son un tramo de acantilados en la costa de Yaiza, en el suroeste de Lanzarote.',
         'Se formaron con las erupciones de 1730-1736: es una costa de acantilados con cuevas y bufaderos, que el mar sigue erosionando con fuerza.',
@@ -78,7 +78,7 @@
       ]
     },
     {
-      lugar: 'Teguise', titulo: 'La antigua capital', img: 'paisaje-ocaso.jpg', pos: '50% 40%',
+      lugar: 'Teguise', titulo: 'La antigua capital', img: 'paisaje-ocaso.webp', pos: '50% 40%',
       texto: [
         'La Villa de Teguise la fundó a mediados del siglo XV Maciot de Béthencourt, sobre la antigua aldea aborigen de Acatife, o Gran Aldea. Su nombre recuerda a la hija de Guadarfía, el último rey aborigen.',
         'Fue la capital de Lanzarote hasta 1852, cuando la capitalidad pasó a Arrecife. Atrajo a los piratas, que la saquearon varias veces; en la montaña de Guanapay se levantó el castillo de Santa Bárbara.',
@@ -94,7 +94,7 @@
       ]
     },
     {
-      lugar: 'El Golfo', titulo: 'La laguna verde', img: 'paisaje-golfo.jpg', pos: '35% 60%',
+      lugar: 'El Golfo', titulo: 'La laguna verde', img: 'paisaje-golfo.webp', pos: '35% 60%',
       texto: [
         'Junto al pueblo pesquero de El Golfo, en la costa de Yaiza, queda la mitad del cráter de un volcán de las erupciones de 1730-1736: el mar ha ido erosionando la otra mitad.',
         'Dentro hay una laguna, el Charco de los Clicos o Charco Verde, unida al mar por grietas bajo tierra. Una playa de arena negra de unos 300 metros la separa del océano. Su color verde se debe a la gran cantidad de organismos vegetales que flotan en el agua.',
@@ -109,7 +109,7 @@
       ]
     },
     {
-      lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-janubio.jpg', pos: '45% 70%',
+      lugar: 'Salinas de Janubio', titulo: 'El jardín de sal', img: 'paisaje-janubio.webp', pos: '45% 70%',
       texto: [
         'En la costa de Yaiza están las salinas más grandes de Canarias. Empezaron a funcionar como salinas en 1895, y hoy las sigue trabajando la misma familia.',
         'Las erupciones de 1730-1736 cerraron una antigua bahía y así se formó la laguna de Janubio. En los estanques, el agua de mar se evapora con el calor hasta que solo queda la sal.',
@@ -124,7 +124,7 @@
       ]
     },
     {
-      lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje-famara.jpg', pos: '40% 40%',
+      lugar: 'Famara', titulo: 'El gran risco', img: 'paisaje-famara.webp', pos: '40% 40%',
       texto: [
         'El Risco de Famara es un enorme acantilado de unos 22 kilómetros en el norte de Lanzarote. Su altura media ronda los 400 metros.',
         'Es una de las zonas más antiguas de la isla. Su punto más alto, las Peñas del Chache, con unos 671 metros, es también el techo de Lanzarote.',
@@ -139,7 +139,7 @@
       ]
     },
     {
-      lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-haria.jpg', pos: '60% 50%',
+      lugar: 'Haría', titulo: 'El valle de las mil palmeras', img: 'paisaje-haria.webp', pos: '60% 50%',
       texto: [
         'Haría es un pueblo de casas blancas en un valle del norte de Lanzarote. Lo llaman «el valle de las mil palmeras» por su palmeral, donde las palmeras se alternan con higueras y tuneras.',
         'Con las hojas de palma se tejían esteras, y los cesteros hacían con ellas cestas.',
@@ -154,7 +154,7 @@
       ]
     },
     {
-      lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-mirador.jpg', pos: '70% 40%',
+      lugar: 'Mirador del Río', titulo: 'El balcón sobre La Graciosa', img: 'paisaje-mirador.webp', pos: '70% 40%',
       texto: [
         'En lo alto del Risco de Famara, a 474 metros sobre el mar, César Manrique construyó entre 1971 y 1973 el Mirador del Río, con Eduardo Cáceres y Jesús Soto.',
         'Desde fuera apenas se distingue: son dos cúpulas enterradas en el risco, para que se note lo menos posible. Por dentro, dos grandes ventanales miran a El Río, el brazo de mar que separa Lanzarote de La Graciosa.',
@@ -170,7 +170,7 @@
     },
     // Niveles secretos (se abren con todos los frutos de su mundo)
     {
-      lugar: 'Cueva de los Verdes', titulo: 'Un túnel hecho por la lava', img: 'paisaje-cueva.jpg', pos: '50% 40%',
+      lugar: 'Cueva de los Verdes', titulo: 'Un túnel hecho por la lava', img: 'paisaje-cueva.webp', pos: '50% 40%',
       texto: [
         'La Cueva de los Verdes está en el norte de Lanzarote, dentro del malpaís que dejó el volcán de La Corona.',
         'Se formó cuando el volcán de La Corona entró en erupción: la lava corrió hacia el mar y se enfrió por fuera, mientras seguía fluyendo por dentro. Al vaciarse, dejó un tubo hueco de más de siete kilómetros.',
@@ -185,7 +185,7 @@
       ]
     },
     {
-      lugar: 'La Graciosa', titulo: 'La octava isla', img: 'paisaje-mirador.jpg', pos: '78% 45%',
+      lugar: 'La Graciosa', titulo: 'La octava isla', img: 'paisaje-mirador.webp', pos: '78% 45%',
       texto: [
         'La Graciosa está al norte de Lanzarote, al otro lado de El Río, un brazo de mar de apenas un kilómetro. Mide unos 27 km², su punto más alto, Agujas Grandes, tiene 266 metros, y pertenece al municipio de Teguise.',
         'Es uno de los pocos lugares habitados de Europa sin carreteras asfaltadas: sus calles son de arena y se puede andar descalzo.',
@@ -205,7 +205,7 @@
   // (la del eclipse espera a tener los datos de Lanzarote del Instituto Geográfico Nacional).
   const L3 = [
     {
-      lugar: 'Uga', titulo: 'El guelfo', img: 'escena-biberon.jpg', pos: '55% 45%',
+      lugar: 'Uga', titulo: 'El guelfo', img: 'escena-biberon.webp', pos: '55% 45%',
       texto: [
         'En Canarias, a la cría del camello, desde que nace hasta que deja de mamar, se le llama guelfo.',
         'El camello canario es una raza propia: el Catálogo Oficial de Razas de Ganado de España la clasifica como raza autóctona en peligro de extinción.',
@@ -219,7 +219,7 @@
       ]
     },
     {
-      lugar: 'Uga', titulo: 'El mercado del pueblo', img: 'mercado-uga.jpg', pos: '70% 50%',
+      lugar: 'Uga', titulo: 'El mercado del pueblo', img: 'mercado-uga.webp', pos: '70% 50%',
       texto: [
         'El Mercado Municipal de Uga está junto a la iglesia del pueblo y abre los sábados y los domingos.',
         'Vende productos de kilómetro cero: frutas, verduras, quesos, carnes, pan, dulces, mermeladas, infusiones y artesanía.'
@@ -232,7 +232,7 @@
       ]
     },
     {
-      lugar: 'El Vallito de Uga', titulo: 'Donde vive la manada', img: 'paisaje-uga.jpg', pos: '75% 55%',
+      lugar: 'El Vallito de Uga', titulo: 'Donde vive la manada', img: 'paisaje-uga.webp', pos: '75% 55%',
       texto: [
         'La cabaña camellar de Uga tiene unos cuatrocientos animales.',
         'Desde el Vallito de Uga sale cada mañana la manada hacia el Echadero de los Camellos de Timanfaya. El traslado de los animales tarda hora y media.'
@@ -241,7 +241,7 @@
       fuentes: [['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']]
     },
     {
-      lugar: 'El sendero de los camellos', titulo: 'La fila del amanecer', img: 'fila-amanecer.jpg', pos: '30% 50%',
+      lugar: 'El sendero de los camellos', titulo: 'La fila del amanecer', img: 'fila-amanecer.webp', pos: '30% 50%',
       texto: [
         'Al amanecer, los camellos van al trabajo en fila india, encabezada por el camellero y el camello guía.',
         'El sendero va por el Parque Natural de Los Volcanes, entre el Vallito de Uga y el Echadero de los Camellos de Timanfaya.'
@@ -251,7 +251,7 @@
     },
     null, null,
     {
-      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'echadero.jpg', pos: '60% 60%',
+      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'echadero.webp', pos: '60% 60%',
       texto: [
         'En Timanfaya, los camellos de Uga pasean a los visitantes: es la actividad turística del sector camellar.',
         'Los primeros paseos a lomo de camello fueron en los años cincuenta.'
