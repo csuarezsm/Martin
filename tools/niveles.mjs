@@ -388,7 +388,7 @@ function e01() {   // El jable de Famara: cuestas de arena (arriba despacio, aba
   n.duna(7, 2.1).arenal(6).hueco(2.6).arenal(6).duna(7, -2.1).arenal(20);
   n.arenal(46);
   n.pista('entrega', n.x - 28, n.x - 6, {});
-  return cierra(n, { id: 'norte_e01_jable_famara', nombre: 'El jable de Famara', resumen: 'Dunas de arena: cuesta arriba se va despacio y cuesta abajo se coge carrerilla.', estrella3: 150, tema: 'famara' });
+  return cierra(n, { id: 'norte_e01_jable_famara', nombre: 'El jable de Famara', resumen: 'Dunas de arena: cuesta arriba se va despacio y cuesta abajo se coge carrerilla.', estrella3: 150, tema: 'jable' });
 }
 function e02() {   // Las barcas de Órzola: el agua no se salta; hay que subir a la barca cuando llega al muelle
   const n = new N(22, 'orzola');

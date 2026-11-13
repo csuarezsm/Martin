@@ -39,6 +39,7 @@
     { cielo: ['#1d66bf', '#4f93d6', '#b9d2e2', '#f2cf9e'], sol: [0.84, 0.3], solC: '#ffe8b0', haz: 0.1, lejos: '#9a88ad', lejos2: '#80709a', med: '#33292c', geria: '#2a2022', tinte: 'rgba(255,170,90,0.08)', nubes: 0.9 },
     { cielo: ['#0e62b8', '#2c8ad8', '#79bfe9', '#d4ecf6'], sol: [0.8, 0.16], solC: '#fff6d8', haz: 0.05, lejos: '#8e86a8', lejos2: '#746c90', med: '#2c2628', geria: '#272022', tinte: 'rgba(120,200,170,0.05)', nubes: 0.7 },
   ];
+  TEMAS.push(Object.assign({}, TEMAS[8]));   // 21 (3.3): el jable de Famara, con la luz de Famara
 
   /* ---- Texturas (se crean una vez) ---- */
   let TEX = null;
@@ -595,8 +596,10 @@
     { src: 'paisaje-uga-iglesia.jpg', esc: 0.68, cielo: ['#1484f2', '#1484f2'] },
     { src: 'paisaje-uga-calle.jpg', esc: 0.68, cielo: ['#027df2', '#027df2'] },
     { src: 'paisaje-uga-vallito.jpg', esc: 0.68, cielo: ['#037cf4', '#037cf4'] },
-    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#077df8', '#077df8'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
+    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#077df8', '#077df8'] },
+    // 3.3: el jable de Famara (dunas con el risco al fondo)
+    { src: 'paisaje-jable.jpg', esc: 0.8, cielo: ['#4db6fc', '#4db6fc'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6, 15] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
@@ -670,6 +673,9 @@
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
+  // textura de arena de verdad (sacada de las ilustraciones del jable): se repite sin costuras
+  const ARENA = { img: null, ok: false };
+  if (typeof Image !== 'undefined') { ARENA.img = new Image(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.jpg'; }
   /* 3.1 · Jable de Famara: arena dorada con rizos del viento. Sirve para las dunas (cuesta) y para el suelo llano de arena */
   function dibujaArena(ctx, s, W, H, u, sx, sy) {
     const x0 = sx(s.x0), x1 = sx(s.x1), a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
@@ -679,15 +685,21 @@
     // fondo anclado a una altura fija (no a cada tramo): dos tramos vecinos casan sin costura
     const yb0 = sy(0); let g = ctx.createLinearGradient(0, yb0 - u * 3, 0, yb0 + u * 4); g.addColorStop(0, '#e9bb6e'); g.addColorStop(0.42, '#d4a15a'); g.addColorStop(0.7, '#a26f38'); g.addColorStop(1, '#5e3c1e');
     ctx.fillStyle = g; ctx.fillRect(a, ytop - 2, b - a, H - ytop + 4);
+    if (ARENA.ok) {   // rizos reales encima, anclados al mundo (no se mueven al andar) y algo más oscuros según se hunde
+      ctx.globalAlpha = 0.85; ctx.fillStyle = relleno(ctx, ARENA.img, sx(0), yb0, '#d9a560', u * 1.6 / ARENA.img.height); ctx.fillRect(a, ytop - 2, b - a, H - ytop + 4); ctx.globalAlpha = 1;
+      const go = ctx.createLinearGradient(0, yb0 - u * 2, 0, yb0 + u * 4); go.addColorStop(0, 'rgba(60,30,10,0)'); go.addColorStop(1, 'rgba(60,30,10,.55)'); ctx.fillStyle = go; ctx.fillRect(a, ytop - 2, b - a, H - ytop + 4);
+    }
     // capa de arena suelta junto a la superficie, más clara (sigue la cuesta)
     for (const [d, al] of [[u * 0.9, 0.22], [u * 0.45, 0.3]]) { ctx.fillStyle = 'rgba(255,236,185,' + al + ')'; ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, yb); ctx.lineTo(b, yb + d); ctx.lineTo(a, ya + d); ctx.closePath(); ctx.fill(); }
     // granos y conchitas sueltas
     ctx.fillStyle = 'rgba(120,80,40,.35)'; for (let k = 0; k < 10; k++) { const q = hash(Math.floor(s.x0 * 17) + k * 5), x = x0 + (x1 - x0) * q; if (x < a || x > b) continue; ctx.fillRect(x, yAt(x) + u * (0.3 + hash(k + Math.floor(s.x0)) * 2.5), u * 0.06, u * 0.05); }
-    // rizos de arena: rayitas curvas paralelas a la superficie (fijas: dependen del sitio, no del tiempo)
+    // rizos de arena: rayitas curvas paralelas a la superficie (fijas: dependen del sitio, no del tiempo); solo si aún no ha llegado la textura
+    if (!ARENA.ok) {
     ctx.strokeStyle = 'rgba(150,100,50,.32)'; ctx.lineWidth = Math.max(1, u * 0.035); ctx.lineCap = 'round'; ctx.beginPath();
     const paso = u * 0.55, k0 = Math.floor((a - x0) / paso);
     for (let k = k0; ; k++) { const x = x0 + k * paso; if (x > b) break; const h = hash(Math.floor(s.x0 * 10) + k * 13); for (let f = 0; f < 3; f++) { const d = u * (0.35 + f * 0.75 + h * 0.3), xx = x + h * paso, yy = yAt(xx) + d; ctx.moveTo(xx - u * 0.22, yy); ctx.quadraticCurveTo(xx, yy - u * 0.08, xx + u * 0.22, yy); } }
     ctx.stroke();
+    }
     ctx.restore();
     // borde de arriba iluminado
     ctx.strokeStyle = 'rgba(255,246,215,.75)'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, yb); ctx.stroke();

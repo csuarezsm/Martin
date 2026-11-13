@@ -228,7 +228,8 @@ const INFO = NIV.map((_, i) => {
   return { mundo: 2, tipo: x.tipo, num: x.tipo === 'nivel' ? '3-' + M3.slice(0, k + 1).filter(y => y.tipo === 'nivel').length : '' };
 });
 // paisaje de los niveles nuevos: el del nivel de su misma zona (Famara, La Graciosa…)
-const temaDe = i => { if (!INFO[i] || !INFO[i].extra || !NIV[i].ok) return i; const t = NIV[i].nivel.theme, j = NIV.findIndex((n, k) => k < NANT && n.ok && n.nivel.theme === t); return j >= 0 ? j : i; };
+const TEMA_PROPIO = { jable: 21 };   // niveles nuevos con paisaje propio (índice de TEMAS en dibujo.js)
+const temaDe = i => { if (!INFO[i] || !INFO[i].extra || !NIV[i].ok) return i; const t = NIV[i].nivel.theme; if (TEMA_PROPIO[t] != null) return TEMA_PROPIO[t]; const j = NIV.findIndex((n, k) => k < NANT && n.ok && n.nivel.theme === t); return j >= 0 ? j : i; };
 INFO.forEach((x, i) => { if (x.extra && NIV[i].ok) NIV[i].nivel.temaIdx = temaDe(i); });
 const esM3 = i => !!(INFO[i] && INFO[i].mundo === 2);
 const secretoDe = i => INFO[i] && INFO[i].tipo === 'secreto' ? INFO[i].mundo : -1;
