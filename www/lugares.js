@@ -265,4 +265,34 @@
     null
   ];
   for (const f of L3) window.LUGARES.push(f);
+  // 3.3: los dos niveles nuevos del Mundo 2 (van detrás, en el mismo orden que extras.js)
+  window.LUGARES.push(
+    {
+      lugar: 'El Jable', titulo: 'Un río de arena', img: 'paisaje-jable.webp', pos: '50% 62%',
+      texto: [
+        'El Jable es un manto de arenas de origen marino. Entre el Risco de Famara y los pueblos de Soo y Muñique tiene unos cuatro kilómetros de ancho.',
+        'Los vientos alisios empujan la arena. Como guarda la humedad de la poca lluvia que cae, en ella se cultivan batatas, melones, sandías, calabazas y cebollas.',
+        'Es el hogar de aves como el bisbita caminero, el alcaraván y la hubara canaria.'
+      ],
+      dato: 'Parte de El Jable está dentro de la Zona de Especial Protección para las Aves «Islotes del norte de Lanzarote y Famara», declarada en 1987.',
+      extra: ['La batata de Lanzarote solo se cultiva de una manera tradicional: en la arena del jable.', ['Turismo Lanzarote: El Jable', 'https://turismolanzarote.com/en/el-jable-lanzarotes-secret-treasure/']],
+      fuentes: [
+        ['Turismo Lanzarote: El Jable', 'https://turismolanzarote.com/en/el-jable-lanzarotes-secret-treasure/'],
+        ['Defensor del Pueblo: la ZEPA de Famara y la hubara', 'https://www.defensordelpueblo.es/resoluciones/inspeccion-para-comprobacion-de-permisos-de-explotacion-de-aridos-en-el-ambito-de-la-zepa-y-su-entorno']
+      ]
+    },
+    {
+      lugar: 'Órzola', titulo: 'El muelle del norte', img: 'paisaje-mirador.webp', pos: '60% 50%',
+      texto: [
+        'Órzola es un pueblo marinero del municipio de Haría, en la punta norte de Lanzarote.',
+        'De su muelle salen los barcos hacia La Graciosa: a esa isla solo se llega por mar, desde Órzola.',
+        'Hay dos líneas regulares de barcos, y durante la travesía se ve el Risco de Famara.'
+      ],
+      dato: 'Según un estudio del Ministerio para la Transición Ecológica sobre esta costa, Órzola es una localidad marinera de unos 275 habitantes.',
+      fuentes: [
+        ['Ministerio para la Transición Ecológica: la costa de Órzola (Haría)', 'https://www.miteco.gob.es/content/dam/miteco/images/es/estudiodl-192-lp_tcm30-532599.pdf'],
+        ['Turismo de Teguise: la isla de La Graciosa', 'https://turismoteguise.com/en/island-la-graciosa.php']
+      ]
+    }
+  );
 })();

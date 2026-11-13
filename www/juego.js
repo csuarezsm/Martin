@@ -74,6 +74,12 @@ const Sound = (() => {
     for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
     const s = c.createBufferSource(), g = c.createGain(); g.gain.value = vol; s.buffer = buf; s.connect(g); g.connect(out(c)); s.start(t);
   }
+  function ruidoF(c, t, dur, vol, fq, tipo) {   // ruido filtrado (arena, agua)
+    const len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5);
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); f.type = tipo || 'lowpass'; f.frequency.value = fq; g.gain.value = vol;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(out(c)); src.start(t);
+  }
   function play(kind) {
     if (S.sound === false) return;
     const c = ac(); if (!c) return;
@@ -97,6 +103,9 @@ const Sound = (() => {
       else if (kind === 'aljibe') { [523, 784].forEach((f, i) => tone(c, t + i * 0.08, f, f * 1.02, 0.16, 0.05, 'sine')); ruido(c, t, 0.18, 0.03); }
       else if (kind === 'silbido') [1568, 2093, 1568].forEach((f, i) => tone(c, t + i * 0.16, f, f * (i === 1 ? 1.02 : 0.97), 0.14, 0.035, 'sine'));
       else if (kind === 'sofoco') { ruido(c, t, 0.3, 0.05); tone(c, t, 300, 180, 0.4, 0.04, 'sine'); }
+      else if (kind === 'arena') { ruidoF(c, t, 0.09, 0.05, 1800); ruidoF(c, t + 0.03, 0.06, 0.03, 900); }   // pisada en la arena del jable
+      else if (kind === 'barca') { tone(c, t, 170, 120, 0.12, 0.08); tone(c, t + 0.05, 140, 100, 0.1, 0.05); ruidoF(c, t + 0.04, 0.45, 0.06, 700); }   // golpe en la cubierta y el agua debajo
+      else if (kind === 'logro') { [659, 784, 988, 1318, 1568].forEach((f, i) => tone(c, t + i * 0.08, f, f, 0.3, 0.045, 'sine')); [1976, 2637].forEach((f, i) => tone(c, t + 0.45 + i * 0.07, f, f, 0.25, 0.02, 'sine')); }
       else if (kind === 'lava') { tone(c, t, 70, 45, 1.1, 0.09, 'sawtooth'); ruido(c, t, 0.9, 0.07); [440, 440].forEach((f, i) => tone(c, t + 0.3 + i * 0.25, f, f, 0.12, 0.04, 'square')); }
     } catch (e) {}
   }
@@ -285,11 +294,15 @@ function paso1() {
   if (s.fase === 'reaparece') RUN.reapT = s.rt;
   if (RUN.golpe > 0) RUN.golpe = Math.max(0, RUN.golpe - 1 / 21);
   RUN.fase += Math.abs(s.vx) * M.DT * 3.2;
-  if (s.suelo && Math.abs(s.vx) > 1.5 && (RUN.paso = (RUN.paso || 0) + 1) % 11 === 0) RUN.fx.push({ k: 'polvo', x: s.x - s.cara * 0.5, y: s.y, v: 0, n: 16, fuerte: false });
+  if (s.suelo && Math.abs(s.vx) > 1.5 && (RUN.paso = (RUN.paso || 0) + 1) % 11 === 0) { RUN.fx.push({ k: 'polvo', x: s.x - s.cara * 0.5, y: s.y, v: 0, n: 16, fuerte: false }); if (RUN.paso % 22 === 0 && pisa(s) && pisa(s).arena) Sound.play('arena'); }
+  // al subir a una barca (andando o de un salto) suena la cubierta
+  if (s.sobre !== RUN.sobre) { const q = s.suelo ? pisa(s) : null; if (q && q.mdx && RUN.sobre !== undefined) Sound.play('barca'); RUN.sobre = s.sobre; }
   RUN.t += M.DT;
   RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n);
   if ((s.fase === 'meta' || s.fase === 'fallo') && !RUN.tFin) RUN.tFin = performance.now();
 }
+// qué está pisando Martín (para el sonido: arena, barca…)
+function pisa(s) { const L = RUN.L; if (!L || !s.sobre) return null; if (RUN.solL !== L) { RUN.solL = L; RUN.solPor = new Map(L.solids.map(q => [q.id, q])); } return RUN.solPor.get(s.sobre) || null; }
 function evento(e) {
   const s = RUN.s;
   if (e.t === 'salto') Sound.play('salto');
@@ -457,6 +470,7 @@ function soltarTodo() { RUN.inp.pila = []; RUN.inp.salto = false; document.query
 /* ================= Flujo de la partida ================= */
 function crearIntento() {
   const n = NIV[RUN.idx].nivel;
+  RUN.sobre = undefined; RUN.logroSono = false;   // sonidos: no suena la barca al empezar ni se repite el del logro
   RUN.L = n; RUN.esc = RUN.esc && RUN.esc.id === n.level_id ? RUN.esc : Object.assign(preparaEscena(n, RUN.idx), { id: n.level_id });
   for (const c of n.cps) c.alcanzado = false;
   RUN.s = M.nuevo(n, Object.assign({ eventos: true }, RUN.opts, RUN.modo === 'nivel' && S.peque ? { mod: 'peque' } : {}));   // modo peque: solo en los niveles (el reto diario es igual para todos)
@@ -883,7 +897,7 @@ function ponOverlay() {
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
     const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
     const se = $('#ovSe'); if (se) se.onclick = () => openFicha(RUN.idx, false);
-    const ol = $('#ovLog'); if (ol) ol.onclick = openLogros;   // la ficha enseña el sello y la curiosidad nueva
+    const ol = $('#ovLog'); if (ol) { ol.onclick = openLogros; if (!RUN.logroSono) { RUN.logroSono = true; setTimeout(() => Sound.play('logro'), 700); } }   // la ficha enseña el sello y la curiosidad nueva
     const oh = $('#ovHis'); if (oh) oh.onclick = () => openHistoria(nu.escena, false);
     const gu = $('#ovGu'); if (gu) gu.onclick = () => { const ids = nu.espIds || []; if (ids.length === 1) openEspecie(ids[0]); else openGuia(); };
     pintaFrutos($('#ovFru'), n, s.obj || {}, 26);

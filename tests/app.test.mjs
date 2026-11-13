@@ -69,9 +69,9 @@ console.log('Mapa de Uga');
   check('sin desbordamiento horizontal', await noHScroll(p));
   check('el reto diario se puede practicar sin conexión', await waitFor(p, () => document.querySelector('#dgPrac')));
   check('sale el «Mundo 2» con sus niveles', /Mundo 2 · La costa y el norte/.test(await p.textContent('#app')));
-  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 21 && window.LUGARES.slice(0, 13).every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2) && window.LUGARES.filter(Boolean).every(f => f.texto.length >= 2 && f.dato && f.fuentes.length >= 1 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/18/.test(await p.textContent('#app')));
+  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 23 && window.LUGARES.slice(0, 13).every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2) && window.LUGARES.filter(Boolean).every(f => f.texto.length >= 2 && f.dato && f.fuentes.length >= 1 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/20/.test(await p.textContent('#app')));
   await p.evaluate(() => openCuaderno());
-  check('el cuaderno muestra los 18 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 18));
+  check('el cuaderno muestra los 20 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 20));
   await p.evaluate(() => closeModal());
   await p.click('[data-lv="0"]');
   check('el briefing explica el nivel, las estrellas y los controles', await waitFor(p, () => document.querySelector('#bfGo')) && /Agua para Uga/.test(await p.textContent('#modal')) && /☆|★/.test(await p.textContent('#modal')));
@@ -322,7 +322,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('sellos: la ficha enseña el sello, la curiosidad extra y su fuente oficial', await p.evaluate(() => { const c = document.getElementById('fiSello'), t = document.getElementById('modal').textContent, f = LUGARES[2];
       return !!c && c.getContext('2d').getImageData(c.width / 2, c.height * 0.3, 1, 1).data[3] > 0 && t.includes(f.extra[0]) && [...document.querySelectorAll('.fi-f a')].some(a => a.dataset.url === f.extra[1][1]); }));
     await p.evaluate(() => { closeModal(); openCuaderno(); });
-    check('sellos: el cuaderno cuenta los sellos y marca el lugar', /Sellos: \d+\/13/.test(await p.textContent('#modal')) && !!(await p.$('[data-fi="2"] .cu-b')));
+    check('sellos: el cuaderno cuenta los sellos y marca el lugar', /Sellos: \d+\/14/.test(await p.textContent('#modal')) && !!(await p.$('[data-fi="2"] .cu-b')));
     await p.evaluate(() => closeModal());
   }
   { // 2.4.2: guía de la naturaleza — cada especie se descubre al terminar el nivel de su lugar
