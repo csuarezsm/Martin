@@ -565,8 +565,17 @@ const mundo3 = [
   { tipo: 'secreto', L: guelfo(objetos(sinPeligros(m3s()), B3), 0.8, 0.93) },
   { tipo: 'premio', L: guelfo(sinPeligros(m3p()), 0.8, 0.93) }
 ];
-const tomas = L => { const cps = [L.checkpoint].concat(L.checkpoints_extra || []).sort((a, b) => a.x - b.x).slice(0, 2);   // el camellero espera con el biberón junto a los dos primeros puntos de control
-  cps.forEach((c, k) => { const s = L.solids.find(q => q.kind === 'ground' && !q.route && q.x0 <= c.x + 2 && q.x1 >= c.x + 2.5); if (s) L.items.push({ id: 'TOM-' + (k + 1), kind: 'toma', x: r2(c.x + 2.2), y: r2(s.top + 0.9) }); }); return L; };
+const tomas = L => { const lejos = c => !L.items.some(o => o.kind === 'biberon' && Math.abs(o.x - (c.x + 2.2)) < 9);   // nunca en el mismo sitio que un biberón escondido
+  const todos = [L.checkpoint].concat(L.checkpoints_extra || []).sort((a, b) => a.x - b.x), cps = todos.filter(lejos).concat(todos.filter(c => !lejos(c))).slice(0, 2).sort((a, b) => a.x - b.x);   // el camellero espera con el biberón junto a los dos primeros puntos de control
+  cps.forEach((c, k) => { const s = L.solids.find(q => q.kind === 'ground' && !q.route && q.x0 <= c.x + 2 && q.x1 >= c.x + 2.5); if (s) L.items.push({ id: 'TOM-' + (k + 1), kind: 'toma', x: r2(c.x + 2.2), y: r2(s.top + 0.9) }); });
+  // si aun así un biberón escondido queda junto al camellero, el biberón se cambia a otro tramo llano libre
+  const ts = L.items.filter(o => o.kind === 'toma');
+  for (const o of L.items.filter(o => o.kind === 'biberon' && ts.some(q => Math.abs(q.x - o.x) < 9))) {
+    const libre = L.solids.filter(s => s.kind === 'ground' && !s.route && s.x1 - s.x0 >= 6 && s.x0 > 20 && s.x1 < L.goals.finish_x - 10).map(s => ({ s, x: (s.x0 + s.x1) / 2 }))
+      .filter(c => !ts.some(q => Math.abs(q.x - c.x) < 12) && !L.items.some(q => q !== o && Math.abs(q.x - c.x) < 8)).sort((a, b) => Math.abs(a.x - o.x) - Math.abs(b.x - o.x))[0];
+    if (libre) { o.x = r2(libre.x); o.y = r2(libre.s.top + 2.9); }
+  }
+  return L; };
 for (const x of mundo3) { sinAljibes(x.L); tomas(x.L); const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
 const out3 = '/* Mundo 3 de Martín, «El guelfo de Uga» (3.0). GENERADO por tools/niveles.mjs: no editar a mano.\n'
   + '   Va aparte para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'

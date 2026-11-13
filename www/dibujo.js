@@ -297,8 +297,8 @@
   }
   // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
   const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
-  // el paso del camellero: 7 dibujos (camellero-paso.png, 380×480 cada uno), de la zancada más larga a la más corta: cada vuelta es un paso
-  const CW = { img: null, ok: false, n: 7, fw: 380, fh: 480, ax: 182, ay: 479, alto: 2.35, pie: 0, cache: {} };
+  // el paso del camellero: 8 dibujos (camellero-paso.png, 328×650 cada uno): un ciclo completo, las dos piernas
+  const CW = { img: null, ok: false, n: 8, fw: 328, fh: 650, ax: 157, ay: 646, alto: 2.35, pie: 0, cache: {} };
   if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
