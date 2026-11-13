@@ -37,7 +37,7 @@ for (const lang of ['en', 'fr', 'de', 'it']) {
   await p.goto(URL_APP); await p.waitForTimeout(1500);
   const cerrar = () => p.evaluate(() => { try { closeModal(); } catch (e) {} }).catch(() => {});
   const resto = new Set();
-  const mira = async () => { if (lang !== 'en' && lang !== 'de') return; (await p.evaluate(() => { const out = []; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const t = n.nodeValue.replace(/\s+/g, ' ').trim(); if (t.length > 3 && n.parentElement && n.parentElement.offsetParent !== null) out.push(t); } return out; }).catch(() => [])).forEach(t => { if (RESTO.test(sinPropios(t).replace(lang === 'de' ? /\bLos geht/g : /^$/, ''))) resto.add(t); }); };
+  const mira = async () => { if (lang !== 'en' && lang !== 'de') return; (await p.evaluate(() => { const out = []; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const t = n.nodeValue.replace(/\s+/g, ' ').trim(); if (t.length > 3 && n.parentElement && n.parentElement.offsetParent !== null) out.push(t); } return out; }).catch(() => [])).forEach(t => { if (RESTO.test(sinPropios(t).replace(lang === 'de' ? /\bLos geht|\bdu los\b/g : /^$/, ''))) resto.add(t); }); };
   // bienvenida
   for (let i = 0; i < 10; i++) { await mira(); const ok = await p.evaluate(() => { const m = document.getElementById('modal'); if (!m || m.classList.contains('hidden')) return false; const bs = [...m.querySelectorAll('button')].filter(b => b.offsetParent); const bt = bs.find(b => b.classList.contains('btn-gold')) || bs[bs.length - 1]; if (bt) { bt.click(); return true; } return false; }).catch(() => false); if (!ok) break; await p.waitForTimeout(250); }
   await cerrar();
