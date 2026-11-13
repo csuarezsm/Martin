@@ -585,8 +585,10 @@
     { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
     // Mundo 3: las calles de Uga (panorámicas)
     { src: 'paisaje-uga-iglesia.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
-    { src: 'paisaje-uga-calle.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
+    { src: 'paisaje-uga-calle.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
+    { src: 'paisaje-uga-vallito.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
+    { src: 'paisaje-uga-mercado.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
