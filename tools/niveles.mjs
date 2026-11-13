@@ -442,6 +442,135 @@ const secretos = [
   { mundo: 0, L: objetos(peligros(s01(), plan(['piedra', 'piedra', 'piedra'], 3)), ['higo', 'tuno', 'malvasia']) },
   { mundo: 1, L: objetos(peligros(s02(), plan(['ola', 'viento', 'ola', 'viento', 'ola'], 1, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo']) }
 ];
+
+/* ======================= Mundo 3 · El guelfo de Uga (3.0) =======================
+   Precuela: Martín es un guelfo, más pequeño y con menos salto (cuerpo.escala y cuerpo.salto), y crece de nivel en nivel.
+   Sin cántaro: la barra es de fuerzas. Pasos más bajos y huecos más cortos que en los otros mundos. Van en www/mundo3.js, aparte. */
+const guelfo = (L, escala, salto, extra) => Object.assign(L, { cuerpo: { escala, salto } }, extra || {});
+function m31() {   // Un guelfo en el corral: tutorial, hasta el camellero
+  const n = new N(14, 'corral');
+  n.llano(26).pista('guelfo', 0, 40, { hasta_x: 20 });
+  n.roca(1.2, 0.5).llano(12).hueco(1.2).llano(12).pista('guelfo_salta', 30, 60, { hasta_saltos: 2 });
+  n.sube(0.6).llano(10).baja(0.6).llano(12).control();
+  rocas(n, [[1.2, 0.5], [1.2, 0.6]], 10); n.hueco(1.4).llano(12);
+  n.sube(0.6).llano(8).sube(0.6).llano(10).baja(0.6).llano(8).baja(0.6).llano(14).control();
+  n.hueco(1.6).llano(10).roca(1.2, 0.6).llano(14).hueco(1.6).llano(16);
+  n.llano(40);
+  n.pista('camellero', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'uga3_l01_corral', nombre: 'Un guelfo en el corral', resumen: 'Los primeros pasos de Martín: llega hasta el camellero.', estrella3: 120, tema: 'uga' });
+}
+function m32() {   // Calles de Uga: seguir al camellero hasta la escultura de la entrada del pueblo
+  const n = new N(15, 'calles');
+  n.llano(30).pista('silbido', 0, 50, { hasta_x: 46 });
+  n.roca(1.2, 0.6).llano(14).hueco(1.4).llano(12); n.sube(0.7).llano(14).baja(0.7).llano(16).control();
+  rocas(n, [[1.2, 0.5], [1.2, 0.7]], 12); n.hueco(1.6).llano(14); n.sube(0.7).llano(10).sube(0.7).llano(12);
+  n.baja(0.7).llano(10).baja(0.7).llano(16).control();
+  n.hueco(1.8).llano(12).roca(1.2, 0.6).llano(14).hueco(1.6).llano(10); n.sube(0.8).llano(14).baja(0.8).llano(16);
+  rocas(n, [[1.2, 0.6]], 14); n.hueco(1.8).llano(16).control();
+  n.sube(0.7).llano(12).hueco(1.6).llano(10).baja(0.7).llano(16);
+  n.llano(44);
+  n.pista('escultura', n.x - 30, n.x - 6, {});
+  const L = cierra(n, { id: 'uga3_l02_calles', nombre: 'Calles de Uga', resumen: 'Sigue al camellero por el pueblo sin perderlo de vista.', estrella3: 170, tema: 'uga' });
+  return Object.assign(L, { guia: { ventaja: 7, vel: 2.5, pierde: 17, hasta: L.goals.finish_x + 3 }, escultura: L.goals.finish_x + 2 });
+}
+function m33() {   // El Vallito: muros de piedra seca entre huertas (saltarlos en dos tiempos)
+  const n = new N(16, 'vallito');
+  n.llano(28).pista('muros', 10, 60, { hasta_x: 60 });
+  const muro = () => { n.roca(1.0, 0.6).llano(1.6).roca(1.2, 1.15).llano(10); };
+  muro(); n.llano(6).hueco(1.6).llano(12); muro(); n.llano(4).control();
+  n.sube(0.7).llano(12).hueco(1.8).llano(10).baja(0.7).llano(12); muro(); n.llano(8);
+  rocas(n, [[1.2, 0.6], [1.2, 0.7]], 10); n.hueco(1.8).llano(14).control();
+  muro(); n.sube(0.8).llano(10).hueco(2.0).llano(10).baja(0.8).llano(10); muro(); n.llano(6);
+  n.hueco(1.8).llano(8).hueco(2.0).llano(14).control();
+  muro(); n.llano(4); muro(); n.sube(0.7).llano(12).baja(0.7).llano(14);
+  n.llano(44);
+  n.pista('corral', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'uga3_l03_vallito', nombre: 'El Vallito', resumen: 'Entre muros de piedra y huertas, hasta el corral de la manada.', estrella3: 190, tema: 'uga' });
+}
+function m34() {   // La fila del amanecer: ir detrás de la manada por el sendero
+  const n = new N(17, 'fila');
+  n.llano(34).pista('fila', 0, 60, { hasta_x: 56 });
+  n.sube(0.6).llano(14).roca(1.2, 0.6).llano(14).hueco(1.6).llano(16).baja(0.6).llano(14).control();
+  rocas(n, [[1.2, 0.5], [1.4, 0.7]], 12); n.hueco(1.8).llano(16); n.sube(0.8).llano(14).baja(0.8).llano(16);
+  n.hueco(2.0).llano(14).control();
+  n.sube(0.7).llano(10).sube(0.7).llano(14).hueco(1.8).llano(12).baja(0.7).llano(10).baja(0.7).llano(16);
+  rocas(n, [[1.2, 0.6], [1.2, 0.8]], 12); n.hueco(2.0).llano(16).control();
+  n.sube(0.8).llano(14).hueco(1.8).llano(12).baja(0.8).llano(18); n.roca(1.4, 0.7).llano(16);
+  n.llano(46);
+  n.pista('fila_fin', n.x - 28, n.x - 6, {});
+  const L = cierra(n, { id: 'uga3_l04_fila', nombre: 'La fila del amanecer', resumen: 'Ve detrás de la manada sin quedarte atrás.', estrella3: 200, tema: 'uga' });
+  return Object.assign(L, { guia: { ventaja: 9, vel: 2.6, pierde: 18, hasta: L.goals.finish_x + 6, manada: 4 } });
+}
+function m35() {   // Calor de julio: malpaís al sol; la sombra de muros y piedras refresca
+  const n = new N(18, 'calor');
+  const sombras = [], sombra = (w) => { sombras.push([r2(n.x), r2(n.x + w)]); };
+  n.llano(24).pista('calor', 0, 50, { hasta_x: 48 });
+  sombra(6); n.llano(10); n.roca(1.2, 0.6).llano(14).hueco(1.6).llano(12);
+  sombra(5); n.llano(10).control(); n.sube(0.7).llano(14).baja(0.7).llano(12);
+  rocas(n, [[1.2, 0.6], [1.4, 0.7]], 10); sombra(5); n.llano(10); n.hueco(1.8).llano(14);
+  n.sube(0.8).llano(10).hueco(1.8).llano(10).baja(0.8).llano(8); sombra(6); n.llano(12).control();
+  rocas(n, [[1.2, 0.6]], 12); n.hueco(2.0).llano(14); sombra(5); n.llano(10);
+  n.sube(0.7).llano(12).sube(0.7).llano(10).hueco(1.8).llano(10).baja(0.7).llano(8).baja(0.7).llano(10); sombra(6); n.llano(12).control();
+  n.roca(1.4, 0.7).llano(14).hueco(2.0).llano(12); sombra(5); n.llano(12);
+  n.llano(44);
+  n.pista('sombra_fin', n.x - 28, n.x - 6, {});
+  const L = cierra(n, { id: 'uga3_l05_calor', nombre: 'Calor de julio', resumen: 'El camino quema: busca la sombra de los muros y no te alejes del sendero.', estrella3: 200, tema: 'uga' });
+  for (const s of L.solids) if (s.kind === 'rock') sombras.push([r2(s.x0 - 3), r2(s.x0)]);   // la sombra de cada piedra grande, a su lado
+  sombras.sort((a, b) => a[0] - b[0]);
+  return Object.assign(L, { calor: { sube: 4.5, baja: 30, sombras } });
+}
+function m36() {   // La luz que se apaga: el eclipse del 12 de agosto, en el Vallito, a la caída de la tarde
+  const n = new N(19, 'eclipse');
+  n.llano(30).pista('eclipse', 0, 56, { hasta_x: 52 });
+  n.roca(1.2, 0.6).llano(14).hueco(1.8).llano(14).sube(0.7).llano(12).baja(0.7).llano(14).control();
+  rocas(n, [[1.2, 0.6], [1.4, 0.8]], 10); n.hueco(2.0).llano(14);
+  n.sube(0.8).llano(10).hueco(2.0).llano(10).baja(0.8).llano(14).control();
+  n.roca(1.0, 0.6).llano(1.6).roca(1.2, 1.15).llano(12); n.hueco(2.0).llano(12); rocas(n, [[1.2, 0.7]], 12);
+  n.sube(0.7).llano(10).sube(0.7).llano(12).hueco(2.0).llano(10).baja(0.7).llano(10).baja(0.7).llano(14).control();
+  n.hueco(2.2).llano(12).roca(1.4, 0.8).llano(14).hueco(2.0).llano(16);
+  n.llano(44);
+  n.pista('camellero_eclipse', n.x - 30, n.x - 6, {});
+  return Object.assign(cierra(n, { id: 'uga3_l06_eclipse', nombre: 'La luz que se apaga', resumen: '12 de agosto: el Sol empieza a apagarse. Encuentra al camellero.', estrella3: 200, tema: 'uga' }), { eclipse: true });
+}
+function m3s() {   // Secreto: El Echadero, tranquilo
+  const n = new N(20, 'echadero');
+  n.llano(30).pista('echadero', 0, 56, { hasta_x: 52 });
+  n.roca(1.2, 0.6).llano(14).hueco(1.6).llano(14).sube(0.7).llano(14).baja(0.7).llano(16).control();
+  rocas(n, [[1.2, 0.6], [1.2, 0.7]], 12); n.hueco(1.8).llano(16); n.sube(0.8).llano(12).hueco(1.8).llano(12).baja(0.8).llano(16).control();
+  n.roca(1.4, 0.7).llano(14).hueco(2.0).llano(16).sube(0.7).llano(14).baja(0.7).llano(16);
+  n.llano(46);
+  n.pista('echadero_fin', n.x - 30, n.x - 6, {});
+  return Object.assign(cierra(n, { id: 'uga3_s_echadero', nombre: 'El Echadero', resumen: 'Nivel secreto: por fin llegas hasta donde trabaja la manada.', estrella3: 170, tema: 'timanfaya' }), { manadaFin: true });
+}
+function m3p() {   // Premio: arena negra, sin prisa
+  const n = new N(21, 'arena');
+  n.llano(32).pista('arena', 0, 60, { hasta_x: 56 });
+  n.sube(0.6).llano(16).baja(0.6).llano(18).hueco(1.4).llano(18).control();
+  n.sube(0.7).llano(14).baja(0.7).llano(20).hueco(1.6).llano(18).sube(0.6).llano(16).baja(0.6).llano(18).control();
+  n.hueco(1.6).llano(20).sube(0.7).llano(16).baja(0.7).llano(20);
+  n.llano(46);
+  n.pista('arena_fin', n.x - 30, n.x - 6, {});
+  return cierra(n, { id: 'uga3_p_arena_negra', nombre: 'Arena negra', resumen: 'Nivel de premio: juega, salta y revuélcate en la arena.', estrella3: 150, tema: 'golfo' });
+}
+const sinPeligros = L => { L.hazards = []; return L; };
+const B3 = ['biberon', 'biberon', 'biberon'];
+const mundo3 = [
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m31()), B3), 0.66, 0.88, { camellero: null }) },
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m32()), B3), 0.69, 0.89) },
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m33()), B3), 0.72, 0.9) },
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m34()), B3), 0.75, 0.91) },
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m35()), B3), 0.78, 0.92) },
+  { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m36()), B3), 0.8, 0.93) },
+  { tipo: 'secreto', L: guelfo(objetos(sinPeligros(m3s()), B3), 0.8, 0.93) },
+  { tipo: 'premio', L: guelfo(sinPeligros(m3p()), 0.8, 0.93) }
+];
+for (const x of mundo3) { const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
+const out3 = '/* Mundo 3 de Martín, «El guelfo de Uga» (3.0). GENERADO por tools/niveles.mjs: no editar a mano.\n'
+  + '   Va aparte para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
+  + '(function (root) {\nconst S = [\n' + mundo3.map(x => '  { tipo: ' + JSON.stringify(x.tipo) + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'
+  + 'root.MARTIN_MUNDO3 = S;\nif (root.MARTIN_NIVELES) for (const x of S) root.MARTIN_NIVELES.push(x.texto);\nif (typeof module !== "undefined" && module.exports) module.exports = S;\n})(typeof self !== "undefined" ? self : globalThis);\n';
+fs.writeFileSync(path.join(aqui, '..', 'www', 'mundo3.js'), out3);
+console.log('mundo3.js escrito:', mundo3.map(x => x.L.level_id + ' (' + x.L.world.max_x + ' u)').join(', '));
 const outS = '/* Niveles secretos de Martín: se abren con todos los frutos de su mundo. GENERADO por tools/niveles.mjs: no editar a mano.\n'
   + '   Van aparte de niveles.js para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst S = [\n' + secretos.map(x => '  { mundo: ' + x.mundo + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'

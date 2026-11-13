@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('../www/', import.meta.url));
 const MONO = +(process.env.IDIOMAS_MS || 30000);
 // nombres propios que no se traducen (jugadores de la máquina, lugares…)
-const PROPIOS = ['Pancho', 'Chano', 'Candelaria', 'Tomasa', 'Juanillo', 'Nieves', 'Pepito', 'Carmela', 'Domingo', 'Fefa', 'Agustín', 'Chona', 'Ramón', 'Pino', 'Chicho', 'Luci', 'Martín', 'Español', 'Póker', 'Parchís', 'Chinchón',
+const PROPIOS = ['El Vallito de Uga', 'El Vallito', 'El Echadero', 'Echadero de los Camellos', 'Pancho', 'Chano', 'Candelaria', 'Tomasa', 'Juanillo', 'Nieves', 'Pepito', 'Carmela', 'Domingo', 'Fefa', 'Agustín', 'Chona', 'Ramón', 'Pino', 'Chicho', 'Luci', 'Martín', 'Español', 'Póker', 'Parchís', 'Chinchón',
   // lugares y personas de Lanzarote (Martín)
   'La Voz de Lanzarote', 'La Geria', 'Los Hervideros', 'El Golfo', 'Charco de los Clicos', 'Laguna de los Clicos', 'Los Volcanes', 'Peñas del Chache', 'Caleta de Famara', 'El Jable', 'Casa del Palmeral',
   'Mirador de los Helechos', 'Mirador del Río', 'Batería del Río', 'Salinas del Río', 'El Río', 'La Graciosa', 'Risco de Famara', 'Andrés Lorenzo Curbelo', 'Maciot de Béthencourt', 'José María Gil', 'El Patio',

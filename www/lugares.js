@@ -200,4 +200,57 @@
       ]
     }
   ];
+
+  // Mundo 3 (3.0): fichas de los niveles 3-1, 3-3, 3-4 y del nivel secreto. Los niveles 3-2, 3-5, 3-6 y el de premio no tienen ficha
+  // (la del eclipse espera a tener los datos de Lanzarote del Instituto Geográfico Nacional).
+  const L3 = [
+    {
+      lugar: 'Uga', titulo: 'El guelfo', img: 'paisaje-uga.jpg', pos: '40% 45%',
+      texto: [
+        'En Canarias, a la cría del camello, desde que nace hasta que deja de mamar, se le llama guelfo.',
+        'El camello canario es una raza propia: el Catálogo Oficial de Razas de Ganado de España la clasifica como raza autóctona en peligro de extinción.',
+        'Hay un programa de conservación para evitar que desaparezca la raza, y cada año se celebran jornadas técnicas con los Criadores de Camello Canario, por ejemplo para planificar los apareamientos.'
+      ],
+      dato: 'En la isla, el camello fue una herramienta básica para trabajar los campos y para llevar personas y mercancías.',
+      fuentes: [
+        ['RAE, Diccionario histórico del español de Canarias: guelfo', 'https://www.rae.es/tdhle/guelfo'],
+        ['Ministerio de Agricultura: raza Camello Canario', 'https://www.mapa.gob.es/en/ganaderia/temas/zootecnia/razas-ganaderas/arca/logotipo-camello-canario'],
+        ['Ayuntamiento de Yaiza: los paseos a camello en Timanfaya', 'https://yaiza.es/yaiza-promueve-la-declaracion-de-los-paseos-a-camello-en-timanfaya-como-patrimonio-de-interes-social-y-cultural/']
+      ]
+    },
+    null,
+    {
+      lugar: 'El Vallito de Uga', titulo: 'Donde vive la manada', img: 'paisaje-uga.jpg', pos: '75% 55%',
+      texto: [
+        'La cabaña camellar de Uga tiene unos cuatrocientos animales.',
+        'Desde el Vallito de Uga sale cada mañana la manada hacia el Echadero de los Camellos de Timanfaya. El traslado de los animales tarda hora y media.'
+      ],
+      dato: 'El camino que va del Vallito de Uga al Echadero lo cuida el Ayuntamiento de Yaiza: empezó a mejorarlo en diciembre de 2015.',
+      fuentes: [['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']]
+    },
+    {
+      lugar: 'El sendero de los camellos', titulo: 'La fila del amanecer', img: 'paisaje-timanfaya.jpg', pos: '30% 50%',
+      texto: [
+        'Al amanecer, los camellos van al trabajo en fila india, encabezada por el camellero y el camello guía.',
+        'El sendero va por el Parque Natural de Los Volcanes, entre el Vallito de Uga y el Echadero de los Camellos de Timanfaya.'
+      ],
+      dato: 'Por el sendero pasan cada día entre ochenta y cien camellos en invierno, y en verano, hasta ciento cincuenta.',
+      fuentes: [['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']]
+    },
+    null, null,
+    {
+      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'paisaje-timanfaya.jpg', pos: '60% 50%',
+      texto: [
+        'En Timanfaya, los camellos de Uga pasean a los visitantes: es la actividad turística del sector camellar.',
+        'Los primeros paseos a lomo de camello fueron en los años cincuenta.'
+      ],
+      dato: 'De los paseos en camello por Timanfaya viven cuarenta familias del pueblo de Uga. El Ayuntamiento de Yaiza promueve que se declaren patrimonio de interés social y cultural.',
+      fuentes: [
+        ['Ayuntamiento de Yaiza: los paseos a camello en Timanfaya', 'https://yaiza.es/yaiza-promueve-la-declaracion-de-los-paseos-a-camello-en-timanfaya-como-patrimonio-de-interes-social-y-cultural/'],
+        ['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']
+      ]
+    },
+    null
+  ];
+  for (const f of L3) window.LUGARES.push(f);
 })();

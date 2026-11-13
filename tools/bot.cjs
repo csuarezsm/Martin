@@ -20,9 +20,10 @@ function jugar(L, o) {
         for (let i = 0; i < K; i++) { M.paso(L, s, a); if (s.fase === 'meta' || s.fase === 'fallo') break; }
         if (s.fase === 'fallo') continue;
         if (o.limpio && s.caidas > 0) continue;
+        if (o.limpio && (s.sofocos > 0 || s.perdidas > 0)) continue;   // Mundo 3: sin perder al camellero ni sofocarse
         if (o.ruta && s.ruta && s.ruta !== o.ruta) continue;
         if (o.sinDano && s.danos > 0) continue;
-        const sc = s.x + 0.05 * s.agua - 40 * s.caidas + (s.fase === 'meta' ? 1e6 - s.t : 0) + 0.001 * s.y;
+        const sc = s.x + 0.05 * s.agua - 40 * s.caidas - 0.05 * (s.calor || 0) + (s.fase === 'meta' ? 1e6 - s.t : 0) + 0.001 * s.y;
         if (s.fase === 'meta') {
           // reconstruye las pulsaciones
           const seq = []; seq.push([a, K]); for (let n = nodo; n && n.padre; n = n.padre) seq.push([n.m, K]);

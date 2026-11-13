@@ -30,7 +30,7 @@ const EPS = 1e-6;
 const DANO_PIEDRA = 12, DANO_VAPOR = 8, DANO_OLA = 8;            // peligros vivos (2.1)
 const DERRUMBE = 60;                                              // 1 s desde que se pisa una repisa frágil hasta que cae
 const PELIGROS = ['piedra', 'geiser', 'viento', 'ola', 'lava'];
-const OBJETOS = ['aljibe', 'tuno', 'higo', 'malvasia'];
+const OBJETOS = ['aljibe', 'tuno', 'higo', 'malvasia', 'biberon'];
 const AGUA_ALJIBE = 20;
 const SAL_ACC = 0.4, SAL_FRENO = 0.1;                             // salinas (2.3): sobre la sal se arranca despacio y se resbala al frenar                                           // un aljibe repone 20 de agua (sin pasar de la inicial)
 const MODS = { normal: { dano: 1, agua: 100 }, fragil: { dano: 1.5, agua: 100 }, poca: { dano: 1, agua: 70 }, peque: { dano: 0.5, agua: 100, lava: 0.7 } };   // peque: para los más pequeños (nunca en el reto diario)
@@ -91,6 +91,11 @@ function validar(L) {
   o.lava = (L.hazards || []).find(h => h.kind === 'lava') || null;
   for (const it of L.items || []) { uno(it.id, 'items'); if (!OBJETOS.includes(it.kind) || !num(it.x) || !num(it.y)) err('objeto ' + it.id); }
   o.objetos = (L.items || []).slice();
+  // Mundo 3 (3.0): el guelfo (más pequeño y salta algo menos), el camellero o la manada que hay que seguir y el calor de julio
+  const cu = L.cuerpo; if (cu != null && !(num(cu.escala) && cu.escala >= 0.5 && cu.escala <= 1 && num(cu.salto) && cu.salto >= 0.7 && cu.salto <= 1)) err('cuerpo');
+  o.hw = HW * (cu ? cu.escala : 1); o.h = H * (cu ? cu.escala : 1); o.salto = SALTO * (cu ? cu.salto : 1);
+  const gu = L.guia; if (gu != null && !(num(gu.ventaja) && gu.ventaja > 0 && num(gu.vel) && gu.vel > 0 && gu.vel < VMAX && num(gu.pierde) && gu.pierde > gu.ventaja && num(gu.hasta))) err('guía');
+  const ca = L.calor; if (ca != null && !(num(ca.sube) && ca.sube > 0 && num(ca.baja) && ca.baja > 0 && Array.isArray(ca.sombras) && ca.sombras.every(z => Array.isArray(z) && num(z[0]) && num(z[1]) && z[1] > z[0]))) err('calor');
   const extra = L.checkpoints_extra || [];
   for (const c of extra) { if (typeof c.id !== 'string' || !num(c.x) || !num(c.y)) err('checkpoint extra'); uno(c.id, 'checkpoints_extra'); if (!apoyo(c.x, c.y)) err('el punto de control ' + c.id + ' no está sobre suelo'); }
   o.cps = [L.checkpoint].concat(extra).sort((a, b) => a.x - b.x);
@@ -116,7 +121,8 @@ function nuevo(L, opts) {
     agua, danos: 0, caidas: 0, golpes: 0,
     cp: 0, saltos: 0, rx: L.spawn.x, ry: L.spawn.y, rt: 0,
     causa: '', estrellas: 0, mod: opts.mod || 'normal', dm: m.dano, lf: m.lava || 1,
-    ruta: '', der: {}, obj: {}, ag0: agua, lava: null, sal: false, ev: [], conEv: !!opts.eventos
+    ruta: '', der: {}, obj: {}, ag0: agua, lava: null, sal: false, ev: [], conEv: !!opts.eventos,
+    guia: L.guia ? L.spawn.x + L.guia.ventaja : null, calor: L.calor ? 0 : null, perdidas: 0, sofocos: 0
   };
 }
 const emite = (s, e) => { if (s.conEv) s.ev.push(e); };
@@ -150,11 +156,14 @@ function peligro(h, t) {
 }
 const caido = (s, c) => s.der[c.id] === 0;
 function paso(L, s, m) {
+  const hw = L.hw || HW, hh = L.h || H;                         // tamaño de Martín (el guelfo del Mundo 3 es más pequeño)
   if (s.fase === 'reaparece') {
     s.t++; s.rt--;
     if (s.rt <= 0) {
       s.fase = 'jugando'; s.x = s.rx; s.y = s.ry; s.vx = 0; s.vy = 0; s.suelo = true; s.der = {};
-      if (s.lava != null) s.lava = Math.min(s.lava, s.rx - L.lava.ventaja); s.coy = COYOTE; s.buf = 0; s.sos = 0; s.frio = INVULN; s.pj = (m & 4) ? 1 : 0;
+      if (s.lava != null) s.lava = Math.min(s.lava, s.rx - L.lava.ventaja);
+      if (L.guia) s.guia = s.rx + L.guia.ventaja;
+      if (L.calor) s.calor = 0; s.coy = COYOTE; s.buf = 0; s.sos = 0; s.frio = INVULN; s.pj = (m & 4) ? 1 : 0;
       emite(s, { t: 'reaparecido' });
     }
     return s;
@@ -187,7 +196,7 @@ function paso(L, s, m) {
     if (s.vx > vv) s.vx = Math.max(vv, s.vx - a); else if (s.vx < vv) s.vx = Math.min(vv, s.vx + a);
   }
   if (s.buf > 0 && s.coy > 0) {
-    s.saltos++; s.vy = SALTO; s.buf = 0; s.coy = 0; s.sos = SOSTENER; s.suelo = false;
+    s.saltos++; s.vy = L.salto || SALTO; s.buf = 0; s.coy = 0; s.sos = SOSTENER; s.suelo = false;
     emite(s, { t: 'salto' });
   }
   let g = G;
@@ -200,19 +209,19 @@ function paso(L, s, m) {
   s.x += s.vx * DT;
   for (let i = 0; i < n; i++) {
     const c = S[i]; if (c.kind === 'oneway' || (c.fragil && caido(s, c))) continue;
-    if (!(s.y < c.top - EPS && s.y + H > c.bot + EPS)) continue;
-    if (!(s.x + HW > c.x0 && s.x - HW < c.x1)) continue;
-    if (oldX + HW <= c.x0 + EPS && s.vx > 0) {
-      s.x = c.x0 - HW;
+    if (!(s.y < c.top - EPS && s.y + hh > c.bot + EPS)) continue;
+    if (!(s.x + hw > c.x0 && s.x - hw < c.x1)) continue;
+    if (oldX + hw <= c.x0 + EPS && s.vx > 0) {
+      s.x = c.x0 - hw;
       if (c.kind === 'rock' && Math.abs(vxAntes) > V_ROCA) dano(s, DANO_ROCA, 'roca', c.id);
       s.vx = 0;
-    } else if (oldX - HW >= c.x1 - EPS && s.vx < 0) {
-      s.x = c.x1 + HW;
+    } else if (oldX - hw >= c.x1 - EPS && s.vx < 0) {
+      s.x = c.x1 + hw;
       if (c.kind === 'rock' && Math.abs(vxAntes) > V_ROCA) dano(s, DANO_ROCA, 'roca', c.id);
       s.vx = 0;
     }
   }
-  if (s.x < L.world.min_x + HW) { s.x = L.world.min_x + HW; if (s.vx < 0) s.vx = 0; }
+  if (s.x < L.world.min_x + hw) { s.x = L.world.min_x + hw; if (s.vx < 0) s.vx = 0; }
   const vyAntes = s.vy;
   s.y += s.vy * DT;
   let aterrizo = false;
@@ -220,7 +229,7 @@ function paso(L, s, m) {
     let mejor = -1e18, idm = '', rutaDe = '', fr = false, sl = false;
     for (let i = 0; i < n; i++) {
       const c = S[i]; if (c.fragil && caido(s, c)) continue;
-      if (!(s.x + HW > c.x0 + EPS && s.x - HW < c.x1 - EPS)) continue;
+      if (!(s.x + hw > c.x0 + EPS && s.x - hw < c.x1 - EPS)) continue;
       if (oldY >= c.top - EPS && s.y <= c.top + EPS && c.top > mejor) { mejor = c.top; idm = c.id; rutaDe = c.route; fr = c.fragil; sl = c.sal; }
     }
     if (mejor > -1e17 && fr && s.der[idm] == null) { s.der[idm] = DERRUMBE; emite(s, { t: 'cruje', id: idm }); }
@@ -235,8 +244,8 @@ function paso(L, s, m) {
   } else {
     for (let i = 0; i < n; i++) {
       const c = S[i]; if (c.kind === 'oneway' || c.bot < -1e8 || (c.fragil && caido(s, c))) continue;
-      if (!(s.x + HW > c.x0 + EPS && s.x - HW < c.x1 - EPS)) continue;
-      if (oldY + H <= c.bot + EPS && s.y + H > c.bot) { s.y = c.bot - H; s.vy = 0; break; }
+      if (!(s.x + hw > c.x0 + EPS && s.x - hw < c.x1 - EPS)) continue;
+      if (oldY + hh <= c.bot + EPS && s.y + hh > c.bot) { s.y = c.bot - hh; s.vy = 0; break; }
     }
   }
   s.suelo = aterrizo;
@@ -245,7 +254,7 @@ function paso(L, s, m) {
     const h = P[i]; if (h.kind === 'viento') continue;
     const e = peligro(h, s.t); if (!e.activo) continue;
     if (h.kind === 'piedra') {
-      if (Math.abs(s.x - e.x) < HW + 0.42 && s.y < h.y + 0.84 && s.y + H > h.y && dano(s, DANO_PIEDRA, 'piedra', h.id)) { s.vx = -5; s.vy = 6; s.suelo = false; }
+      if (Math.abs(s.x - e.x) < hw + 0.42 && s.y < h.y + 0.84 && s.y + hh > h.y && dano(s, DANO_PIEDRA, 'piedra', h.id)) { s.vx = -5; s.vy = 6; s.suelo = false; }
     } else if (h.kind === 'geiser') {
       if (Math.abs(s.x - h.x) < 0.75 && s.y > h.y - 0.1 && s.y < h.y + 3.2 && dano(s, DANO_VAPOR, 'vapor', h.id)) { s.vy = Math.max(s.vy, h.fuerza); s.suelo = false; emite(s, { t: 'geiser', id: h.id }); }
     } else if (h.kind === 'ola') {
@@ -256,7 +265,7 @@ function paso(L, s, m) {
   const O = L.objetos || [];
   for (let i = 0; i < O.length; i++) {
     const it = O[i]; if (s.obj[it.id]) continue;
-    if (Math.abs(s.x - it.x) < HW + 0.45 && s.y < it.y + 0.45 && s.y + H > it.y - 0.45) {
+    if (Math.abs(s.x - it.x) < hw + 0.45 && s.y < it.y + 0.45 && s.y + hh > it.y - 0.45) {
       s.obj[it.id] = it.kind;
       if (it.kind === 'aljibe') { const antes = s.agua; s.agua = Math.min(s.ag0, s.agua + AGUA_ALJIBE); emite(s, { t: 'recoge', id: it.id, kind: it.kind, mas: s.agua - antes }); }
       else emite(s, { t: 'recoge', id: it.id, kind: it.kind });
@@ -268,8 +277,21 @@ function paso(L, s, m) {
     if (s.lava == null && s.x >= LV.desde) { s.lava = s.x - LV.ventaja; emite(s, { t: 'lava' }); }
     if (s.lava != null && s.x < LV.hasta) {
       s.lava += LV.vel * (s.lf || 1) * DT;
-      if (s.x - HW < s.lava) { s.fase = 'fallo'; s.causa = 'lava'; emite(s, { t: 'fallo', causa: s.causa }); return s; }
+      if (s.x - hw < s.lava) { s.fase = 'fallo'; s.causa = 'lava'; emite(s, { t: 'fallo', causa: s.causa }); return s; }
     }
+  }
+  // guía: el camellero (o la manada) avanza a su paso; si Martín se queda demasiado atrás, lo pierde y vuelve al punto de control
+  const GU = L.guia;
+  if (GU && s.guia != null) {
+    if (s.guia < GU.hasta) s.guia = Math.min(GU.hasta, s.guia + GU.vel * (s.lf || 1) * DT);
+    if (s.guia - s.x > GU.pierde) { s.perdidas++; emite(s, { t: 'perdido' }); s.fase = 'reaparece'; s.rt = REAPARECE; s.vx = 0; s.vy = 0; return s; }
+  }
+  // calor de julio: sube al sol y baja a la sombra de muros y piedras; si llega a 100, Martín vuelve al punto de control a refrescarse
+  const CA = L.calor;
+  if (CA && s.calor != null) {
+    let sombra = false; for (let i = 0; i < CA.sombras.length; i++) { const z = CA.sombras[i]; if (s.x >= z[0] && s.x <= z[1]) { sombra = true; break; } }
+    s.calor = sombra ? Math.max(0, s.calor - CA.baja * DT) : Math.min(100, s.calor + CA.sube * (s.lf || 1) * DT);
+    if (s.calor >= 100) { s.sofocos++; emite(s, { t: 'sofoco' }); s.fase = 'reaparece'; s.rt = REAPARECE; s.vx = 0; s.vy = 0; return s; }
   }
   // 4) integridad
   if (s.agua <= 0) { s.fase = 'fallo'; s.causa = 'agua'; emite(s, { t: 'fallo', causa: s.causa }); return s; }

@@ -287,6 +287,11 @@ body.jugando main{padding:0}
 .mg-bar i{display:block;height:100%;background:linear-gradient(#bfe8ff,#3aa7e8 55%,#1f7cc4);transition:width .2s;box-shadow:0 0 10px #5cc0f5aa}
 .mg-bar.bajo i{background:repeating-linear-gradient(45deg,#ffd24a 0 6px,#2a1600 6px 12px)}
 .mg-agua em{font-style:normal;color:#ffd24a}
+.mg-cor{font-size:18px;line-height:1}.mg-agua.m3 .mg-bar i{background:linear-gradient(#fff3b0,#f4c13d 55%,#d8902a);box-shadow:0 0 10px #f4c13daa}
+.mg-calor{margin-top:5px}.mg-calor .mg-bar i{background:linear-gradient(#ffd0a0,#ff8a3a 55%,#d8452a);box-shadow:0 0 10px #ff8a3aaa}.mg-calor .mg-bar.bajo i{background:repeating-linear-gradient(45deg,#ff6a2a 0 6px,#5a1600 6px 12px)}
+.mg-lava.mg-guia{background:linear-gradient(180deg,#1d5a8ae8,#0c2f52e8);border-color:#9ad6ff;box-shadow:0 0 18px #3aa7e888}.mg-lava.mg-guia.on{opacity:1;animation:none}
+.lv-m3{font-size:.78em}.mp-his{display:block;margin-top:6px;background:#f4c13d22;border:1px solid #f4c13d88;color:var(--txt);border-radius:10px;padding:6px 10px;font-weight:700}
+.hi canvas{width:100%;height:auto;border-radius:12px;display:block}.hi-t{font-size:calc(17px * var(--fs, 1));line-height:1.45;margin:12px 2px 6px;font-style:italic}
 .mg-der{display:flex;align-items:center;gap:8px}
 .mg-t{border-radius:14px;padding:7px 12px;color:#fff;font-variant-numeric:tabular-nums;font-weight:700;font-size:calc(15px * var(--fs, 1))}
 .mg-pausa{pointer-events:auto;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0}
@@ -363,6 +368,7 @@ body.jugando main{padding:0}
 <script src="martin.js"></script>
 <script src="niveles.js"></script>
 <script src="secretos.js"></script>
+<script src="mundo3.js"></script>
 <script src="lugares.js"></script>
 <script src="mapa-lz.js"></script>
 <script src="naturaleza.js"></script>
@@ -451,7 +457,7 @@ window.NOTICIAS_MARTIN = ['https://www.laprovincia.es/videos/lanzarote/2026/08/1
   'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html',
   'https://www.tiktok.com/@unahoramenostv/video/7605692657339256097'];   // el Martín real (prensa, agosto de 2026)
 window.NOTICIA_MARTIN = NOTICIAS_MARTIN[0];
-const APP_VERSION = '2.5.1';
+const APP_VERSION = '3.0.0';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);

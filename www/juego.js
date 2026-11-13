@@ -9,9 +9,10 @@ const ONLINE_URL = 'MARTIN_ONLINE_URL' in window ? window.MARTIN_ONLINE_URL : 'w
 const HTTP_BASE = ONLINE_URL ? ONLINE_URL.replace(/^ws/, 'http').replace(/\/ws$/, '') : '';
 const NIV = (window.MARTIN_NIVELES || []).map(t => M.cargar(t));
 const MODS_TXT = { normal: ['Agua normal', 'Todo como siempre.'], fragil: ['Cántaro frágil', 'Los golpes y las caídas derraman un 50 % más.'], poca: ['Poca agua', 'Sales con solo 70 de agua.'] };
+const CAUSAS3 = { agua: 'Martín se ha quedado sin fuerzas.', caida: 'Martín se ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.' };
 const CAUSAS = { agua: 'Se ha derramado toda el agua.', caida: 'Martín ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.', lava: '¡La lava ha alcanzado a Martín!' };
 const TR = x => (window.Idioma && Idioma.tr ? Idioma.tr(x) : x);
-const FRUTOS = { tuno: 'Tuno', higo: 'Higo', malvasia: 'Uva malvasía' };
+const FRUTOS = { tuno: 'Tuno', higo: 'Higo', malvasia: 'Uva malvasía', biberon: 'Biberón' };
 const PISTAS = {
   mover: 'Mantén ◀ ▶ para caminar. Si sueltas, Martín se detiene.',
   saltar: 'Toca ⬆ (o la barra espaciadora) para saltar el hueco.',
@@ -31,7 +32,24 @@ const PISTAS = {
   subida: 'Una gran subida: salta de escalón en escalón y no te pares en el suelo agrietado.',
   cueva: 'Dentro del tubo de lava: atento a las piedras que caen del techo.',
   graciosa: 'Calles de arena, olas en la orilla y viento del norte: salta con calma.',
-  entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.'
+  entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.',
+  guelfo: 'Martín es un guelfo: aún es pequeño. Mantén ◀ ▶ para caminar.',
+  guelfo_salta: 'Toca ⬆ para saltar. Todavía salta poco: las piedras pequeñas, de una en una.',
+  camellero: '¡Mira! El camellero te espera al final del camino.',
+  silbido: 'Sigue al camellero. Si te quedas muy atrás, lo pierdes y vuelves al último punto de control.',
+  escultura: 'Ya llegáis a la entrada del pueblo, donde está la escultura de los camellos.',
+  muros: 'Los muros altos se saltan en dos tiempos: primero a la piedra pequeña y luego arriba.',
+  corral: '¡Ya casi! El corral de la manada está ahí delante.',
+  fila: 'La manada sale en fila. Ve detrás sin quedarte atrás.',
+  fila_fin: 'Eres el último de la fila y el más pequeño, pero ya conoces el camino.',
+  calor: 'El calor sube al sol. Párate un momento a la sombra de los muros y de las piedras.',
+  sombra_fin: '¡Ya casi! Un último tramo al sol.',
+  eclipse: 'El Sol empieza a apagarse por un borde. Busca al camellero.',
+  camellero_eclipse: 'Ahí está el camellero, bajo la media luna de luz.',
+  echadero: 'Por fin, el Echadero: aquí trabaja la manada.',
+  echadero_fin: 'Los camellos de la manada descansan al final del camino.',
+  arena: 'Arena negra y sin prisa: salta y juega todo lo que quieras.',
+  arena_fin: '¡Qué cosquillas hace la arena!'
 };
 
 /* ================= Sonidos (sintetizados: sin archivos de audio) ================= */
@@ -75,6 +93,8 @@ const Sound = (() => {
       else if (kind === 'derrumbe') { ruido(c, t, 0.35, 0.1); tone(c, t, 90, 40, 0.3, 0.06); }
       else if (kind === 'fruto') [784, 988, 1318].forEach((f, i) => tone(c, t + i * 0.06, f, f, 0.12, 0.05, 'sine'));
       else if (kind === 'aljibe') { [523, 784].forEach((f, i) => tone(c, t + i * 0.08, f, f * 1.02, 0.16, 0.05, 'sine')); ruido(c, t, 0.18, 0.03); }
+      else if (kind === 'silbido') [1568, 2093, 1568].forEach((f, i) => tone(c, t + i * 0.16, f, f * (i === 1 ? 1.02 : 0.97), 0.14, 0.035, 'sine'));
+      else if (kind === 'sofoco') { ruido(c, t, 0.3, 0.05); tone(c, t, 300, 180, 0.4, 0.04, 'sine'); }
       else if (kind === 'lava') { tone(c, t, 70, 45, 1.1, 0.09, 'sawtooth'); ruido(c, t, 0.9, 0.07); [440, 440].forEach((f, i) => tone(c, t + 0.3 + i * 0.25, f, f, 0.12, 0.04, 'square')); }
     } catch (e) {}
   }
@@ -142,6 +162,12 @@ const Musica = (() => {
       if (p % 9 === 0) ola(c, t, 5.5 + H(p) * 1.5, 0.03 + H(p + 2) * 0.012);
       if (p % 14 === 5) viento(c, t, 7, 0.018, 500 + H(p + 1) * 300);
       if (H(p * 1.9) > 0.93) gaviota(c, t, H(p + 4)); } },
+    // pueblo y manada (Mundo 3): viento suave, algún pájaro, pasos lejanos de la manada y, de vez en cuando, el silbido del camellero
+    pueblo: { pulso: 0.5, toca(c, t, p) {
+      if (p % 12 === 0) viento(c, t, 7, 0.022 + H(p) * 0.01, 420 + H(p + 1) * 300);
+      if (H(p * 1.7) > 0.88) pajaro(c, t, H(p + 3));
+      if (p % 4 === 2 && H(p * 0.37) > 0.45) nota(c, t, 90 + H(p) * 20, 0.08, 0.016, 'sine', 0.004);
+      if (p % 40 === 20 && H(p * 2.9) > 0.3) [1568, 2093, 1568].forEach((f, i) => nota(c, t + i * 0.17, f, 0.15, 0.012, 'sine', 0.01)); } },
     // cueva: zumbido grave y gotas con eco
     cueva: { pulso: 0.8, toca(c, t, p) { if (p % 8 === 0) nota(c, t, N(38), 7, 0.035, 'sine', 1.2);
       if (H(p) > 0.62) { const f = 1100 + H(p + 7) * 900; nota(c, t, f, 0.18, 0.02, 'sine', 0.003); nota(c, t + 0.28, f * 0.98, 0.18, 0.008, 'sine', 0.003); } } }
@@ -162,7 +188,7 @@ const Musica = (() => {
   function muestra(c, est, seg) { const E = EST[est]; let t = 0.1, p = 0; while (t < seg) { E.toca(c, t, p); t += E.pulso; p++; } }
   return { tick, muestra, estado: () => (on ? estilo : '') };
 })();
-const estiloMusica = i => i === 11 || secretoDe(i) === 0 ? 'cueva' : (i >= MUNDOS[1].desde ? 'costa' : 'sur');
+const estiloMusica = i => secretoDe(i) === 0 ? 'cueva' : INFO[i] && INFO[i].tipo === 'premio' ? 'costa' : INFO[i] && INFO[i].mundo === 2 ? 'pueblo' : (INFO[i] && INFO[i].mundo === 1 ? 'costa' : 'sur');
 
 /* ================= Frutos y fantasma ================= */
 const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe');
@@ -186,13 +212,27 @@ const PROG0 = () => ({ done: false, stars: 0, bestMs: 0, bestAgua: 0, plays: 0, 
 const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para escribir (crea la entrada)
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
 // niveles secretos (secretos.js): van detrás de los normales y se abren con todos los frutos de su mundo
-const NBASE = NIV.length - (window.MARTIN_SECRETOS || []).length;
-const secretoDe = i => i >= NBASE ? ((window.MARTIN_SECRETOS || [])[i - NBASE] || {}).mundo : -1;
-const nomNivel = i => secretoDe(i) >= 0 ? 'Nivel secreto' : `Nivel ${i + 1}`;
-function frutosMundo(m) { let h = 0, t = 0; for (let i = 0; i < NBASE; i++) { if ((i >= MUNDOS[1].desde ? 1 : 0) !== m || !NIV[i].ok) continue; t += frutosDe(NIV[i].nivel).length; h += frutosHechos(i); } return { h, t }; }
+// Mundo 3 (mundo3.js): 6 niveles, un secreto y un nivel de premio, detrás de los secretos de los Mundos 1 y 2
+const SECS = window.MARTIN_SECRETOS || [], M3 = window.MARTIN_MUNDO3 || [];
+const NBASE = NIV.length - SECS.length - M3.length;
+const INFO = NIV.map((_, i) => {
+  if (i < NBASE) return { mundo: i >= 6 ? 1 : 0, tipo: 'nivel', num: String(i + 1) };
+  if (i < NBASE + SECS.length) return { mundo: SECS[i - NBASE].mundo, tipo: 'secreto', num: '' };
+  const k = i - NBASE - SECS.length, x = M3[k];
+  return { mundo: 2, tipo: x.tipo, num: x.tipo === 'nivel' ? '3-' + M3.slice(0, k + 1).filter(y => y.tipo === 'nivel').length : '' };
+});
+const esM3 = i => !!(INFO[i] && INFO[i].mundo === 2);
+const secretoDe = i => INFO[i] && INFO[i].tipo === 'secreto' ? INFO[i].mundo : -1;
+const premioDe = i => !!(INFO[i] && INFO[i].tipo === 'premio');
+const nomNivel = i => secretoDe(i) >= 0 ? 'Nivel secreto' : premioDe(i) ? 'Nivel de premio' : `Nivel ${INFO[i] ? INFO[i].num : i + 1}`;
+const nivelesMundo = m => INFO.map((x, i) => (x.mundo === m && x.tipo === 'nivel' ? i : -1)).filter(i => i >= 0);
+function frutosMundo(m) { let h = 0, t = 0; for (const i of nivelesMundo(m)) { if (!NIV[i].ok) continue; t += frutosDe(NIV[i].nivel).length; h += frutosHechos(i); } return { h, t }; }
 const mundoCompleto = m => { const f = frutosMundo(m); return f.t > 0 && f.h >= f.t; };
-const desbloqueado = i => { const m = secretoDe(i); if (m >= 0) return mundoCompleto(m); return i === 0 || (!!S.prog[lid(i - 1)] && !!S.prog[lid(i - 1)].done); };
-const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }];
+const estrellasMundo = m => nivelesMundo(m).every(i => progR(i).stars >= 3);
+const anteriorNivel = i => { for (let j = i - 1; j >= 0; j--) if (INFO[j].tipo === 'nivel') return j; return -1; };
+const desbloqueado = i => { const m = secretoDe(i); if (m >= 0) return mundoCompleto(m); if (premioDe(i)) return estrellasMundo(INFO[i].mundo); const j = anteriorNivel(i); return j < 0 || (!!S.prog[lid(j)] && !!S.prog[lid(j)].done); };
+const ORDEN = []; [0, 1, 2].forEach(m => ['nivel', 'secreto', 'premio'].forEach(tp => INFO.forEach((x, i) => { if (x.mundo === m && x.tipo === tp) ORDEN.push(i); })));
+const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }, { desde: NBASE + SECS.length, nombre: 'Mundo 3 · El guelfo de Uga', lema: 'Cómo Martín aprendió a ser camello' }];
 const totalEstrellas = () => NIV.reduce((a, n, i) => a + (n.ok ? progR(i).stars : 0), 0);
 const fmtT = ms => { const t = Math.max(0, Math.round(ms / 100)); const m = Math.floor(t / 600), s = Math.floor((t % 600) / 10); return m + ':' + String(s).padStart(2, '0') + '.' + (t % 10); };
 const estrellasTxt = (n, tot) => '★'.repeat(n) + '☆'.repeat((tot || 3) - n);
@@ -255,9 +295,11 @@ function evento(e) {
   else if (e.t === 'fallo') Sound.play('fallo');
   else if (e.t === 'ruta') RUN.rutaVista = e.id;
   else if (e.t === 'recoge') {
-    if (e.kind === 'aljibe') { Sound.play('aljibe'); RUN.avisado = s.agua < 30 && RUN.avisado; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: e.mas > 0 ? '💧 +' + e.mas : TR('💧 lleno') }); }
+    if (e.kind === 'aljibe') { Sound.play('aljibe'); RUN.avisado = s.agua < 30 && RUN.avisado; RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 70, txt: e.mas > 0 ? (RUN.L.cuerpo ? '💛 +' : '💧 +') + e.mas : TR(RUN.L.cuerpo ? '💛 a tope' : '💧 lleno') }); }
     else { Sound.play('fruto'); vibrate(15); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.6, v: 0, n: 80, txt: '✨ ' + TR(FRUTOS[e.kind]) }); for (let i = 0; i < 14; i++) RUN.fx.push({ k: 'confeti', x: s.x, y: s.y + 2.2, v: 0, n: 50, vx: (hash(i * 3 + 1) - 0.5) * 6, vy: 2 + hash(i * 5 + 2) * 4, rot: 6, c: ['#f6d65a', '#fff3b0', '#ffb347'][i % 3] }); }
-  } else if (e.t === 'lava') { Sound.play('lava'); vibrate(80); RUN.shake = Math.max(RUN.shake || 0, 1.2); RUN.lavaAviso = performance.now(); }
+  } else if (e.t === 'perdido') { Sound.play('silbido'); vibrate(40); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 90, txt: TR(RUN.L.guia && RUN.L.guia.manada ? '🎵 Has perdido la fila' : '🎵 Has perdido al camellero') }); }
+  else if (e.t === 'sofoco') { Sound.play('sofoco'); vibrate(40); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 90, txt: TR('🥵 ¡Qué calor! A la sombra') }); }
+  else if (e.t === 'lava') { Sound.play('lava'); vibrate(80); RUN.shake = Math.max(RUN.shake || 0, 1.2); RUN.lavaAviso = performance.now(); }
 }
 function startLoop() {
   stopLoop(true); RUN.on = true; RUN.last = performance.now(); RUN.acc = 0;
@@ -320,20 +362,23 @@ function dibujar(dt) {
   if (F && F.s.fase !== 'lista' && (F.s.fase !== 'reaparece' || F.s.rt < 24) && F.s.fase !== 'fallo') {
     const fs = F.s, fx = (fs.x - RUN.cam.x) * u, fy = H - (fs.y - RUN.cam.y) * u;
     if (fx > -u * 3 && fx < W + u * 3) { let fa = 'idle'; if (!fs.suelo) fa = fs.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(fs.vx) > 0.3) fa = 'corre';
-      dibujaMartin(ctx, u, fx, fy, { dir: fs.cara, fase: F.fase, anim: fa, agua: fs.agua, golpe: 0, t: RUN.t, alpha: 0.42 }); }
+      dibujaMartin(ctx, u * (L.cuerpo ? L.cuerpo.escala : 1), fx, fy, { dir: fs.cara, fase: F.fase, anim: fa, agua: fs.agua, golpe: 0, t: RUN.t, alpha: 0.42, guelfo: !!L.cuerpo }); }
   }
+  if (L.cuerpo) window.Dibujo.dibujaMundo3(ctx, W, H, u, RUN.cam, L, s, RUN.t);
   // personaje
   if (s.fase !== 'reaparece' || s.rt < 24) {
     dibujaSombra(ctx, L, s, u, RUN.cam, H);
     let anim = 'idle';
     if (s.fase === 'meta') anim = 'gana'; else if (!s.suelo) anim = s.vy > 0 ? 'salta' : 'cae'; else if (Math.abs(s.vx) > 0.3) anim = 'corre';
     const parpadeo = s.fase === 'reaparece' ? 0.4 + 0.6 * ((24 - s.rt) / 24) : (s.frio > 0 && s.fase === 'jugando' && Math.floor(s.frio / 3) % 2 === 0 ? 0.55 : 1);
-    dibujaMartin(ctx, u, px, py, { dir: s.cara, fase: RUN.fase, anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo });
+    dibujaMartin(ctx, u * (L.cuerpo ? L.cuerpo.escala : 1), px, py, { dir: s.cara, fase: RUN.fase / (L.cuerpo ? L.cuerpo.escala : 1), anim, agua: s.agua, golpe: RUN.golpe, t: RUN.t, alpha: parpadeo, guelfo: !!L.cuerpo });
   }
-  if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - M.HW * u, py - M.H * u, M.W * u, M.H * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
+  if (debugCaja) { ctx.strokeStyle = '#ff0'; ctx.lineWidth = 2; ctx.strokeRect(px - (L.hw || M.HW) * u, py - (L.h || M.H) * u, (L.hw || M.HW) * 2 * u, (L.h || M.H) * u); ctx.fillStyle = '#f00'; ctx.fillRect(px - 2, py - 2, 4, 4); }
   dibujaLavaVista(ctx, W, H, u, RUN.cam, L, s, RUN.t);
   dibujaPrimerPlano(ctx, W, H, u, RUN.cam, RUN.t);
   dibujaFx(ctx, W, H, u, RUN.cam, RUN.fx, RUN.t);
+  if (L.eclipse) window.Dibujo.dibujaEclipse(ctx, W, H, Math.min(1, Math.max(0, (s.x - L.spawn.x) / (L.goals.finish_x - L.spawn.x))), W * 0.8, H * 0.16, Math.min(W, H) * 0.06);
+  if (L.calor && s.calor > 20) { ctx.fillStyle = 'rgba(255,150,40,' + ((s.calor - 20) / 80 * 0.16).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
   dibujaPost(ctx, W, H, RUN.esc, s.agua);
   RUN.cam.x -= shx; RUN.cam.y -= shy;
   // sin avisos de color solo: contorno en la vista de poca agua
@@ -357,6 +402,8 @@ function hud() {
   const b = document.getElementById('mgBar'); if (b) { b.style.width = s.agua + '%'; b.parentNode.classList.toggle('bajo', s.agua < 30); }
   set('mgBajo', s.agua < 30 ? '⚠' : '');
   const fv = Object.keys(s.obj || {}).join(','); if (fv !== RUN.fruVista) { RUN.fruVista = fv; pintaFrutos(document.getElementById('mgFru'), RUN.L, s.obj || {}, 24); }
+  const ca = document.getElementById('mgCalor'); if (ca) { ca.style.width = Math.round(s.calor || 0) + '%'; ca.parentNode.classList.toggle('bajo', (s.calor || 0) > 70); }
+  const gu = document.getElementById('mgGuia'); if (gu) { const d = s.guia - s.x, on = s.fase === 'jugando' && d > RUN.L.guia.pierde * 0.6; gu.classList.toggle('on', on); if (on) set('mgGuiaD', Math.round(d) + ' m'); if (on && !RUN.silbo) { RUN.silbo = true; Sound.play('silbido'); } else if (!on) RUN.silbo = false; }
   const lv = document.getElementById('mgLava'); if (lv) { const on = s.lava != null && s.x < RUN.L.lava.hasta && s.fase === 'jugando'; lv.classList.toggle('on', on); if (on) set('mgLavaD', Math.max(0, Math.round(s.x - s.lava)) + ' m'); }
   const h = pistaActual(); if (h !== RUN.hint) { RUN.hint = h; const el = document.getElementById('mgHint'); if (el) { el.textContent = h; el.classList.toggle('on', !!h); } }
 }
@@ -430,7 +477,8 @@ function reanudar() {
 function reintentar() { crearIntento(); render(); }
 function salirAlMapa() { stopLoop(); RUN.s = null; RUN.overlay = ''; RUN.replay = null; render(); }
 function abandonar() { if (RUN.s && RUN.s.fase !== 'meta' && RUN.s.fase !== 'fallo' && RUN.s.fase !== 'lista') { if (RUN.modo === 'nivel') prog(RUN.idx).fails++; } salirAlMapa(); }
-function siguiente() { const i = RUN.idx + 1; if (i < NBASE && desbloqueado(i)) jugar(i, 'nivel'); else salirAlMapa(); }
+const siguienteDe = i => { const k = ORDEN.indexOf(i); for (let j = k + 1; j < ORDEN.length; j++) { const n = ORDEN[j]; if (INFO[n].tipo === 'nivel' || desbloqueado(n)) return desbloqueado(n) ? n : -1; } return -1; };
+function siguiente() { const i = siguienteDe(RUN.idx); if (i >= 0 && esM3(i)) { stopLoop(); RUN.s = null; render(); openBriefing(i); } else if (i >= 0) jugar(i, 'nivel'); else salirAlMapa(); }
 
 function terminar() {
   const s = RUN.s, L = RUN.L; if (!s) return;
@@ -438,17 +486,19 @@ function terminar() {
   if (s.fase === 'meta') {
     const nu = { tiempo: false, agua: false, estrellas: false };
     if (RUN.modo === 'nivel') {
-      const espAntes = especiesVistas(RUN.idx), p = prog(RUN.idx);
+      const espAntes = especiesVistas(RUN.idx), p = prog(RUN.idx), premioAntes = ORDEN.filter(i => premioDe(i) && desbloqueado(i)).length;
       if (!p.done) nu.primera = true;
       p.done = true;
       if (res.estrellas > p.stars) { p.stars = res.estrellas; nu.estrellas = true; }
       if (!p.bestMs || res.ms < p.bestMs) { if (p.bestMs) nu.tiempo = true; p.bestMs = res.ms; }
       if (res.agua > p.bestAgua) { if (p.bestAgua) nu.agua = true; p.bestAgua = res.agua; }
       const antes = new Set(p.obj || []), nuevos = res.objetos.filter(id => !antes.has(id));
-      if (nuevos.length) { const sa = selloAbierto(RUN.idx), abiertos = [0, 1].map(mundoCompleto); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; const m = [0, 1].find(k => !abiertos[k] && mundoCompleto(k)); if (m != null) nu.secreto = m; }
+      if (nuevos.length) { const sa = selloAbierto(RUN.idx), abiertos = [0, 1, 2].map(mundoCompleto); p.obj = [...antes, ...nuevos]; nu.frutos = nuevos.map(id => (L.objetos.find(o => o.id === id) || {}).kind).filter(Boolean); if (!sa && selloAbierto(RUN.idx)) nu.sello = true; const m = [0, 1, 2].find(k => !abiertos[k] && mundoCompleto(k)); if (m != null) nu.secreto = m; }
       const f0 = S.fant && S.fant[L.level_id], firma = firmaNivel(L);
       if (!f0 || f0.firma !== firma || res.ms < f0.ms) { S.fant = S.fant || {}; S.fant[L.level_id] = { ms: res.ms, firma, runs: RUN.rec.runs(), mod: s.mod !== 'normal' ? s.mod : undefined }; if (f0 && f0.firma === firma) nu.fantasma = true; }
       { const nuevas = descubreEn(RUN.idx).filter(e => !espAntes.has(e)); if (nuevas.length) { nu.especies = nuevas.map(e => (NAT.find(x => x.id === e) || {}).nombre).filter(Boolean); nu.espIds = nuevas; } }
+      if (ORDEN.filter(i => premioDe(i) && desbloqueado(i)).length > premioAntes) nu.premio = true;
+      if (nu.primera && esM3(RUN.idx) && INFO[RUN.idx].tipo === 'nivel') { const k = +INFO[RUN.idx].num.split('-')[1]; nu.escena = k === 6 ? 8 : k < 6 ? k + 1 : 0; }
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: 'nivel', nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '' });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     } else if (RUN.modo === 'diario' || RUN.modo === 'practica') {
@@ -462,6 +512,7 @@ function terminar() {
     if (RUN.modo === 'diario') enviarReto(RUN.rec.runs(), res);
   } else if (RUN.modo === 'nivel') { prog(RUN.idx).fails++; save(); }
   RUN.overlay = s.fase === 'meta' ? 'fin' : 'fallo'; ponOverlay(); autoBackup(false);
+  const ne = RUN.nuevo && RUN.nuevo.escena; if (s.fase === 'meta' && ne && ne !== 7 && !historiaVista(ne)) setTimeout(() => { if (RUN.overlay === 'fin' && !modalAbierto()) openHistoria(ne, false); }, 1300);
 }
 
 /* ================= Pantallas ================= */
@@ -480,17 +531,16 @@ function renderSetup() {
     <div id="mpDiario">${diarioHtml()}</div>
     ${mapaIsla(sig)}
     <div class="mp-lv">`;
-  const ORDEN = []; for (let i = 0; i < NBASE; i++) { ORDEN.push(i); const m = i >= MUNDOS[1].desde ? 1 : 0; if (i === NBASE - 1 || i + 1 === MUNDOS[1].desde) for (let k = NBASE; k < NIV.length; k++) if (secretoDe(k) === m) ORDEN.push(k); }
   ORDEN.forEach(i => {
-    const n = NIV[i], mu = MUNDOS.find(w => w.desde === i), sm = secretoDe(i);
+    const n = NIV[i], mu = MUNDOS.find(w => w.desde === i), sm = secretoDe(i), pr = premioDe(i), m3 = esM3(i);
     if (mu) { const m = MUNDOS.indexOf(mu), f = frutosMundo(m);
-      h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span>${NIV.some((_, k) => secretoDe(k) === m) && f.t ? `<small class="mp-sec ${f.h >= f.t ? 'ok' : ''}"><i>🧺 ${f.h}/${f.t}</i> <i>${f.h >= f.t ? '✨ ¡Nivel secreto abierto!' : '✨ Todos los frutos abren un nivel secreto'}</i></small>` : ''}</div>`; }
+      h += `<div class="mp-mu"><b>${esc(mu.nombre)}</b><span>${esc(mu.lema)}</span>${NIV.some((_, k) => secretoDe(k) === m) && f.t ? `<small class="mp-sec ${f.h >= f.t ? 'ok' : ''}"><i>${m === 2 ? '🍼' : '🧺'} ${f.h}/${f.t}</i> <i>${f.h >= f.t ? '✨ ¡Nivel secreto abierto!' : m === 2 ? '✨ Todos los biberones abren un nivel secreto' : '✨ Todos los frutos abren un nivel secreto'}</i></small>` : ''}${m === 2 && historiaVistas().length ? '<button class="mp-his" id="mpHis">📜 La historia de Martín</button>' : ''}</div>`; }
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>${nomNivel(i)}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''} ${sm >= 0 ? 'secreto' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
-      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span>${sm >= 0 ? (ab ? '✨' : '?') : ab ? i + 1 : '🔒'}</span></div>
-      <div class="lv-b"><b>${sm >= 0 && !ab ? 'Nivel secreto' : esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : sm >= 0 ? `Encuentra todos los frutos del Mundo ${sm + 1} para abrirlo.` : 'Termina el nivel anterior para abrirlo.'}</span>
-        ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · 💧 ${p.bestAgua}/100${frutosDe(n.nivel).length ? ` · 🧺 ${frutosHechos(i)}/${frutosDe(n.nivel).length}` : ''}</small>` : ''}</div>
+      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span class="${m3 && sm < 0 && !pr ? 'lv-m3' : ''}">${sm >= 0 ? (ab ? '✨' : '?') : pr ? (ab ? '🎁' : '?') : ab ? INFO[i].num : '🔒'}</span></div>
+      <div class="lv-b"><b>${sm >= 0 && !ab ? 'Nivel secreto' : pr && !ab ? 'Nivel de premio' : esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : sm === 2 ? 'Encuentra todos los biberones del Mundo 3 para abrirlo.' : sm >= 0 ? `Encuentra todos los frutos del Mundo ${sm + 1} para abrirlo.` : pr ? 'Consigue todas las estrellas del Mundo 3 para abrirlo.' : m3 && anteriorNivel(i) === NBASE - 1 ? 'Termina el Mundo 2 para abrirlo.' : 'Termina el nivel anterior para abrirlo.'}</span>
+        ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · ${m3 ? '💛' : '💧'} ${p.bestAgua}/100${frutosDe(n.nivel).length ? ` · ${m3 ? '🍼' : '🧺'} ${frutosHechos(i)}/${frutosDe(n.nivel).length}` : ''}</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
   });
   h += `</div>
@@ -502,6 +552,7 @@ function renderSetup() {
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
   document.querySelectorAll('[data-lvm]').forEach(g => { const ir = () => openBriefing(+g.dataset.lvm); g.addEventListener('click', ir); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } }); });
   const cb = $('#mpCuad'); if (cb) cb.onclick = openCuaderno;
+  const hi = $('#mpHis'); if (hi) hi.onclick = () => openHistoria(historiaVistas()[0], true);
   const pq = $('#mpPeq'); if (pq) pq.onclick = () => { S.peque = !S.peque; save(); renderSetup(); if (S.peque) toast('🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.'); };
   enlazarDiario();
   retoCargar(false);
@@ -528,6 +579,8 @@ function openErrorNivel(i) {
   $('#enNo').onclick = closeModal; $('#enRe').onclick = () => { closeModal(); location.reload(); };
 }
 function openBriefing(i) {
+  if (esM3(i) && INFO[i].num === '3-1' && !historiaVista(1)) { openHistoria(1, false, () => openBriefing(i)); return; }
+  if (esM3(i)) return openBriefing3(i);
   const n = NIV[i].nivel, p = progR(i), g = n.goals;
   openModal(`<h3>${nomNivel(i)} · ${esc(n.name)}</h3><div class="sub">${esc(n.brief)}</div>
     <div class="rules"><h4>Objetivos</h4><ul>
@@ -540,6 +593,43 @@ function openBriefing(i) {
   $('#bfNo').onclick = closeModal; $('#bfGo').onclick = () => jugar(i, 'nivel');
 }
 
+function openBriefing3(i) {
+  const n = NIV[i].nivel, p = progR(i), g = n.goals;
+  openModal(`<h3>${nomNivel(i)} · ${esc(n.name)}</h3><div class="sub">${esc(n.brief)}</div>
+    <div class="rules"><h4>Objetivos</h4><ul>
+      <li>${p.stars >= 1 ? '★' : '☆'} Llega al final del camino.</li>
+      <li>${p.stars >= 2 ? '★' : '☆'} Termina con ${g.star_2_integrity} de fuerzas o más.</li>
+      <li>${p.stars >= 3 ? '★' : '☆'} Termina en ${Math.floor(g.star_3_time_s / 60)} min ${g.star_3_time_s % 60 ? (g.star_3_time_s % 60) + ' s' : ''} o menos y con ${g.star_3_integrity != null ? g.star_3_integrity : g.star_2_integrity} de fuerzas o más.</li></ul>
+      ${p.done ? `<h4>Tus récords</h4><p>⏱ Mejor tiempo: <b>${fmtT(p.bestMs)}</b> · 💛 Más fuerzas: <b>${p.bestAgua}/100</b></p>` : ''}
+      <p class="mut">Martín todavía es un guelfo: es más pequeño y salta un poco menos. Si se cae, vuelve al último punto de control y pierde 15 de fuerzas.</p>
+      ${n.guia ? `<p class="mut">${n.guia.manada ? 'Si te quedas muy atrás, pierdes la fila de la manada' : 'Si te quedas muy atrás, pierdes al camellero'} y vuelves al último punto de control.</p>` : ''}
+      ${n.calor ? '<p class="mut">El calor sube al sol y baja a la sombra de los muros y las piedras. Si llega al máximo, Martín vuelve al último punto de control a refrescarse.</p>' : ''}</div>
+    <div class="acts"><button class="btn-ghost" id="bfNo">Volver</button><button class="btn-gold" id="bfGo">▶ Jugar</button></div>`);
+  $('#bfNo').onclick = closeModal; $('#bfGo').onclick = () => { if (n.eclipse && !historiaVista(7)) openHistoria(7, false, () => jugar(i, 'nivel')); else jugar(i, 'nivel'); };
+}
+/* ================= La historia de Martín (escenas del Mundo 3) ================= */
+const HISTORIA = {
+  1: 'Uga, enero de 2026. Entre muros de piedra ha nacido un guelfo. Su madre no se acerca a él. Pero alguien sí.',
+  2: 'Le pusieron Martín. Tomaba biberón como un bebé y, antes de aprender su nombre, aprendió un silbido.',
+  3: 'Donde iba el camellero, iba Martín. Como si fuera su sombra.',
+  4: 'Cada mañana, con la primera luz, los camellos salían en fila hacia el Echadero. Martín quería ir con ellos.',
+  5: 'Era el último de la fila y el más pequeño. Pero ya conocía el camino.',
+  6: 'El verano enseña a buscar la sombra. Y a no alejarse de quien te cuida.',
+  7: '12 de agosto. El Sol empezó a apagarse por un borde, como si alguien le diera un bocado. La manada levantó la cabeza. Martín buscó al camellero.',
+  8: 'Los encontró juntos, bajo una media luna de luz. Alguien apretó un botón, y aquel momento se quedó para siempre. Martín existe. Este juego es suyo.'
+};
+const historiaVista = k => !!(S.historia && S.historia.includes(k));
+const historiaVistas = () => Object.keys(HISTORIA).map(Number).filter(historiaVista);
+function openHistoria(k, repaso, luego) {
+  if (!HISTORIA[k]) { if (luego) luego(); return; }
+  S.historia = S.historia || []; if (!S.historia.includes(k)) { S.historia.push(k); save(); }
+  const vistas = historiaVistas(), sig = repaso ? vistas[vistas.indexOf(k) + 1] : null;
+  openModal(`<div class="hi"><canvas id="hiC" width="640" height="360" aria-hidden="true"></canvas><p class="hi-t">${esc(HISTORIA[k])}</p><small class="mut">La historia de Martín · ${k}/8</small></div>
+    <div class="acts">${sig ? '<button class="btn-ghost" id="hiSig">Siguiente ›</button>' : ''}<button class="btn-gold" id="hiOk">${luego ? 'Seguir ›' : 'Cerrar'}</button></div>`);
+  window.Dibujo.dibujaHistoria($('#hiC').getContext('2d'), 640, 360, k);
+  const fin = () => { closeModal(); if (luego) luego(); };
+  $('#hiOk').onclick = fin; const s = $('#hiSig'); if (s) s.onclick = () => openHistoria(sig, true);
+}
 function renderGame() {
   const n = RUN.L;
   $('#subtitle').textContent = '';
@@ -548,10 +638,10 @@ function renderGame() {
     <div class="mg-cv"><canvas id="mgCv" aria-label="Juego"></canvas>
       <div class="mg-hud">
         <div class="mg-izq"><div class="mg-nom">${esc(n.name)}</div>
-          <div class="mg-agua" role="img" aria-label="Agua del cántaro"><span class="mg-ic"><svg viewBox="0 0 24 30" width="20" height="24" aria-hidden="true"><path d="M12 1C12 1 2 13 2 19a10 10 0 0 0 20 0C22 13 12 1 12 1Z" fill="#5cc0f5" stroke="#fff" stroke-width="1.6"/><path d="M7 19a5 5 0 0 0 4 4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/></svg></span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div>${frutosDe(n).length ? '<div class="mg-fru" id="mgFru" role="img" aria-label="Frutos escondidos"></div>' : ''}</div>
+          <div class="mg-agua ${n.cuerpo ? 'm3' : ''}" role="img" aria-label="${n.cuerpo ? 'Fuerzas de Martín' : 'Agua del cántaro'}"><span class="mg-ic">${n.cuerpo ? '<b class="mg-cor" aria-hidden="true">💛</b>' : '<svg viewBox="0 0 24 30" width="20" height="24" aria-hidden="true"><path d="M12 1C12 1 2 13 2 19a10 10 0 0 0 20 0C22 13 12 1 12 1Z" fill="#5cc0f5" stroke="#fff" stroke-width="1.6"/><path d="M7 19a5 5 0 0 0 4 4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/></svg>'}</span><div class="mg-bar"><i id="mgBar"></i></div><b id="mgAgua">100</b><em id="mgBajo"></em></div>${n.calor ? '<div class="mg-agua mg-calor" role="img" aria-label="Calor"><b aria-hidden="true">🌡️</b><div class="mg-bar"><i id="mgCalor"></i></div></div>' : ''}${frutosDe(n).length ? `<div class="mg-fru" id="mgFru" role="img" aria-label="${n.cuerpo ? 'Biberones escondidos' : 'Frutos escondidos'}"></div>` : ''}</div>
         <div class="mg-der"><div class="mg-t">⏱ <b id="mgTiempo">0:00.0</b></div><button class="mg-pausa" id="mgPausa" aria-label="Pausa"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></button></div>
       </div>
-      <div class="mg-hint" id="mgHint"></div>${n.lava ? '<div class="mg-lava" id="mgLava">🌋 ¡Corre! La lava está a <b id="mgLavaD"></b></div>' : ''}
+      <div class="mg-hint" id="mgHint"></div>${n.lava ? '<div class="mg-lava" id="mgLava">🌋 ¡Corre! La lava está a <b id="mgLavaD"></b></div>' : ''}${n.guia ? `<div class="mg-lava mg-guia" id="mgGuia">🎵 ${n.guia.manada ? '¡Que se va la manada!' : '¡Que se va el camellero!'} <b id="mgGuiaD"></b> ›</div>` : ''}
       <div class="mg-ov" id="mgOv"></div>
     </div>
     <div class="mg-pad"><div class="mg-lr"><button class="mg-b" id="mgL" aria-label="Izquierda"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M30 8 14 24 30 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mg-b" id="mgR" aria-label="Derecha"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M18 8 34 24 18 40" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><button class="mg-b mg-j" id="mgJ" aria-label="Saltar"><svg viewBox="0 0 48 48" width="1em" height="1em" aria-hidden="true"><path d="M8 32 24 14 40 32" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mg-jt">SALTAR</span></button></div>
@@ -562,7 +652,7 @@ function renderGame() {
   ponOverlay(); startLoop();
 }
 /* ================= Cuaderno de viaje ================= */
-const LUG = window.LUGARES || [];
+const LUG = window.LUGARES || [], LUGN = LUG.filter(Boolean).length;
 const fichaAbierta = i => !!(NIV[i] && NIV[i].ok && progR(i).done);
 // Sellos del cuaderno: con los 3 frutos de un nivel se gana el sello del lugar y una curiosidad más
 const selloAbierto = i => { const n = NIV[i]; if (!n || !n.ok || !LUG[i] || !LUG[i].extra) return false; const t = frutosDe(n.nivel).length; return t > 0 && frutosHechos(i) >= t; };
@@ -582,25 +672,28 @@ function pintaSello(cv, i) {   // sello de correos: ilustración del lugar, bord
     g.fillStyle = '#7a2e12'; g.textAlign = 'center'; g.font = `800 ${Math.round(W * 0.085)}px system-ui, sans-serif`;
     let t = Idioma.tr(f.lugar).toUpperCase(); while (g.measureText(t).width > iw && t.length > 4) t = t.slice(0, -2) + '…';
     g.fillText(t, W / 2, m + ih + H * 0.11);
-    g.fillStyle = '#6b5a45'; g.font = `600 ${Math.round(W * 0.06)}px system-ui, sans-serif`; g.fillText('LANZAROTE · ' + (i + 1), W / 2, m + ih + H * 0.19);
+    g.fillStyle = '#6b5a45'; g.font = `600 ${Math.round(W * 0.06)}px system-ui, sans-serif`; g.fillText('LANZAROTE · ' + (INFO[i] ? INFO[i].num || '✦' : i + 1), W / 2, m + ih + H * 0.19);
   };
   dibuja(null); const img = new Image(); img.onload = () => dibuja(img); img.src = f.img;
 }
 /* Mapa de Lanzarote: cada nivel en su sitio real, unidos por el camino de Martín (dibujo fijo: no se repinta durante la partida) */
 function mapaIsla(sig) {
   const Z = window.MAPA_LZ; if (!Z) return '';
-  const P = Z.puntos, n = Math.min(P.length, NBASE), nt = Math.min(P.length, NIV.length);
+  // Mundo 3: todo pasa entre Uga, el Vallito, el sendero y el Echadero; los botones van en fila sobre el mar, unidos a su sitio
+  const R3 = [[106, 316], [105, 318], [102, 311], [109, 298], [112, 290], [101, 313], [116, 279], [47, 300]], E3 = R3.map((_, k) => [158 + k * 30, 408]);
+  const P = Z.puntos.slice(0, NBASE + SECS.length).concat(R3.slice(0, M3.length)), ET = (Z.etiquetas || Z.puntos).slice(0, NBASE + SECS.length).concat(E3.slice(0, M3.length));
+  const n = Math.min(P.length, NBASE), nt = Math.min(P.length, NIV.length);
   let camino = ''; for (let i = 0; i < n; i++) { const [x, y] = P[i]; if (!i) { camino += `M${x} ${y}`; continue; } const [a, b] = P[i - 1], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; camino += `Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
   let hecho = ''; for (let i = 1; i < n; i++) if (progR(i - 1).done && desbloqueado(i)) { const [a, b] = P[i - 1], [x, y] = P[i], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; hecho += `M${a} ${b}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
   let mk = '';
   for (let i = 0; i < nt; i++) {
-    const [px, py] = P[i], [x, y] = (Z.etiquetas || P)[i], nv = NIV[i], ab = nv && nv.ok && desbloqueado(i), p = progR(i), es = i === sig;
-    if (px !== x || py !== y) mk += `<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#f3dcae" stroke-width="1.5"/><circle cx="${px}" cy="${py}" r="3" fill="#f3dcae"/>`;
-    const sm = secretoDe(i), col = sm >= 0 ? (ab ? (p.done ? '#f4c13d' : '#c9a4ff') : '#4a3a66') : !ab ? '#6b625c' : p.done ? '#f4c13d' : '#ffffff', txt = !ab ? '#d8d0c8' : '#2a1a10';
+    const [px, py] = P[i], [x, y] = ET[i], nv = NIV[i], ab = nv && nv.ok && desbloqueado(i), p = progR(i), es = i === sig;
+    if (px !== x || py !== y) mk += `<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#f3dcae" stroke-width="${esM3(i) ? 0.8 : 1.5}" stroke-opacity="${esM3(i) ? 0.45 : 1}"/><circle cx="${px}" cy="${py}" r="3" fill="#f3dcae"/>`;
+    const sm = secretoDe(i) >= 0 || premioDe(i) ? 1 : -1, col = sm >= 0 ? (ab ? (p.done ? '#f4c13d' : '#c9a4ff') : '#4a3a66') : !ab ? '#6b625c' : p.done ? '#f4c13d' : '#ffffff', txt = !ab ? '#d8d0c8' : '#2a1a10';
     mk += `<g class="mk ${ab ? '' : 'cerrado'}" ${ab ? `data-lvm="${i}" tabindex="0" role="button"` : ''} aria-label="${nomNivel(i)}" transform="translate(${x} ${y})">
       ${es ? `<circle class="mk-pulso" r="12" fill="none" stroke="#ffffff" stroke-width="3"/>` : ''}
       <circle r="13" fill="rgba(0,0,0,.35)" cy="2"/><circle class="fondo" r="12" fill="${col}" stroke="${p.done ? '#7a4a12' : '#3a2a20'}" stroke-width="2"/>
-      <text text-anchor="middle" dy="4.5" font-size="13" font-weight="800" fill="${txt}" font-family="system-ui,sans-serif">${sm >= 0 ? (ab ? '✨' : '?') : ab ? i + 1 : '🔒'}</text>
+      <text text-anchor="middle" dy="${INFO[i].num.length > 2 ? 4 : 4.5}" font-size="${INFO[i].num.length > 2 ? 10 : 13}" font-weight="800" fill="${txt}" font-family="system-ui,sans-serif">${secretoDe(i) >= 0 ? (ab ? '✨' : '?') : premioDe(i) ? (ab ? '🎁' : '?') : ab ? INFO[i].num : '🔒'}</text>
       ${p.done ? `<text text-anchor="middle" y="24" font-size="9" fill="#ffd968" stroke="#2a1a10" stroke-width="2.5" paint-order="stroke" font-family="system-ui,sans-serif">${'★'.repeat(p.stars)}${'☆'.repeat(3 - p.stars)}</text>` : ''}
       ${selloAbierto(i) ? '<text x="10" y="-8" font-size="11">🏅</text>' : ''}</g>`;
   }
@@ -614,6 +707,7 @@ function mapaIsla(sig) {
       ${[Z.isla, ...Z.islotes].map(d => `<path d="${d}" fill="url(#mzTierra)" stroke="#f3dcae" stroke-width="2.2" stroke-linejoin="round"/>`).join('')}
       <path d="${camino}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
       ${hecho ? `<path d="${hecho}" fill="none" stroke="#ffd968" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>` : ''}
+      ${M3.length ? `<path d="M${E3.slice(0, M3.length).map(([x, y]) => x + ' ' + y).join('L')}" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-dasharray="2 5"/><text x="${E3[0][0] - 12}" y="390" font-size="11" font-weight="800" fill="#ffe6a8" stroke="#10324f" stroke-width="3" paint-order="stroke" font-family="system-ui,sans-serif">Mundo 3 · alrededor de Uga</text>` : ''}
       ${mk}
     </svg><small>Mapa: © OpenStreetMap</small></div>`;
 }
@@ -648,16 +742,17 @@ function openEspecie(id) {
   $('#esOk').onclick = closeModal; $('#esVol').onclick = openGuia;
 }
 function cuadernoBoton() {
-  if (!LUG.length) return '';
-  const n = LUG.filter((_, i) => fichaAbierta(i)).length;
+  if (!LUGN) return '';
+  const n = LUG.filter((f, i) => f && fichaAbierta(i)).length;
   const se = sellosHechos();
-  return `<button class="mp-cuad" id="mpCuad"><div class="ic">📖</div><div><b>Cuaderno de viaje · ${n}/${LUG.length}</b>${se ? `<small class="mp-se">🏅 ${se}/${LUG.length}</small>` : ''}<span>${n ? 'Lo que has aprendido de Lanzarote en el camino.' : 'Termina un nivel para conocer su lugar.'}</span></div></button>`;
+  return `<button class="mp-cuad" id="mpCuad"><div class="ic">📖</div><div><b>Cuaderno de viaje · ${n}/${LUGN}</b>${se ? `<small class="mp-se">🏅 ${se}/${LUG.filter(f => f && f.extra).length}</small>` : ''}<span>${n ? 'Lo que has aprendido de Lanzarote en el camino.' : 'Termina un nivel para conocer su lugar.'}</span></div></button>`;
 }
 function openCuaderno() {
   let h = `<h3>📖 Cuaderno de viaje</h3><div class="sub">Cada nivel recorre un lugar real de Lanzarote. Termínalo para abrir su ficha.</div>
     ${NAT.length ? `<button class="cu-gu" id="cuGuia"><span>🌿 Guía de la naturaleza</span><b>${especiesVistas().size}/${NAT.length}</b></button>` : ''}
-    <div class="cu-se"><b>🏅 Sellos: ${sellosHechos()}/${LUG.length}</b><span>Encuentra los 3 frutos de un nivel y gana el sello de ese lugar.</span></div><div class="cu-l">`;
+    <div class="cu-se"><b>🏅 Sellos: ${sellosHechos()}/${LUG.filter(f => f && f.extra).length}</b><span>Encuentra los 3 frutos de un nivel y gana el sello de ese lugar.</span></div><div class="cu-l">`;
   LUG.forEach((f, i) => {
+    if (!f) return;
     const ok = fichaAbierta(i);
     h += `<button class="cu-i ${ok ? '' : 'cerrado'}" data-fi="${i}" ${ok ? '' : 'disabled'} style="background-image:url('${f.img}');background-position:${f.pos}"><span>${ok ? `<b>${esc(f.lugar)}</b>${esc(f.titulo)}` : `🔒 ${nomNivel(i)}`}</span>${selloAbierto(i) ? '<i class="cu-b" aria-label="Sello">🏅</i>' : ''}</button>`;
   });
@@ -700,20 +795,23 @@ function ponOverlay() {
       <button class="btn-gold ov-go" id="ovSig">▶ Seguir</button><button class="btn-ghost" id="ovRei">↻ Empezar de nuevo</button><button class="btn-ghost" id="ovMapa">Salir al mapa</button></div>`;
     $('#ovSig').onclick = reanudar; $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = abandonar;
   } else if (o === 'fallo') {
-    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${s.causa === 'lava' ? '🌋' : '💧'} Misión fallida</div><div class="ov-s">${esc(CAUSAS[s.causa] || '')}</div>
+    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${s.causa === 'lava' ? '🌋' : n.cuerpo ? '💛' : '💧'} ${n.cuerpo ? '¡Uf! Otra vez' : 'Misión fallida'}</div><div class="ov-s">${esc((n.cuerpo ? CAUSAS3 : CAUSAS)[s.causa] || '')}</div>
       <div class="ov-d"><span>⏱ ${fmtT(s.t * 1000 / 60)}</span><span>Caídas ${s.caidas}</span><span>Golpes ${s.golpes}</span></div>
       <button class="btn-gold ov-go" id="ovRei">↻ Reintentar</button><button class="btn-ghost" id="ovMapa">Volver al mapa</button></div>`;
     $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = salirAlMapa;
   } else if (o === 'fin') {
     const r = M.resultado(s), g = n.goals, nu = RUN.nuevo || {};
-    const razon = [`${r.estrellas >= 1 ? '★' : '☆'} Entregaste el agua`, `${r.estrellas >= 2 ? '★' : '☆'} ${g.star_2_integrity} de agua o más`, `${r.estrellas >= 3 ? '★' : '☆'} En ${g.star_3_time_s} s o menos con ${g.star_3_integrity != null ? g.star_3_integrity : g.star_2_integrity} de agua`];
-    const sigOk = RUN.modo === 'nivel' && RUN.idx + 1 < NIV.length;
-    ov.innerHTML = `<div class="ov-c"><div class="ov-t">¡Entregado!</div><div class="ov-est" aria-label="${r.estrellas} de 3 estrellas">${estrellasTxt(r.estrellas)}</div>
-      <div class="ov-d big"><span>⏱ <b>${fmtT(r.ms)}</b>${nu.tiempo ? ' 🏅' : ''}</span><span>💧 <b>${r.agua}</b>/100${nu.agua ? ' 🏅' : ''}</span></div>
-      <div class="ov-d"><span>Agua perdida ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
+    const m3 = !!n.cuerpo, ag = m3 ? 'fuerzas' : 'agua';
+    const razon = [`${r.estrellas >= 1 ? '★' : '☆'} ${m3 ? 'Llegaste al final del camino' : 'Entregaste el agua'}`, `${r.estrellas >= 2 ? '★' : '☆'} ${g.star_2_integrity} de ${ag} o más`, `${r.estrellas >= 3 ? '★' : '☆'} En ${g.star_3_time_s} s o menos con ${g.star_3_integrity != null ? g.star_3_integrity : g.star_2_integrity} de ${ag}`];
+    const sigOk = RUN.modo === 'nivel' && siguienteDe(RUN.idx) >= 0;
+    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${m3 ? '¡Lo has conseguido!' : '¡Entregado!'}</div><div class="ov-est" aria-label="${r.estrellas} de 3 estrellas">${estrellasTxt(r.estrellas)}</div>
+      <div class="ov-d big"><span>⏱ <b>${fmtT(r.ms)}</b>${nu.tiempo ? ' 🏅' : ''}</span><span>${m3 ? '💛' : '💧'} <b>${r.agua}</b>/100${nu.agua ? ' 🏅' : ''}</span></div>
+      <div class="ov-d"><span>${m3 ? 'Fuerzas perdidas' : 'Agua perdida'} ${r.danos}</span><span>Caídas ${r.caidas}</span>${s.ruta ? `<span>${s.ruta === 'RUTA-ALTA' ? 'Camino alto' : 'Camino bajo'}</span>` : ''}</div>
       <ul class="ov-r">${razon.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? '¡Todos los frutos!' : `Frutos ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
+      ${frutosDe(n).length ? `<div class="ov-fru"><span id="ovFru"></span><span>${r.objetos.length === frutosDe(n).length ? (m3 ? '¡Todos los biberones!' : '¡Todos los frutos!') : `${m3 ? 'Biberones' : 'Frutos'} ${r.objetos.length}/${frutosDe(n).length}`}</span>${nu.frutos && nu.frutos.length ? '<span class="ov-nue">✨ ¡Nuevo!</span>' : ''}</div>` : ''}
       ${nu.secreto != null ? `<div class="ov-se"><b>✨ ¡Has abierto un nivel secreto!</b><span>Búscalo en el mapa, al final del Mundo ${nu.secreto + 1}.</span></div>` : ''}
+      ${nu.premio ? '<div class="ov-se"><b>🎁 ¡Has abierto el nivel de premio!</b><span>Búscalo al final del Mundo 3.</span></div>' : ''}
+      ${nu.escena && HISTORIA[nu.escena] ? `<button class="ov-se ov-ir" id="ovHis"><b>📜 La historia de Martín</b><span>Una escena nueva de la historia.</span></button>` : ''}
       ${nu.especies && nu.especies.length ? `<button class="ov-gu ov-ir" id="ovGu"><b>🌿 Nueva especie en tu guía</b><span>${nu.especies.map(esc).join(' · ')}</span></button>` : ''}
       ${nu.sello ? '<button class="ov-se ov-ir" id="ovSe"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></button>' : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
@@ -726,6 +824,7 @@ function ponOverlay() {
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
     const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
     const se = $('#ovSe'); if (se) se.onclick = () => openFicha(RUN.idx, false);   // la ficha enseña el sello y la curiosidad nueva
+    const oh = $('#ovHis'); if (oh) oh.onclick = () => openHistoria(nu.escena, false);
     const gu = $('#ovGu'); if (gu) gu.onclick = () => { const ids = nu.espIds || []; if (ids.length === 1) openEspecie(ids[0]); else openGuia(); };
     pintaFrutos($('#ovFru'), n, s.obj || {}, 26);
   }

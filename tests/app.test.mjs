@@ -61,7 +61,7 @@ async function juegaConRobot(p, idx, clave, extraOpts = null) {
 console.log('Mapa de Uga');
 {
   const { p, ctx, errors } = await fresh(BASE_STATE, null, '');
-  check('abre en el mapa con los 11 niveles y los 2 secretos, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 13 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
+  check('abre en el mapa con los 11 niveles, los 2 secretos y los 8 del Mundo 3, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 21 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
   const abiertos = await p.evaluate(() => [...document.querySelectorAll('[data-lv]')].filter(b => !b.disabled && !b.classList.contains('bloq') && !b.classList.contains('locked')).length);
   check('solo el nivel 1 está abierto al empezar', abiertos === 1, String(abiertos));
   check('el título es Martín', (await p.textContent('#title')).includes('Martín'));
@@ -69,9 +69,9 @@ console.log('Mapa de Uga');
   check('sin desbordamiento horizontal', await noHScroll(p));
   check('el reto diario se puede practicar sin conexión', await waitFor(p, () => document.querySelector('#dgPrac')));
   check('sale el «Mundo 2» con sus niveles', /Mundo 2 · La costa y el norte/.test(await p.textContent('#app')));
-  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 13 && window.LUGARES.every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/13/.test(await p.textContent('#app')));
+  check('cuaderno de viaje: una ficha con fuentes por nivel, cerrada al empezar', await p.evaluate(() => window.LUGARES.length === 21 && window.LUGARES.slice(0, 13).every(f => f.texto.length >= 3 && f.dato && f.fuentes.length >= 2) && window.LUGARES.filter(Boolean).every(f => f.texto.length >= 2 && f.dato && f.fuentes.length >= 1 && f.fuentes.every(([, u]) => /^https:\/\//.test(u)))) && /Cuaderno de viaje · 0\/17/.test(await p.textContent('#app')));
   await p.evaluate(() => openCuaderno());
-  check('el cuaderno muestra los 13 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 13));
+  check('el cuaderno muestra los 17 lugares bloqueados', await p.evaluate(() => document.querySelectorAll('.cu-i.cerrado').length === 17));
   await p.evaluate(() => closeModal());
   await p.click('[data-lv="0"]');
   check('el briefing explica el nivel, las estrellas y los controles', await waitFor(p, () => document.querySelector('#bfGo')) && /Agua para Uga/.test(await p.textContent('#modal')) && /☆|★/.test(await p.textContent('#modal')));
@@ -152,7 +152,7 @@ console.log('Controles');
   // salir al mapa (T20)
   await p.evaluate(() => reanudar()); await p.waitForTimeout(100);
   await p.evaluate(() => abandonar());
-  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 13) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
+  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 21) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
@@ -203,7 +203,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     await p.evaluate(() => salirAlMapa());
   }
   { // niveles secretos: cerrados hasta tener todos los frutos de su mundo; se juegan como los demás; no entran en el reto diario
-    check('secretos: dos niveles secretos, cerrados sin todos los frutos', await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = (prog(i).obj || []).slice(1); return true; }) && await p.evaluate(() => NBASE === 11 && NIV.length === 13 && !desbloqueado(11) && !desbloqueado(12)));
+    check('secretos: dos niveles secretos, cerrados sin todos los frutos', await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = (prog(i).obj || []).slice(1); return true; }) && await p.evaluate(() => NBASE === 11 && NIV.length === 21 && !desbloqueado(11) && !desbloqueado(12)));
     check('secretos: el reto diario solo usa los 11 niveles normales (igual que el servidor)', await p.evaluate(() => { for (let d = 1; d <= 28; d++) { const r = __martin.M.retoDelDia('2026-02-' + String(d).padStart(2, '0'), NIV.slice(0, NBASE).map(n => n.nivel.level_id)); if (!NIV.slice(0, NBASE).some(n => n.nivel.level_id === r.nivel)) return false; } return true; }));
     await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = frutosDe(NIV[i].nivel).map(o => o.id); save(); salirAlMapa(); });
     check('secretos: con todos los frutos se abren los dos', await p.evaluate(() => desbloqueado(11) && desbloqueado(12)) && /Nivel secreto abierto/.test(await p.textContent('#app')));
@@ -212,6 +212,48 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
       check('secreto ' + id + ': llega a la meta igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[id].ms * 60 / 1000) && f.agua === PART[id].agua, JSON.stringify(f));
       await p.evaluate(() => salirAlMapa());
     }
+  }
+  { // 3.0: Mundo 3 «El guelfo de Uga»: precuela con Martín de guelfo, el camellero, la manada, el calor y el eclipse
+    const m3 = await p.evaluate(() => ORDEN.filter(i => esM3(i)));
+    const ids3 = await p.evaluate(m3 => m3.map(i => NIV[i].nivel.level_id), m3);
+    check('3.0: el Mundo 3 tiene 6 niveles, un secreto y un nivel de premio', m3.length === 8 && await p.evaluate(m3 => m3.map(i => INFO[i].tipo).join() === 'nivel,nivel,nivel,nivel,nivel,nivel,secreto,premio', m3));
+    check('3.0: el reto diario sigue usando solo los 11 niveles de siempre', await p.evaluate(() => NBASE === 11));
+    check('3.0: el nivel 3-1 se abre al terminar el Mundo 2 y el 3-2 sigue cerrado', await p.evaluate(m3 => desbloqueado(m3[0]) && !desbloqueado(m3[1]), m3));
+    check('3.0: Martín es un guelfo: más pequeño y salta menos', await p.evaluate(i => { const L = NIV[i].nivel; return L.hw < __martin.M.HW && L.h < __martin.M.H && L.salto < __martin.M.SALTO; }, m3[0]));
+    await p.evaluate(i => openBriefing(i), m3[0]);
+    check('3.0: al entrar en el Mundo 3 se cuenta la primera escena de la historia', await waitFor(p, () => /Uga, enero de 2026/.test(document.getElementById('modal').textContent) && !!document.getElementById('hiC')));
+    await p.click('#hiOk');
+    check('3.0: tras la escena llega la explicación del nivel 3-1', await waitFor(p, () => /Nivel 3-1/.test(document.getElementById('modal').textContent) && /guelfo/.test(document.getElementById('modal').textContent)));
+    await p.evaluate(() => closeModal());
+    for (let k = 0; k < 6; k++) {
+      check('3.0: nivel 3-' + (k + 1) + ' abierto', await p.evaluate(i => desbloqueado(i), m3[k]));
+      const f = await juegaConRobot(p, m3[k], ids3[k]);
+      check('3.0: nivel 3-' + (k + 1) + ' (' + ids3[k] + '): llega al final igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[ids3[k]].ms * 60 / 1000) && f.agua === PART[ids3[k]].agua, JSON.stringify(f));
+      check('3.0: nivel 3-' + (k + 1) + ': sale «¡Lo has conseguido!» con las fuerzas', await waitFor(p, () => /¡Lo has conseguido!/.test(document.getElementById('mgOv').textContent) && /💛/.test(document.getElementById('mgOv').textContent)));
+      await p.waitForTimeout(1500); await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); });
+    }
+    check('3.0: la historia avanza al terminar los niveles (escenas 2 a 6 y la final)', await p.evaluate(() => [2, 3, 4, 5, 6, 8].every(k => historiaVista(k))), JSON.stringify(await p.evaluate(() => S.historia)));
+    check('3.0: en el mapa sale el botón para volver a ver la historia', /La historia de Martín/.test(await p.textContent('#app')));
+    check('3.0: el secreto del Mundo 3 está cerrado sin todos los biberones', await p.evaluate(m3 => { for (const i of m3.slice(0, 6)) prog(i).obj = []; save(); return !desbloqueado(m3[6]); }, m3));
+    await p.evaluate(m3 => { for (const i of m3.slice(0, 6)) { prog(i).obj = frutosDe(NIV[i].nivel).map(o => o.id); prog(i).stars = 2; } save(); salirAlMapa(); }, m3);
+    check('3.0: con todos los biberones se abre El Echadero', await p.evaluate(m3 => desbloqueado(m3[6]), m3));
+    { const f = await juegaConRobot(p, m3[6], ids3[6]); check('3.0: El Echadero se juega igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[ids3[6]].ms * 60 / 1000), JSON.stringify(f)); await p.waitForTimeout(300); await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); }); }
+    check('3.0: el nivel de premio está cerrado sin todas las estrellas del Mundo 3', await p.evaluate(i => !desbloqueado(i), m3[7]));
+    await p.evaluate(m3 => { for (const i of m3.slice(0, 6)) prog(i).stars = 3; save(); salirAlMapa(); }, m3);
+    check('3.0: con todas las estrellas se abre Arena negra', await p.evaluate(i => desbloqueado(i), m3[7]));
+    { const f = await juegaConRobot(p, m3[7], ids3[7]); check('3.0: Arena negra se juega igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[ids3[7]].ms * 60 / 1000), JSON.stringify(f)); await p.waitForTimeout(300); await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); }); }
+    await p.evaluate(i => { window.MARTIN_REPLAY = [0, 30000]; jugar(i, 'nivel'); }, m3[1]); await p.click('#ovGo');
+    check('3.0: si Martín se queda quieto, pierde al camellero y vuelve al punto de control', await waitFor(p, () => __martin.RUN.s.perdidas >= 1 && __martin.RUN.s.fase !== 'fallo', null, 20000));
+    await p.evaluate(() => salirAlMapa());
+    await p.evaluate(i => { window.MARTIN_REPLAY = [0, 30000]; jugar(i, 'nivel'); }, m3[4]); await p.click('#ovGo');
+    check('3.0: al sol, el calor sube y Martín vuelve al punto de control a refrescarse', await waitFor(p, () => __martin.RUN.s.sofocos >= 1 && !!document.getElementById('mgCalor'), null, 20000));
+    await p.evaluate(() => { window.MARTIN_REPLAY = null; salirAlMapa(); S.musica = true; S.sound = true; });
+    await p.evaluate(i => { jugar(i, 'nivel'); empezar(); }, m3[0]); await p.waitForTimeout(300);
+    check('3.0: el Mundo 3 tiene su propio sonido de fondo (pueblo y manada)', await p.evaluate(() => Musica.estado() === 'pueblo'));
+    await p.evaluate(() => salirAlMapa());
+    await p.evaluate(() => openCuaderno());
+    check('3.0: el cuaderno tiene las fichas nuevas del Mundo 3', await waitFor(p, () => /El guelfo/.test(document.getElementById('modal').textContent) && /Los paseos en camello/.test(document.getElementById('modal').textContent)));
+    await p.evaluate(() => closeModal());
   }
   check('al terminar los 11, el total de estrellas es 11 o más', (await p.evaluate(() => totalEstrellas())) >= 11);
   { // 2.2: frutos guardados, fantasma de la mejor carrera y persecución de lava
@@ -243,7 +285,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
   }
   { // mapa de Lanzarote: un punto por nivel en su sitio, y se puede entrar desde el mapa
     await p.evaluate(() => salirAlMapa());
-    check('mapa: Lanzarote con los 11 niveles y los 2 secretos', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 13 && !!document.querySelector('.mp-map path')));
+    check('mapa: Lanzarote con los 11 niveles, los 2 secretos y el Mundo 3', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 21 && !!document.querySelector('.mp-map path')));
     await p.click('.mp-map [data-lvm="0"]', { force: true });
     check('mapa: tocar un nivel abierto lo abre', await waitFor(p, () => /Agua para Uga/.test(document.body.textContent) && (!!__martin.RUN.L || !document.getElementById('modal').classList.contains('hidden')), null, 3000));
     await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); });

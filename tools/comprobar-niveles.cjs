@@ -1,7 +1,7 @@
 'use strict';
 /* Comprueba los niveles de Uga: validación y que un robot los termina (por cada ruta). Uso: node tools/comprobar-niveles.cjs [num] */
 const M = require('../www/martin.js');
-const textos = require('../www/niveles.js'); require('../www/secretos.js');   // los secretos se añaden a la misma lista
+const textos = require('../www/niveles.js'); require('../www/secretos.js'); require('../www/mundo3.js');   // los secretos se añaden a la misma lista
 const { jugar } = require('./bot.cjs');
 const sel = process.argv[2] ? [+process.argv[2] - 1] : textos.map((_, i) => i);
 for (const i of sel) {

@@ -2,7 +2,9 @@
 
 Martín, un guelfo (cría de camello canario) de Uga inspirado en uno real, lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 2.5.1
+Paquete: `com.itcanarias.martin` · versión 3.0.0
+
+Novedades de la 3.0: **Mundo 3 · El guelfo de Uga**, una precuela con 6 niveles, un nivel secreto (El Echadero) y un nivel de premio (Arena negra): Martín todavía es un guelfo, más pequeño y con menos salto, que crece de nivel en nivel; sigue al camellero y a la manada, busca la sombra en el calor de julio y vive el eclipse del 12 de agosto. Ocho escenas cuentan su historia, hay biberones escondidos, sonido de fondo de pueblo y manada, y cuatro fichas nuevas en el Cuaderno de viaje con datos del Ayuntamiento de Yaiza, el Ministerio de Agricultura y la RAE.
 
 Novedades de la 2.3: **Mundo 2 · La costa y el norte**, con 5 niveles nuevos en El Golfo, las Salinas de Janubio (¡la sal resbala!), Famara, Haría (por las copas de las palmeras) y el Mirador del Río, y sus fichas en el Cuaderno de viaje.
 
@@ -29,6 +31,7 @@ Hecha con la misma plantilla que Ajedrez, Damas, Chinchón, Pumba, Parchís, Pó
 ## Motor y niveles
 
 - `www/martin.js`: reglas y física deterministas a 1/60 s (el **mismo archivo** que usa el servidor: `motores/martin/martin.js`). `Martin.repetir(nivel, runs, {mod})` repite una partida a partir de sus pulsaciones.
+- `www/mundo3.js`: los 8 niveles del Mundo 3 (van aparte para que el reto diario no cambie). Usan `cuerpo` (guelfo más pequeño), `guia` (camellero o manada que hay que seguir) y `calor` (sube al sol, baja a la sombra).
 - `www/niveles.js`: niveles en JSON (esquema v0.2, validados con suma de control). Se generan con `node tools/niveles.mjs`.
 - `tools/bot.cjs`: robot (búsqueda en haz) que comprueba que cada nivel y cada ruta se pueden terminar. `node tools/comprobar-niveles.cjs [n]`.
 - `tools/generar-partidas.cjs`: graba las partidas del robot para las pruebas de la app (`tests/partidas.json`).
