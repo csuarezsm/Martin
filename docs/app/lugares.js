@@ -229,7 +229,7 @@
       fuentes: [['Ayuntamiento de Yaiza: el sendero de los camellos', 'https://yaiza.es/yaiza-acondiciona-el-sendero-de-los-camellos-en-el-parque-natural-de-los-volcanes/']]
     },
     {
-      lugar: 'El sendero de los camellos', titulo: 'La fila del amanecer', img: 'paisaje-timanfaya.jpg', pos: '30% 50%',
+      lugar: 'El sendero de los camellos', titulo: 'La fila del amanecer', img: 'fila-amanecer.jpg', pos: '30% 50%',
       texto: [
         'Al amanecer, los camellos van al trabajo en fila india, encabezada por el camellero y el camello guía.',
         'El sendero va por el Parque Natural de Los Volcanes, entre el Vallito de Uga y el Echadero de los Camellos de Timanfaya.'
@@ -239,7 +239,7 @@
     },
     null, null,
     {
-      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'paisaje-timanfaya.jpg', pos: '60% 50%',
+      lugar: 'El Echadero', titulo: 'Los paseos en camello', img: 'caravana-paseo.jpg', pos: '30% 50%',
       texto: [
         'En Timanfaya, los camellos de Uga pasean a los visitantes: es la actividad turística del sector camellar.',
         'Los primeros paseos a lomo de camello fueron en los años cincuenta.'

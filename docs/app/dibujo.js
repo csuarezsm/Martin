@@ -265,9 +265,11 @@
 
   /* Martín de guelfo (Mundo 3): ilustración guelfo.png (461×640, mirando a la derecha, las cuatro pezuñas en la misma línea).
      Las patas se mueven inclinando la franja de debajo de la cadera: traseras y delanteras a contratiempo. Los fotogramas se pintan una vez y se guardan. */
-  const GSP = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 384, corte: 0.45, cache: {} };
-  if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.png'; }
-  function guelfoFoto(hp, clave, ang) {
+  const GSP0 = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 384, corte: 0.45, cache: {} };
+  const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.png'; }
+  const CSP = { img: null, ok: false, w: 380, h: 640, ax: 190, ay: 636, alto: 2.25, cad: 330, corte: 0.5, cache: {} };   // el camellero (camellero.png, 380×640, de lado mirando a la derecha)
+  if (typeof Image !== 'undefined') { CSP.img = new Image(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.png'; }
+  function guelfoFoto(hp, clave, ang, GSP) {
     const k = Math.max(16, Math.round(hp)), C = GSP.cache[k] || (GSP.cache[k] = {});
     if (!C.base) {
       const s = k / GSP.h, c = document.createElement('canvas'); c.width = Math.ceil(GSP.w * s); c.height = k;
@@ -284,8 +286,8 @@
     for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
     return (C[clave] = f);
   }
-  function dibujaGuelfo(ctx, u, px, py, st) {
-    const T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
+  function dibujaGuelfo(ctx, u, px, py, st, SP) {
+    const GSP = SP || GSP0, T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
     let dy = 0, rot = 0, sx = 1, sy = 1, clave = 'q', ang = [0, 0];
     if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 1.6, q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
       clave = 'c' + q; ang = [a, -a]; dy = -Math.abs(Math.cos(q / 16 * Math.PI * 2)) * 0.035 * u; }
@@ -294,7 +296,7 @@
     else sy = 1 + Math.sin(T * 2.4) * 0.012;
     if (anim === 'gana') dy -= Math.abs(Math.sin(T * 6)) * 0.3 * u;
     if (st.golpe > 0) { sy *= 1 - st.golpe * 0.12; sx *= 1 + st.golpe * 0.08; }
-    const fr = guelfoFoto(hp, clave, ang);
+    const fr = guelfoFoto(hp, clave, ang, GSP);
     ctx.save(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha; ctx.translate(px, py + dy); if (st.dir < 0) ctx.scale(-1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
     ctx.drawImage(fr, -GSP.ax * s - fr.pad, -GSP.ay * s);
     ctx.restore();
@@ -1287,6 +1289,7 @@
   /* ================== Mundo 3 (3.0): el camellero, la manada, la escultura de Uga, la sombra, el calor y el eclipse ================== */
   // camellero: de lado, sombrero de paja, camisa clara y vara; nunca se le ve la cara de cerca (pies en x,y de pantalla; u = px por unidad)
   function camelleroFig(ctx, x, y, u, fase, dir, alfa) {
+    if (CSP.ok) { dibujaGuelfo(ctx, u, x, y, { dir, fase: (fase || 0) / 1.6 * 0.9, anim: fase ? 'corre' : 'idle', t: 0, golpe: 0, alpha: alfa }, CSP); return; }
     ctx.save(); ctx.translate(x, y); ctx.scale(dir < 0 ? -u : u, -u); ctx.globalAlpha = alfa == null ? 1 : alfa; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const pa = Math.sin(fase) * 0.22, br = Math.sin(fase) * 0.25;
     const pierna = (a, col) => { ctx.strokeStyle = col; ctx.lineWidth = 0.2; ctx.beginPath(); ctx.moveTo(0, 1.02); ctx.lineTo(Math.sin(a) * 0.5, 0.52); ctx.lineTo(Math.sin(a) * 0.62 - 0.04, 0.06); ctx.stroke();
@@ -1348,7 +1351,7 @@
     const G = L.guia;
     if (G && st && st.guia != null) {
       const gx = st.guia, anda = gx < G.hasta && (st.fase === 'jugando'), f = gx * 1.9;
-      for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.7, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
+      for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
       const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? f : 0, 1);
     } else if (L.camellero != null) { const x = sx(L.camellero); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(L.camellero, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
@@ -1371,19 +1374,23 @@
   function dibujaHistoria(ctx, W, H, k, luego = true) {
     const cielos = { 1: ['#1c2a5a', '#6a6fa8', '#e7b49a'], 2: ['#3a6fb8', '#8ab8e0', '#f2e2c4'], 3: ['#2f7fd0', '#79b6e6', '#e8eef0'], 4: ['#3a4a8a', '#c58aa0', '#ffd39a'], 5: ['#4a6fb0', '#e09a7a', '#ffd9a0'], 6: ['#4a8ad6', '#a9cde6', '#f6e6c4'], 7: ['#2e2f6e', '#a2506b', '#ffc27a'], 8: ['#24275a', '#8a4a6a', '#f0a060'] };
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    const u = H / 6, suelo = H * 0.82;
+    const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
-    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['paisaje-timanfaya.jpg', 'rgba(255,140,120,.22)'], 5: ['paisaje-timanfaya.jpg', 'rgba(255,160,110,.16)'], 6: ['paisaje-timanfaya.jpg', 'rgba(255,190,90,.14)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
     if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
-      if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, suelo * 1.08 / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, suelo * 1.04 - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); }
+      if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
     if (k >= 7) dibujaEclipse(ctx, W, H, k === 7 ? 0.45 : 0.85, W * 0.76, H * 0.3, H * 0.09);
     else if (k !== 1 && !(fo && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth)) { ctx.fillStyle = 'rgba(255,245,210,.9)'; ctx.beginPath(); ctx.arc(W * (k === 4 ? 0.2 : 0.8), H * (k === 4 ? 0.62 : 0.2), H * 0.07, 0, TAU); ctx.fill(); }
     const conFoto = fo && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].complete && HIST_IMG[fo[0]].naturalWidth;
     if (!conFoto) { ctx.fillStyle = '#7d6488'; ctx.beginPath(); ctx.moveTo(0, suelo - u * 1.2); for (let i = 0; i <= 8; i++) ctx.lineTo(W * i / 8, suelo - u * (1.0 + Math.sin(i * 1.7 + k) * 0.5 + hash(i + k * 9) * 0.4)); ctx.lineTo(W, suelo); ctx.lineTo(0, suelo); ctx.fill(); }   // montañas
-    { const ts = texturas().tierraP; ctx.fillStyle = ts ? relleno(ctx, ts, 0, suelo, '#3a2a24', u * 1.6 / ts.height) : '#3a2a24'; ctx.fillRect(0, suelo, W, H - suelo); const gs = ctx.createLinearGradient(0, suelo, 0, H); gs.addColorStop(0, 'rgba(0,0,0,0)'); gs.addColorStop(1, 'rgba(0,0,0,.45)'); ctx.fillStyle = gs; ctx.fillRect(0, suelo, W, H - suelo); }
+    if (!conFoto) { const ts = texturas().tierraP; ctx.fillStyle = ts ? relleno(ctx, ts, 0, suelo, '#3a2a24', u * 1.6 / ts.height) : '#3a2a24'; ctx.fillRect(0, suelo, W, H - suelo); const gs = ctx.createLinearGradient(0, suelo, 0, H); gs.addColorStop(0, 'rgba(0,0,0,0)'); gs.addColorStop(1, 'rgba(0,0,0,.45)'); ctx.fillStyle = gs; ctx.fillRect(0, suelo, W, H - suelo); }
     if (!conFoto) ctx.fillStyle = '#2a1f1c'; if (!conFoto) for (let i = 0; i < 18; i++) { const bx = i * W / 17 - u * 0.2; ctx.beginPath(); ctx.ellipse(bx, suelo - u * 0.3, u * 0.32, u * 0.3, 0, 0, TAU); ctx.fill(); }   // muro de piedra seca al fondo
-    if (k === 4 || k === 5 || k === 7) for (let i = 0; i < 3; i++) camelloManada(ctx, W * (0.06 + i * 0.17), suelo, u * 0.62, k === 7 ? null : i * 0.8, 0.95);
+    const ilus = fo && fo[2] && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth;
+    if (ilus) { const im = HIST_IMG[fo[0]], kk = Math.max(W / im.naturalWidth, H / im.naturalHeight); ctx.drawImage(im, (W - im.naturalWidth * kk) / 2, (H - im.naturalHeight * kk) / 2, im.naturalWidth * kk, im.naturalHeight * kk); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H);
+      if (k === 5) dibujaMartin(ctx, H * 0.055, W * 0.955, H * 0.475, { dir: -1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });   // el último de la fila, al fondo
+      else dibujaMartin(ctx, H * 0.11, W * 0.12, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
+    if (k === 4 || k === 7) for (let i = 0; i < 3; i++) camelloManada(ctx, W * (0.06 + i * 0.17), suelo, u * 0.62, k === 7 ? null : i * 0.8, 0.95);
     const mx = k === 1 ? W * 0.5 : k === 5 ? W * 0.68 : k === 8 ? W * 0.56 : W * 0.6;
     if (k >= 2) camelleroFig(ctx, k === 3 ? W * 0.42 : k === 6 ? W * 0.42 : k === 5 ? W * 0.8 : W * 0.4, suelo, u * 0.95, k === 3 || k === 5 ? 0.8 : 0, k === 8 || k === 6 || k === 2 ? 1 : 1, 1);
     dibujaMartin(ctx, u * 0.62, mx, suelo, { dir: k === 8 ? -1 : 1, fase: 0.6, anim: k === 6 || k === 1 ? 'idle' : 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });
