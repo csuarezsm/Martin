@@ -61,7 +61,7 @@ async function juegaConRobot(p, idx, clave, extraOpts = null) {
 console.log('Mapa de Uga');
 {
   const { p, ctx, errors } = await fresh(BASE_STATE, null, '');
-  check('abre en el mapa con los 11 niveles, los 2 secretos y los 8 del Mundo 3, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 23 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
+  check('abre en el mapa con los 11 niveles, los 2 secretos y los 8 del Mundo 3, solo el primero abierto', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 24 && document.querySelectorAll('.lv.bloq, .lv[disabled], .lv.locked').length >= 0));
   const abiertos = await p.evaluate(() => [...document.querySelectorAll('[data-lv]')].filter(b => !b.disabled && !b.classList.contains('bloq') && !b.classList.contains('locked')).length);
   check('solo el nivel 1 está abierto al empezar', abiertos === 1, String(abiertos));
   check('el título es Martín', (await p.textContent('#title')).includes('Martín'));
@@ -154,7 +154,7 @@ console.log('Controles');
   // salir al mapa (T20)
   await p.evaluate(() => reanudar()); await p.waitForTimeout(100);
   await p.evaluate(() => abandonar());
-  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 23) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
+  check('T20 al salir al mapa no queda simulación ni bucle activo', await waitFor(p, () => document.querySelectorAll('[data-lv]').length === 24) && await p.evaluate(() => !__martin.RUN.s && !__martin.RUN.on && !__martin.RUN.raf));
   check('sin errores de JavaScript', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
@@ -205,7 +205,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     await p.evaluate(() => salirAlMapa());
   }
   { // niveles secretos: cerrados hasta tener todos los frutos de su mundo; se juegan como los demás; no entran en el reto diario
-    check('secretos: dos niveles secretos, cerrados sin todos los frutos', await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = (prog(i).obj || []).slice(1); return true; }) && await p.evaluate(() => NBASE === 11 && NIV.length === 23 && !desbloqueado(11) && !desbloqueado(12)));
+    check('secretos: dos niveles secretos, cerrados sin todos los frutos', await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = (prog(i).obj || []).slice(1); return true; }) && await p.evaluate(() => NBASE === 11 && NIV.length === 24 && !desbloqueado(11) && !desbloqueado(12)));
     check('secretos: el reto diario solo usa los 11 niveles normales (igual que el servidor)', await p.evaluate(() => { for (let d = 1; d <= 28; d++) { const r = __martin.M.retoDelDia('2026-02-' + String(d).padStart(2, '0'), NIV.slice(0, NBASE).map(n => n.nivel.level_id)); if (!NIV.slice(0, NBASE).some(n => n.nivel.level_id === r.nivel)) return false; } return true; }));
     await p.evaluate(() => { for (let i = 0; i < NBASE; i++) prog(i).obj = frutosDe(NIV[i].nivel).map(o => o.id); save(); salirAlMapa(); });
     check('secretos: con todos los frutos se abren los dos', await p.evaluate(() => desbloqueado(11) && desbloqueado(12)) && /Nivel secreto abierto/.test(await p.textContent('#app')));
@@ -219,8 +219,8 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
     check('logros: la pantalla se abre desde el mapa', await p.evaluate(() => { salirAlMapa(); const b = document.getElementById('mpLog'); if (!b) return false; b.click(); return /Logros · \d+\/16/.test(document.getElementById('modal').textContent) && document.querySelectorAll('.lg.si').length >= 2; }));
     await p.evaluate(() => closeModal());
     // 3.1: los dos niveles nuevos del Mundo 2 (dunas y barcas) se abren tras el último del Mundo 2 y el robot los termina igual en la app
-    check('niveles nuevos: el jable va detrás del nivel 11 y las barcas detrás del jable', await p.evaluate(() => anteriorNivel(21) === 10 && anteriorNivel(22) === 21 && INFO[21].num === '12' && INFO[22].num === '13' && INFO[13].num === '3-1'));
-    for (const [i, id] of [[21, 'norte_e01_jable_famara'], [22, 'norte_e02_barcas_orzola']]) {
+    check('niveles nuevos: el jable va detrás del nivel 11 y las barcas detrás del jable', await p.evaluate(() => anteriorNivel(21) === 10 && anteriorNivel(22) === 21 && INFO[21].num === '12' && INFO[22].num === '13' && INFO[13].num === '3-1' && anteriorNivel(23) === 5 && INFO[23].num === '14' && INFO[23].mundo === 0));
+    for (const [i, id] of [[21, 'norte_e01_jable_famara'], [22, 'norte_e02_barcas_orzola'], [23, 'sur_e03_rios_de_fuego']]) {
       const f = await juegaConRobot(p, i, id);
       check('nivel nuevo ' + id + ': llega a la meta igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[id].ms * 60 / 1000) && f.agua === PART[id].agua, JSON.stringify(f));
       await p.evaluate(() => salirAlMapa());
@@ -298,7 +298,7 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
   }
   { // mapa de Lanzarote: un punto por nivel en su sitio, y se puede entrar desde el mapa
     await p.evaluate(() => salirAlMapa());
-    check('mapa: Lanzarote con los 11 niveles, los 2 secretos y el Mundo 3', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 23 && !!document.querySelector('.mp-map path')));
+    check('mapa: Lanzarote con los 11 niveles, los 2 secretos y el Mundo 3', await p.evaluate(() => document.querySelectorAll('.mp-map .mk').length === 24 && !!document.querySelector('.mp-map path')));
     await p.click('.mp-map [data-lvm="0"]', { force: true });
     check('mapa: tocar un nivel abierto lo abre', await waitFor(p, () => /Agua para Uga/.test(document.body.textContent) && (!!__martin.RUN.L || !document.getElementById('modal').classList.contains('hidden')), null, 3000));
     await p.evaluate(() => { try { closeModal(); } catch (e) {} salirAlMapa(); });

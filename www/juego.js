@@ -35,6 +35,7 @@ const PISTAS = {
   entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.',
   duna: 'Dunas de arena: cuesta arriba se va despacio y cuesta abajo se coge carrerilla. Si te paras en la cuesta, la arena te baja.',
   barca: 'El agua no se salta: espera en el muelle a que llegue la barca, súbete y deja que te lleve.',
+  balsa: 'La lava no se salta: espera en la orilla a que llegue la costra de roca, súbete y deja que te lleve.',
   guelfo: 'Martín es un guelfo: aún es pequeño. Mantén ◀ ▶ para caminar.',
   guelfo_salta: 'Toca ⬆ para saltar. Todavía salta poco: las piedras pequeñas, de una en una.',
   camellero: '¡Mira! El camellero te espera al final del camino.',
@@ -80,6 +81,12 @@ const Sound = (() => {
     const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); f.type = tipo || 'lowpass'; f.frequency.value = fq; g.gain.value = vol;
     src.buffer = buf; src.connect(f); f.connect(g); g.connect(out(c)); src.start(t);
   }
+  function roce(c, t, dur, vol, fq) {   // ruido que entra y sale despacio (sin golpe al principio), filtrado en banda
+    const len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(Math.sin(Math.PI * i / len), 2);
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); f.type = 'bandpass'; f.frequency.value = fq; f.Q.value = 0.8; g.gain.value = vol;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(out(c)); src.start(t);
+  }
   function play(kind) {
     if (S.sound === false) return;
     const c = ac(); if (!c) return;
@@ -103,7 +110,7 @@ const Sound = (() => {
       else if (kind === 'aljibe') { [523, 784].forEach((f, i) => tone(c, t + i * 0.08, f, f * 1.02, 0.16, 0.05, 'sine')); ruido(c, t, 0.18, 0.03); }
       else if (kind === 'silbido') [1568, 2093, 1568].forEach((f, i) => tone(c, t + i * 0.16, f, f * (i === 1 ? 1.02 : 0.97), 0.14, 0.035, 'sine'));
       else if (kind === 'sofoco') { ruido(c, t, 0.3, 0.05); tone(c, t, 300, 180, 0.4, 0.04, 'sine'); }
-      else if (kind === 'arena') { ruidoF(c, t, 0.09, 0.05, 1800); ruidoF(c, t + 0.03, 0.06, 0.03, 900); }   // pisada en la arena del jable
+      else if (kind === 'arena') roce(c, t, 0.16, 0.022, 3200);   // pisada en la arena: un roce suave («shhh»), sin golpe
       else if (kind === 'barca') { tone(c, t, 170, 120, 0.12, 0.08); tone(c, t + 0.05, 140, 100, 0.1, 0.05); ruidoF(c, t + 0.04, 0.45, 0.06, 700); }   // golpe en la cubierta y el agua debajo
       else if (kind === 'logro') { [659, 784, 988, 1318, 1568].forEach((f, i) => tone(c, t + i * 0.08, f, f, 0.3, 0.045, 'sine')); [1976, 2637].forEach((f, i) => tone(c, t + 0.45 + i * 0.07, f, f, 0.25, 0.02, 'sine')); }
       else if (kind === 'lava') { tone(c, t, 70, 45, 1.1, 0.09, 'sawtooth'); ruido(c, t, 0.9, 0.07); [440, 440].forEach((f, i) => tone(c, t + 0.3 + i * 0.25, f, f, 0.12, 0.04, 'square')); }
@@ -231,13 +238,13 @@ const INFO = NIV.map((_, i) => {
   if (i < NBASE) return { mundo: i >= 6 ? 1 : 0, tipo: 'nivel', num: String(i + 1) };
   if (i < NBASE + SECS.length) return { mundo: SECS[i - NBASE].mundo, tipo: 'secreto', num: '' };
   if (i >= NANT) { const e = i - NANT, x = EXT[e], prev = EXT.slice(0, e).map((y, j) => y.mundo === x.mundo ? NANT + j : -1).filter(j => j >= 0).pop();
-    const ultBase = x.mundo === 0 ? 5 : NBASE - 1, cuenta = (x.mundo === 0 ? 6 : NBASE) + EXT.slice(0, e + 1).filter(y => y.mundo === x.mundo).length;
-    return { mundo: x.mundo, tipo: 'nivel', num: String(cuenta), extra: true, ant: prev != null ? prev : ultBase }; }
+    const ultBase = x.mundo === 0 ? 5 : NBASE - 1;   // los nuevos se numeran a continuación de los once de siempre (12, 13, 14…)
+    return { mundo: x.mundo, tipo: 'nivel', num: String(NBASE + 1 + e), extra: true, ant: prev != null ? prev : ultBase }; }
   const k = i - NBASE - SECS.length, x = M3[k];
   return { mundo: 2, tipo: x.tipo, num: x.tipo === 'nivel' ? '3-' + M3.slice(0, k + 1).filter(y => y.tipo === 'nivel').length : '' };
 });
 // paisaje de los niveles nuevos: el del nivel de su misma zona (Famara, La Graciosa…)
-const TEMA_PROPIO = { jable: 21 };   // niveles nuevos con paisaje propio (índice de TEMAS en dibujo.js)
+const TEMA_PROPIO = { jable: 21, timanfaya: 2 };   // niveles nuevos con paisaje propio (índice de TEMAS en dibujo.js)
 const temaDe = i => { if (!INFO[i] || !INFO[i].extra || !NIV[i].ok) return i; const t = NIV[i].nivel.theme; if (TEMA_PROPIO[t] != null) return TEMA_PROPIO[t]; const j = NIV.findIndex((n, k) => k < NANT && n.ok && n.nivel.theme === t); return j >= 0 ? j : i; };
 INFO.forEach((x, i) => { if (x.extra && NIV[i].ok) NIV[i].nivel.temaIdx = temaDe(i); });
 const esM3 = i => !!(INFO[i] && INFO[i].mundo === 2);
@@ -752,7 +759,7 @@ function mapaIsla(sig) {
   const Z = window.MAPA_LZ; if (!Z) return '';
   // Mundo 3: todo pasa entre Uga, el Vallito, el sendero y el Echadero; los botones van en fila sobre el mar, unidos a su sitio
   const R3 = [[106, 316], [105, 318], [102, 311], [109, 298], [112, 290], [101, 313], [116, 279], [47, 300]], E3 = R3.map((_, k) => [158 + k * 30, 408]);
-    const RX = [[248, 186], [347, 76]], EX = [[226, 200], [372, 64]];   // 3.1: el jable de Famara y el muelle de Órzola
+    const RX = [[248, 186], [347, 76], [92, 258]], EX = [[226, 200], [372, 64], [66, 238]];   // 3.1: el jable de Famara y el muelle de Órzola; 3.3: los ríos de fuego de Timanfaya
   const P = Z.puntos.slice(0, NBASE + SECS.length).concat(R3.slice(0, M3.length), RX.slice(0, EXT.length)), ET = (Z.etiquetas || Z.puntos).slice(0, NBASE + SECS.length).concat(E3.slice(0, M3.length), EX.slice(0, EXT.length));
   const n = Math.min(P.length, NBASE), nt = Math.min(P.length, NIV.length);
   let camino = ''; for (let i = 0; i < n; i++) { const [x, y] = P[i]; if (!i) { camino += `M${x} ${y}`; continue; } const [a, b] = P[i - 1], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; camino += `Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }

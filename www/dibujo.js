@@ -88,7 +88,7 @@
       let a = -99, b = -99;
       for (const g of L.solids) { if (g.bot > -1e8) continue; if (Math.abs(g.x1 - o.x0) < 0.01) a = g.top; if (Math.abs(g.x0 - o.x1) < 0.01) b = g.top; }
       const top = Math.max(a, b) > -90 ? Math.min(a > -90 ? a : b, b > -90 ? b : a) : 0;
-      sc.huecos.push({ x0: o.x0, x1: o.x1, top, agua: !!o.agua });
+      sc.huecos.push({ x0: o.x0, x1: o.x1, top, agua: o.agua || false });
     }
     let k = 0;
     for (const g of L.solids) {
@@ -721,7 +721,39 @@
   // barca ilustrada (barca.webp, 600×300): la cubierta pisable va de x 106,5 a 582,4 y está a y 192 del dibujo
   const BARCA = { img: null, ok: false, d0: 106.5, d1: 582.4, dy: 192.1 };
   if (typeof Image !== 'undefined') { BARCA.img = new Image(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.webp'; }
+  /* 3.3 · Río de lava (Timanfaya): brilla, burbujea y se mueve despacio */
+  function dibujaRioLava(ctx, x0, x1, yt, H, u, t, wx0) {
+    const ys = yt + u * 0.55;
+    ctx.fillStyle = '#1b1210'; ctx.fillRect(x0, yt, x1 - x0, ys - yt + 2);
+    const g = ctx.createLinearGradient(0, ys, 0, ys + u * 3.5); g.addColorStop(0, '#ffd23a'); g.addColorStop(0.12, '#ff8a1c'); g.addColorStop(0.45, '#d8380e'); g.addColorStop(1, '#5a0f06');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0, H + 2);
+    for (let x = x0; x <= x1 + 1; x += Math.max(4, u * 0.25)) ctx.lineTo(x, ys + Math.sin(t * 1.3 + (x / u) * 0.9) * u * 0.05);
+    ctx.lineTo(x1, H + 2); ctx.closePath(); ctx.fill();
+    // costra oscura que se desliza y burbujas que revientan
+    ctx.fillStyle = 'rgba(40,12,8,.45)'; for (let k = 0; k < 7; k++) { const q = hash(Math.floor(wx0 * 10) + k * 3), x = x0 + (x1 - x0) * ((q + t * 0.02) % 1), y = ys + u * (0.5 + hash(k + 5) * 2.3); ctx.beginPath(); ctx.ellipse(x, y, u * (0.35 + q * 0.4), u * 0.08, 0, 0, TAU); ctx.fill(); }
+    for (let k = 0; k < 4; k++) { const f = (t * 0.7 + hash(Math.floor(wx0) + k * 7)) % 1, x = x0 + (x1 - x0) * hash(Math.floor(wx0 * 3) + k * 11), r = u * 0.12 * Math.sin(f * Math.PI); if (r > 0.5) { ctx.fillStyle = 'rgba(255,230,120,.8)'; ctx.beginPath(); ctx.arc(x, ys + u * 0.06, r, 0, TAU); ctx.fill(); } }
+    const gl = ctx.createLinearGradient(0, ys - u * 1.2, 0, ys); gl.addColorStop(0, 'rgba(255,120,30,0)'); gl.addColorStop(1, 'rgba(255,120,30,.35)'); ctx.fillStyle = gl; ctx.fillRect(x0, ys - u * 1.2, x1 - x0, u * 1.2);   // resplandor
+  }
+  /* 3.3 · Costra de roca volcánica que flota sobre la lava (oscura, con grietas incandescentes) */
+  function dibujaBalsa(ctx, s, u, sx, sy, t) {
+    const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), w = x1 - x0, h = u * 0.8, sd = Math.floor(s.bx0 * 7);
+    const P = [[0, 0.05], [0.12, 0], [0.4, 0.02], [0.7, 0], [0.92, 0.03], [1.02, 0.25], [0.95, 0.75], [0.7, 1], [0.35, 0.95], [0.08, 0.8], [-0.03, 0.3]];
+    const tr = () => { ctx.beginPath(); P.forEach(([a, b], i) => { const x = x0 + w * a, y = yd + h * b - (b < 0.1 ? 0 : 0); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); };
+    const gl = ctx.createRadialGradient((x0 + x1) / 2, yd + h * 0.7, 0, (x0 + x1) / 2, yd + h * 0.7, w * 0.7); gl.addColorStop(0, 'rgba(255,150,40,.5)'); gl.addColorStop(1, 'rgba(255,120,30,0)'); ctx.fillStyle = gl; ctx.fillRect(x0 - w * 0.3, yd, w * 1.6, h * 1.6);
+    { const yw = yd + u * 0.55; ctx.fillStyle = 'rgba(255,200,60,.6)'; ctx.fillRect(x0 - u * 0.2, yw - u * 0.03, w + u * 0.4, u * 0.08); }   // la lava lame los bordes (por detrás)
+    tr(); const g = ctx.createLinearGradient(0, yd, 0, yd + h); g.addColorStop(0, '#5a4a46'); g.addColorStop(0.4, '#2e2422'); g.addColorStop(1, '#1a1210'); ctx.fillStyle = g; ctx.fill();
+    ctx.save(); tr(); ctx.clip();
+    ctx.strokeStyle = 'rgba(255,140,40,' + (0.65 + 0.25 * Math.sin(t * 3 + sd)).toFixed(2) + ')'; ctx.lineWidth = Math.max(1.5, u * 0.06); ctx.lineCap = 'round'; ctx.beginPath();
+    for (let k = 0; k < 6; k++) {   // grietas irregulares que suben desde abajo y se ramifican
+      let x = x0 + w * (0.08 + k * 0.17 + (hash(sd + k) - 0.5) * 0.1), y = yd + h * 1.02; ctx.moveTo(x, y);
+      for (let j = 0; j < 4; j++) { x += u * (hash(sd + k * 9 + j) - 0.5) * 0.45; y -= h * (0.14 + hash(sd + k * 5 + j) * 0.12); ctx.lineTo(x, y); if (j === 1 && hash(sd + k) > 0.5) { ctx.moveTo(x, y); ctx.lineTo(x + u * 0.25, y - h * 0.15); ctx.moveTo(x, y); } }
+    } ctx.stroke();
+    ctx.fillStyle = 'rgba(255,235,210,.18)'; ctx.fillRect(x0, yd, w, Math.max(2, u * 0.08));   // canto de arriba, donde se pisa
+    ctx.restore();
+    tr(); ctx.strokeStyle = '#120a08'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.stroke();
+  }
   function dibujaBarca(ctx, s, u, sx, sy, t) {
+    if (s.barca === 'balsa') { dibujaBalsa(ctx, s, u, sx, sy, t); return; }
     if (BARCA.ok) {
       const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), k = (x1 - x0) / (BARCA.d1 - BARCA.d0), im = BARCA.img;
       ctx.fillStyle = 'rgba(0,30,50,.3)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, yd + u * 0.62, (x1 - x0) * 0.55, u * 0.1, 0, 0, TAU); ctx.fill();
@@ -1255,6 +1287,7 @@
     // abismo de los huecos
     for (const h of esc.huecos) {
       const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
+      if (h.agua === 'lava') { dibujaRioLava(ctx, x0, x1, sy(h.top), H, u, t, h.x0); continue; }
       if (h.agua) { dibujaMar(ctx, x0, x1, sy(h.top), H, u, t, h.x0); continue; }
       if (TX.lavaP) { // abismo pintado: la misma lava, más oscura según se hunde
         const yt = sy(h.top); ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u, yt, '#1a0d0c', u * 2.2 / TX.lavaP.height); ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);

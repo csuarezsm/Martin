@@ -26,10 +26,10 @@ class N {
   duna(w, h) { this.sol.push({ id: this.id('D'), kind: 'duna', x0: r2(this.x), x1: r2(this.x + w), top: r2(this.top), top1: r2(this.top + h), arena: true }); this.x = r2(this.x + w); this.top = r2(this.top + h); this.minTop = Math.min(this.minTop, this.top); return this; }
   arenal(w) { return this.llano(w, '', { arena: true }); }
   // 3.1: agua que no se puede saltar; una barca va y viene de orilla a orilla (sube a bordo al nivel del muelle)
-  rio(w, bw, periodo, desfase) {
+  rio(w, bw, periodo, desfase, lava) {   // lava (3.3): río de lava en Timanfaya; lo que flota es una costra de roca
     const x0 = r2(this.x + 0.15);
-    this.sol.push({ id: this.id('B'), kind: 'oneway', x0, x1: r2(x0 + bw), top: r2(this.top), bottom: r2(this.top - 0.3), mov: { dx: r2(w - bw - 0.3), periodo, desfase } });
-    this.obs.push({ id: 'RIO-' + String(++this.nobs).padStart(2, '0'), kind: 'gap', x0: r2(this.x), x1: r2(this.x + w), agua: true });
+    this.sol.push({ id: this.id('B'), kind: 'oneway', x0, x1: r2(x0 + bw), top: r2(this.top), bottom: r2(this.top - 0.3), mov: Object.assign({ dx: r2(w - bw - 0.3), periodo, desfase }, lava ? { cosa: 'balsa' } : {}) });
+    this.obs.push({ id: 'RIO-' + String(++this.nobs).padStart(2, '0'), kind: 'gap', x0: r2(this.x), x1: r2(this.x + w), agua: lava ? 'lava' : true });
     this.x = r2(this.x + w); return this;
   }
 }
@@ -483,9 +483,23 @@ const secretos = [
   { mundo: 0, L: objetos(peligros(s01(), plan(['piedra', 'piedra', 'piedra'], 3)), ['higo', 'tuno', 'malvasia']) },
   { mundo: 1, L: objetos(peligros(s02(), plan(['ola', 'viento', 'ola', 'viento', 'ola'], 1, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo']) }
 ];
+function e03() {   // Ríos de fuego (Timanfaya): la lava no se salta; las costras de roca flotan y llevan a Martín de orilla a orilla
+  const n = new N(23, 'fuego');
+  n.llano(30).pista('balsa', 10, 60, { hasta_x: 60 });
+  n.rio(7, 3.4, 300, 0, 1).llano(14); rocas(n, [[1.4, 0.8]], 10); n.control();
+  n.llano(12).rio(7.8, 3.4, 320, 90, 1).llano(10).hueco(2.4).llano(12);
+  n.sube(1.0).llano(8).rio(8.2, 3.2, 300, 160, 1).llano(10).baja(1.0).llano(14).control();
+  n.rio(7, 3.4, 270, 30, 1).llano(3).rio(7, 3.4, 270, 170, 1).llano(16);
+  rocas(n, [[1.4, 0.9]], 12); n.control();
+  n.rio(8.4, 3.2, 340, 210, 1).llano(14).hueco(2.6).llano(12).rio(7.4, 3.4, 300, 80, 1).llano(20);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'sur_e03_rios_de_fuego', nombre: 'Ríos de fuego', resumen: 'La lava no se salta: súbete a las costras de roca que flotan y deja que te lleven.', estrella3: 175, tema: 'timanfaya' });
+}
 const extras = [
   { mundo: 1, L: objetos(peligros(e01(), plan(['viento', 'viento', 'viento'])), ['higo', 'tuno', 'malvasia']) },
-  { mundo: 1, L: objetos(peligros(e02(), plan(['ola', 'ola'])), ['tuno', 'higo', 'malvasia']) }
+  { mundo: 1, L: objetos(peligros(e02(), plan(['ola', 'ola'])), ['tuno', 'higo', 'malvasia']) },
+  { mundo: 0, L: objetos(peligros(e03(), plan(['geiser', 'piedra', 'geiser'])), ['higo', 'tuno', 'malvasia']) }
 ];
 
 /* ======================= Mundo 3 · El guelfo de Uga (3.0) =======================
