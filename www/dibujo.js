@@ -580,8 +580,10 @@
     { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
     { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 0, 0, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
+    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
+    // Mundo 3: las calles de Uga
+    { src: 'paisaje-calle-iglesia.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 0, 11, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
@@ -1412,7 +1414,7 @@
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
-    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['escena-calle-palmera.jpg', 'rgba(255,220,170,.04)', 1], 3: ['escena-calle-farolas.jpg', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
     if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
       if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
@@ -1424,6 +1426,7 @@
     if (!conFoto) ctx.fillStyle = '#2a1f1c'; if (!conFoto) for (let i = 0; i < 18; i++) { const bx = i * W / 17 - u * 0.2; ctx.beginPath(); ctx.ellipse(bx, suelo - u * 0.3, u * 0.32, u * 0.3, 0, 0, TAU); ctx.fill(); }   // muro de piedra seca al fondo
     const ilus = fo && fo[2] && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth;
     if (ilus) { const im = HIST_IMG[fo[0]], kk = Math.max(W / im.naturalWidth, H / im.naturalHeight); ctx.drawImage(im, (W - im.naturalWidth * kk) / 2, (H - im.naturalHeight * kk) / 2, im.naturalWidth * kk, im.naturalHeight * kk); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H);
+      if (k === 2 || k === 3) { camelleroFig(ctx, W * (k === 2 ? 0.3 : 0.42), H * 0.95, H * 0.115, 0, 1, 1); dibujaMartin(ctx, H * 0.085, W * (k === 2 ? 0.5 : 0.6), H * 0.95, { dir: k === 2 ? -1 : 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
       if (k === 5) dibujaMartin(ctx, H * 0.055, W * 0.955, H * 0.475, { dir: -1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });   // el último de la fila, al fondo
       else if (k === 9) dibujaMartin(ctx, H * 0.2, W * 0.5, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });
       else dibujaMartin(ctx, H * 0.11, W * 0.12, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
