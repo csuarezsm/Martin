@@ -263,7 +263,45 @@
     ctx.restore();
   }
 
+  /* Martín de guelfo (Mundo 3): ilustración guelfo.png (461×640, mirando a la derecha, las cuatro pezuñas en la misma línea).
+     Las patas se mueven inclinando la franja de debajo de la cadera: traseras y delanteras a contratiempo. Los fotogramas se pintan una vez y se guardan. */
+  const GSP = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 384, corte: 0.45, cache: {} };
+  if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.png'; }
+  function guelfoFoto(hp, clave, ang) {
+    const k = Math.max(16, Math.round(hp)), C = GSP.cache[k] || (GSP.cache[k] = {});
+    if (!C.base) {
+      const s = k / GSP.h, c = document.createElement('canvas'); c.width = Math.ceil(GSP.w * s); c.height = k;
+      let src = GSP.img, w = GSP.w, h = GSP.h;
+      while (w * 0.5 > c.width) { const t2 = document.createElement('canvas'); t2.width = Math.ceil(w * 0.5); t2.height = Math.ceil(h * 0.5); const g2 = t2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(src, 0, 0, t2.width, t2.height); src = t2; w = t2.width; h = t2.height; }
+      const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); C.base = c; C.s = s;
+      const ks = Object.keys(GSP.cache); if (ks.length > 6) delete GSP.cache[ks[0]];
+    }
+    clave = 'k' + clave; if (C[clave]) return C[clave];
+    const b = C.base, s = C.s, y0 = Math.round(GSP.cad * s), pad = Math.ceil(b.height * 0.2), xc = Math.round(b.width * GSP.corte);
+    const f = document.createElement('canvas'); f.width = b.width + pad * 2; f.height = b.height; f.pad = pad; const g = f.getContext('2d');
+    g.drawImage(b, 0, 0, b.width, y0, pad, 0, b.width, y0);
+    const bh = b.height - y0;
+    for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
+    return (C[clave] = f);
+  }
+  function dibujaGuelfo(ctx, u, px, py, st) {
+    const T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
+    let dy = 0, rot = 0, sx = 1, sy = 1, clave = 'q', ang = [0, 0];
+    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 1.6, q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
+      clave = 'c' + q; ang = [a, -a]; dy = -Math.abs(Math.cos(q / 16 * Math.PI * 2)) * 0.035 * u; }
+    else if (anim === 'salta') { clave = 's'; ang = [0.22, -0.26]; rot = -0.07; }
+    else if (anim === 'cae') { clave = 'f'; ang = [-0.12, 0.16]; rot = 0.06; }
+    else sy = 1 + Math.sin(T * 2.4) * 0.012;
+    if (anim === 'gana') dy -= Math.abs(Math.sin(T * 6)) * 0.3 * u;
+    if (st.golpe > 0) { sy *= 1 - st.golpe * 0.12; sx *= 1 + st.golpe * 0.08; }
+    const fr = guelfoFoto(hp, clave, ang);
+    ctx.save(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha; ctx.translate(px, py + dy); if (st.dir < 0) ctx.scale(-1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
+    ctx.drawImage(fr, -GSP.ax * s - fr.pad, -GSP.ay * s);
+    ctx.restore();
+  }
+
   function dibujaMartin(ctx, u, px, py, st) {
+    if (st.guelfo && GSP.ok) return dibujaGuelfo(ctx, u, px, py, st);
     if (SPR.ok && !st.guelfo) return dibujaMartinSprite(ctx, u, px, py, st);
     const GU = !!st.guelfo;   // Mundo 3: guelfo sin manta, sin silla, sin tinaja y sin cabezada; cabeza más grande
     // (px,py) = pies; u = px por unidad. st: {dir, fase, anim, agua, golpe, t, alpha}
@@ -650,8 +688,9 @@
     if (n === 'vid' && hash(Math.floor(d.x * 13) + 3) < 0.5) n = 'vid2';   // parra en su hoyo de picón: con zoco de piedra en media luna o sin muro
     const m = FLO.m[n];
     const hh = m[4] * u * (0.85 + clamp((d.s - 0.75) / 1, 0, 1) * 0.35), ww = hh * m[2] / m[3];
-    ctx.save(); ctx.translate(x, y + hh * 0.04); if (hash(Math.floor(d.x * 11)) < 0.5) ctx.scale(-1, 1);
-    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, -hh * 0.03, ww * 0.42, hh * 0.07, 0, 0, TAU); ctx.fill();
+    const hoyo = n === 'vid' || n === 'vid2';   // la parra está dentro de su hoyo de picón: el hoyo se hunde en el suelo (si no, parece que flota)
+    ctx.save(); ctx.translate(x, y + hh * (hoyo ? 0.27 : 0.04)); if (hash(Math.floor(d.x * 11)) < 0.5) ctx.scale(-1, 1);
+    if (!hoyo) { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, -hh * 0.03, ww * 0.42, hh * 0.07, 0, 0, TAU); ctx.fill(); }
     ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], -ww / 2, -hh, ww, hh); ctx.restore(); return true;
   }
   function dibujaDeco(ctx, d, x, y, u, t) {
@@ -1328,20 +1367,27 @@
     const o = R + 2; ctx.drawImage(c, x - o, y - o);
   }
   // fondo de las escenas de la historia del Mundo 3 (dibujo fijo, sin texto)
-  function dibujaHistoria(ctx, W, H, k) {
+  const HIST_IMG = {};
+  function dibujaHistoria(ctx, W, H, k, luego = true) {
     const cielos = { 1: ['#1c2a5a', '#6a6fa8', '#e7b49a'], 2: ['#3a6fb8', '#8ab8e0', '#f2e2c4'], 3: ['#2f7fd0', '#79b6e6', '#e8eef0'], 4: ['#3a4a8a', '#c58aa0', '#ffd39a'], 5: ['#4a6fb0', '#e09a7a', '#ffd9a0'], 6: ['#4a8ad6', '#a9cde6', '#f6e6c4'], 7: ['#2e2f6e', '#a2506b', '#ffc27a'], 8: ['#24275a', '#8a4a6a', '#f0a060'] };
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const u = H / 6, suelo = H * 0.82;
+    // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
+    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['paisaje-uga.jpg', 'rgba(255,220,170,.05)'], 3: ['paisaje-uga.jpg', 'rgba(0,0,0,0)'], 4: ['paisaje-timanfaya.jpg', 'rgba(255,140,120,.22)'], 5: ['paisaje-timanfaya.jpg', 'rgba(255,160,110,.16)'], 6: ['paisaje-timanfaya.jpg', 'rgba(255,190,90,.14)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
+      if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, suelo * 1.08 / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, suelo * 1.04 - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); }
+      else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
     if (k >= 7) dibujaEclipse(ctx, W, H, k === 7 ? 0.45 : 0.85, W * 0.76, H * 0.3, H * 0.09);
-    else if (k !== 1) { ctx.fillStyle = 'rgba(255,245,210,.9)'; ctx.beginPath(); ctx.arc(W * (k === 4 ? 0.2 : 0.8), H * (k === 4 ? 0.62 : 0.2), H * 0.07, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = '#7d6488'; ctx.beginPath(); ctx.moveTo(0, suelo - u * 1.2); for (let i = 0; i <= 8; i++) ctx.lineTo(W * i / 8, suelo - u * (1.0 + Math.sin(i * 1.7 + k) * 0.5 + hash(i + k * 9) * 0.4)); ctx.lineTo(W, suelo); ctx.lineTo(0, suelo); ctx.fill();   // montañas
-    ctx.fillStyle = '#3a2a24'; ctx.fillRect(0, suelo, W, H - suelo);
-    ctx.fillStyle = '#2a1f1c'; for (let i = 0; i < 18; i++) { const bx = i * W / 17 - u * 0.2; ctx.beginPath(); ctx.ellipse(bx, suelo - u * 0.3, u * 0.32, u * 0.3, 0, 0, TAU); ctx.fill(); }   // muro de piedra seca al fondo
-    if (k === 4 || k === 5 || k === 7) for (let i = 0; i < 4; i++) camelloManada(ctx, W * (0.1 + i * 0.13), suelo, u * 0.7, k === 7 ? null : i * 0.8, 0.95);
+    else if (k !== 1 && !(fo && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth)) { ctx.fillStyle = 'rgba(255,245,210,.9)'; ctx.beginPath(); ctx.arc(W * (k === 4 ? 0.2 : 0.8), H * (k === 4 ? 0.62 : 0.2), H * 0.07, 0, TAU); ctx.fill(); }
+    const conFoto = fo && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].complete && HIST_IMG[fo[0]].naturalWidth;
+    if (!conFoto) { ctx.fillStyle = '#7d6488'; ctx.beginPath(); ctx.moveTo(0, suelo - u * 1.2); for (let i = 0; i <= 8; i++) ctx.lineTo(W * i / 8, suelo - u * (1.0 + Math.sin(i * 1.7 + k) * 0.5 + hash(i + k * 9) * 0.4)); ctx.lineTo(W, suelo); ctx.lineTo(0, suelo); ctx.fill(); }   // montañas
+    { const ts = texturas().tierraP; ctx.fillStyle = ts ? relleno(ctx, ts, 0, suelo, '#3a2a24', u * 1.6 / ts.height) : '#3a2a24'; ctx.fillRect(0, suelo, W, H - suelo); const gs = ctx.createLinearGradient(0, suelo, 0, H); gs.addColorStop(0, 'rgba(0,0,0,0)'); gs.addColorStop(1, 'rgba(0,0,0,.45)'); ctx.fillStyle = gs; ctx.fillRect(0, suelo, W, H - suelo); }
+    if (!conFoto) ctx.fillStyle = '#2a1f1c'; if (!conFoto) for (let i = 0; i < 18; i++) { const bx = i * W / 17 - u * 0.2; ctx.beginPath(); ctx.ellipse(bx, suelo - u * 0.3, u * 0.32, u * 0.3, 0, 0, TAU); ctx.fill(); }   // muro de piedra seca al fondo
+    if (k === 4 || k === 5 || k === 7) for (let i = 0; i < 3; i++) camelloManada(ctx, W * (0.06 + i * 0.17), suelo, u * 0.62, k === 7 ? null : i * 0.8, 0.95);
     const mx = k === 1 ? W * 0.5 : k === 5 ? W * 0.68 : k === 8 ? W * 0.56 : W * 0.6;
     if (k >= 2) camelleroFig(ctx, k === 3 ? W * 0.42 : k === 6 ? W * 0.42 : k === 5 ? W * 0.8 : W * 0.4, suelo, u * 0.95, k === 3 || k === 5 ? 0.8 : 0, k === 8 || k === 6 || k === 2 ? 1 : 1, 1);
     dibujaMartin(ctx, u * 0.62, mx, suelo, { dir: k === 8 ? -1 : 1, fase: 0.6, anim: k === 6 || k === 1 ? 'idle' : 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });
-    if (k === 8) { ctx.save(); ctx.translate(W * 0.1, suelo); ctx.fillStyle = 'rgba(20,14,30,.9)'; ctx.fillRect(-u * 0.12, -u * 1.9, u * 0.36, u * 1.1); ctx.beginPath(); ctx.arc(u * 0.06, -u * 2.08, u * 0.17, 0, TAU); ctx.fill(); ctx.fillRect(-u * 0.1, -u * 0.8, u * 0.12, u * 0.8); ctx.fillRect(u * 0.1, -u * 0.8, u * 0.12, u * 0.8); ctx.fillRect(u * 0.2, -u * 1.75, u * 0.3, u * 0.2); ctx.restore(); }   // la fotógrafa, de espaldas y a lo lejos
+    if (k === 8) { const v = u * 0.55; ctx.save(); ctx.translate(W * 0.12, suelo - u * 0.25); ctx.globalAlpha = 0.85; ctx.fillStyle = '#1c1626'; ctx.beginPath(); ctx.ellipse(0, -v * 1.45, v * 0.24, v * 0.42, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.arc(0, -v * 2.05, v * 0.17, 0, TAU); ctx.fill(); ctx.fillRect(-v * 0.16, -v * 1.1, v * 0.12, v * 1.1); ctx.fillRect(v * 0.04, -v * 1.1, v * 0.12, v * 1.1); ctx.fillRect(v * 0.1, -v * 1.75, v * 0.38, v * 0.12); ctx.fillRect(v * 0.42, -v * 1.82, v * 0.16, v * 0.24); ctx.restore(); }   // la fotógrafa, de espaldas y a lo lejos
     if (k === 1) { ctx.fillStyle = 'rgba(255,255,255,.75)'; for (let i = 0; i < 30; i++) { ctx.beginPath(); ctx.arc(hash(i * 3) * W, hash(i * 3 + 1) * H * 0.5, 1 + hash(i) * 1.5, 0, TAU); ctx.fill(); } }   // de madrugada: estrellas
     const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.7); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
   }

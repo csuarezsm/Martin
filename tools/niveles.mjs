@@ -553,6 +553,7 @@ function m3p() {   // Premio: arena negra, sin prisa
   return cierra(n, { id: 'uga3_p_arena_negra', nombre: 'Arena negra', resumen: 'Nivel de premio: juega, salta y revuélcate en la arena.', estrella3: 150, tema: 'golfo' });
 }
 const sinPeligros = L => { L.hazards = []; return L; };
+const sinAljibes = L => { L.items = (L.items || []).filter(o => o.kind !== 'aljibe'); return L; };   // el guelfo no lleva agua: en el Mundo 3 no hay aljibes
 const B3 = ['biberon', 'biberon', 'biberon'];
 const mundo3 = [
   { tipo: 'nivel', L: guelfo(objetos(sinPeligros(m31()), B3), 0.66, 0.88, { camellero: null }) },
@@ -564,7 +565,7 @@ const mundo3 = [
   { tipo: 'secreto', L: guelfo(objetos(sinPeligros(m3s()), B3), 0.8, 0.93) },
   { tipo: 'premio', L: guelfo(sinPeligros(m3p()), 0.8, 0.93) }
 ];
-for (const x of mundo3) { const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
+for (const x of mundo3) { sinAljibes(x.L); const L = x.L; if (L.camellero === null || L.eclipse) L.camellero = r2(L.goals.finish_x + 1.5); else delete L.camellero; }
 const out3 = '/* Mundo 3 de Martín, «El guelfo de Uga» (3.0). GENERADO por tools/niveles.mjs: no editar a mano.\n'
   + '   Va aparte para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst S = [\n' + mundo3.map(x => '  { tipo: ' + JSON.stringify(x.tipo) + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'
