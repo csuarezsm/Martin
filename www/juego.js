@@ -414,7 +414,10 @@ function hud() {
   const ca = document.getElementById('mgCalor'); if (ca) { ca.style.width = Math.round(s.calor || 0) + '%'; ca.parentNode.classList.toggle('bajo', (s.calor || 0) > 70); }
   const gu = document.getElementById('mgGuia'); if (gu) { const d = s.guia - s.x, on = s.fase === 'jugando' && d > RUN.L.guia.pierde * 0.6; gu.classList.toggle('on', on); if (on) set('mgGuiaD', Math.round(d) + ' m'); if (on && !RUN.silbo) { RUN.silbo = true; Sound.play('silbido'); } else if (!on) RUN.silbo = false; }
   const lv = document.getElementById('mgLava'); if (lv) { const on = s.lava != null && s.x < RUN.L.lava.hasta && s.fase === 'jugando'; lv.classList.toggle('on', on); if (on) set('mgLavaD', Math.max(0, Math.round(s.x - s.lava)) + ' m'); }
-  const h = pistaActual(); if (h !== RUN.hint) { RUN.hint = h; const el = document.getElementById('mgHint'); if (el) { el.textContent = h; el.classList.toggle('on', !!h); } }
+  // pista del tramo: pequeña, debajo del marcador, y se va sola a los pocos segundos (o al tocarla); en modo peque se queda más
+  const h = pistaActual(), el = document.getElementById('mgHint');
+  if (h !== RUN.hint) { RUN.hint = h; RUN.hintT = s.t; if (el) { el.textContent = h; el.classList.toggle('on', !!h); el.onclick = () => el.classList.remove('on'); } }
+  else if (h && el && el.classList.contains('on') && s.t - RUN.hintT > (S.peque ? 60 * 12 : 60 * 6)) el.classList.remove('on');
 }
 
 /* ================= Controles ================= */
@@ -518,6 +521,7 @@ function terminar() {
       S.archive.unshift({ id: uid(), created: Date.now(), finished: Date.now(), mode: RUN.modo, nivel: L.level_id, ms: res.ms, agua: res.agua, estrellas: res.estrellas, caidas: res.caidas, ruta: s.ruta || '', mod: RUN.opts.mod || 'normal', dia: d });
       S.archive = S.archive.slice(0, MAX_ARCHIVE);
     }
+    { const lg = revisaLogros(); if (lg.length) nu.logros = lg; }
     RUN.nuevo = nu; save();
     if (RUN.modo === 'diario') enviarReto(RUN.rec.runs(), res);
   } else if (RUN.modo === 'nivel') { prog(RUN.idx).fails++; save(); }
@@ -531,12 +535,14 @@ function renderSetup() {
   const flexible = NIV.every(n => n.ok);
   if (!flexible && !NIV.some(n => n.ok)) { $('#app').innerHTML = `<div class="sec"><h2>Error</h2><div class="empty">No se han podido cargar los niveles.</div><div class="acts"><button class="btn-gold" id="reintCarga">Reintentar</button></div></div>`; $('#reintCarga').onclick = () => location.reload(); return; }
   $('#subtitle').textContent = ' · Lanzarote';
+  revisaLogros(); save();   // se apuntan sin avisar (la primera vez, los que ya se tenían); al terminar un nivel sí se avisa
   const est = totalEstrellas(), tot = NIV.length * 3;
   const sig = NIV.findIndex((n, i) => n.ok && desbloqueado(i) && !progR(i).done);
   let h = `<div class="mp">
     <div class="mp-hero"><img class="mp-img" src="portada.jpg" alt="" decoding="async"><div class="mp-top"><div class="mp-h"><b>Los Caminos del Volcán</b><span>Lleva el agua por toda la isla</span></div><div class="mp-est" title="Estrellas">★ ${est}/${tot}</div></div></div>
     ${sig >= 0 ? `<button class="btn-gold mp-cont" id="mpCont">▶ ${S.archive.some(a => a.mode === 'nivel') ? 'Continuar' : 'Empezar'} · ${nomNivel(sig)}: ${esc(NIV[sig].nivel.name)}</button>` : ''}
     ${cuadernoBoton()}
+    ${logrosBoton()}
     <button class="mp-peq ${S.peque ? 'on' : ''}" id="mpPeq" aria-pressed="${S.peque ? 'true' : 'false'}"><span>🧒 Modo peque</span><b>${S.peque ? 'Sí' : 'No'}</b></button>
     <div id="mpDiario">${diarioHtml()}</div>
     ${mapaIsla(sig)}
@@ -562,6 +568,7 @@ function renderSetup() {
   const c = $('#mpCont'); if (c) c.onclick = () => openBriefing(sig);
   document.querySelectorAll('[data-lvm]').forEach(g => { const ir = () => openBriefing(+g.dataset.lvm); g.addEventListener('click', ir); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } }); });
   const cb = $('#mpCuad'); if (cb) cb.onclick = openCuaderno;
+  const lb = $('#mpLog'); if (lb) lb.onclick = openLogros;
   const hi = $('#mpHis'); if (hi) hi.onclick = () => openHistoria(historiaVistas()[0], true);
   const pq = $('#mpPeq'); if (pq) pq.onclick = () => { S.peque = !S.peque; save(); renderSetup(); if (S.peque) toast('🧒 Modo peque: pierdes la mitad de agua y la lava va más despacio.'); };
   enlazarDiario();
@@ -662,6 +669,44 @@ function renderGame() {
   $('#mgPausa').onclick = () => { if (RUN.s.fase === 'jugando') pausar(); else if (RUN.overlay === 'pausa') reanudar(); };
   ponOverlay(); startLoop();
 }
+/* ================= Logros (3.2) =================
+   Se calculan con lo que ya se guarda (progreso y partidas); una vez conseguido, queda apuntado en S.logros con su fecha */
+const hechoId = id => { const i = NIV.findIndex(n => n.ok && n.nivel.level_id === id); return i >= 0 && progR(i).done; };
+const LOGROS = [
+  { id: 'primeros', ic: '🐪', t: 'Primeros pasos', d: 'Termina el primer nivel.', ok: () => progR(0).done },
+  { id: 'lleno', ic: '💧', t: 'Sin perder nada', d: 'Termina un nivel con 100 de agua o de fuerzas.', ok: () => S.archive.some(a => a.mode === 'nivel' && a.agua >= 100) },
+  { id: 'firme', ic: '🦶', t: 'Pie firme', d: 'Termina 5 niveles distintos sin caerte.', ok: () => new Set(S.archive.filter(a => a.mode === 'nivel' && !a.caidas).map(a => a.nivel)).size >= 5 },
+  { id: 'frutos1', ic: '🍇', t: 'Despensa del sur', d: 'Encuentra todos los frutos del Mundo 1.', ok: () => mundoCompleto(0) },
+  { id: 'frutos2', ic: '🌊', t: 'Despensa del norte', d: 'Encuentra todos los frutos del Mundo 2.', ok: () => mundoCompleto(1) },
+  { id: 'biberones', ic: '🍼', t: 'Guelfo bien criado', d: 'Encuentra todos los biberones del Mundo 3.', ok: () => mundoCompleto(2) },
+  { id: 'secreto', ic: '✨', t: 'Lugar secreto', d: 'Termina un nivel secreto.', ok: () => NIV.some((n, i) => secretoDe(i) >= 0 && progR(i).done) },
+  { id: 'estrellas1', ic: '⭐', t: 'Estrellas del sur', d: 'Consigue 3 estrellas en todos los niveles del Mundo 1.', ok: () => estrellasMundo(0) },
+  { id: 'estrellas2', ic: '🌟', t: 'Estrellas del norte', d: 'Consigue 3 estrellas en todos los niveles del Mundo 2.', ok: () => estrellasMundo(1) },
+  { id: 'estrellas3', ic: '💫', t: 'Estrellas del guelfo', d: 'Consigue 3 estrellas en todos los niveles del Mundo 3.', ok: () => estrellasMundo(2) },
+  { id: 'dunas', ic: '🏜️', t: 'Rey de las dunas', d: 'Termina El jable de Famara.', ok: () => hechoId('norte_e01_jable_famara') },
+  { id: 'barcas', ic: '⛵', t: 'Marinero de Órzola', d: 'Termina Las barcas de Órzola.', ok: () => hechoId('norte_e02_barcas_orzola') },
+  { id: 'eclipse', ic: '🌘', t: 'Bajo el eclipse', d: 'Termina La luz que se apaga.', ok: () => NIV.some((n, i) => n.ok && n.nivel.eclipse && progR(i).done) },
+  { id: 'todo', ic: '🏆', t: 'Todo el camino', d: 'Termina todos los niveles de los tres mundos.', ok: () => INFO.every((x, i) => x.tipo !== 'nivel' || !NIV[i].ok || progR(i).done) },
+  { id: 'diario', ic: '📅', t: 'Reto del día', d: 'Termina un reto diario.', ok: () => S.archive.some(a => a.mode === 'diario') },
+  { id: 'constancia', ic: '🔁', t: 'Constancia', d: 'Juega 50 partidas.', ok: () => NIV.reduce((a, n, i) => a + (progR(i).plays || 0), 0) >= 50 }
+];
+/* apunta los logros conseguidos; devuelve los nuevos. La primera vez (S.logros sin crear) se apuntan sin avisar */
+function revisaLogros() {
+  const prim = !S.logros; S.logros = S.logros || {}; const nuevos = [];
+  for (const l of LOGROS) { if (S.logros[l.id]) continue; let ok = false; try { ok = !!l.ok(); } catch (e) {} if (ok) { S.logros[l.id] = Date.now(); if (!prim) nuevos.push(l); } }
+  return nuevos;
+}
+const logrosHechos = () => LOGROS.filter(l => S.logros && S.logros[l.id]).length;
+function logrosBoton() { const n = logrosHechos(); return `<button class="mp-cuad mp-log" id="mpLog"><div class="ic">🏆</div><div><b>Logros · ${n}/${LOGROS.length}</b><span>${n ? 'Lo que has conseguido en el camino.' : 'Retos para todo el viaje: estrellas, frutos, sitios secretos…'}</span></div></button>`; }
+function openLogros() {
+  revisaLogros(); save();
+  const f = ms => new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  openModal(`<h3>🏆 Logros · ${logrosHechos()}/${LOGROS.length}</h3><div class="sub">Se consiguen jugando: no hace falta hacer nada más.</div>
+    <div class="lg-lista">${LOGROS.map(l => { const h = S.logros[l.id]; return `<div class="lg ${h ? 'si' : ''}"><div class="lg-ic" aria-hidden="true">${h ? l.ic : '🔒'}</div><div class="lg-tx"><b>${esc(l.t)}</b><span>${esc(l.d)}</span>${h ? `<small>${f(h)}</small>` : ''}</div></div>`; }).join('')}</div>
+    <div class="acts"><button class="btn-gold" id="lgOk">Cerrar</button></div>`);
+  $('#lgOk').onclick = closeModal;
+}
+
 /* ================= Cuaderno de viaje ================= */
 const LUG = window.LUGARES || [], LUGN = LUG.filter(Boolean).length;
 const fichaAbierta = i => !!(NIV[i] && NIV[i].ok && progR(i).done);
@@ -826,6 +871,7 @@ function ponOverlay() {
       ${nu.escena && HISTORIA[nu.escena] ? `<button class="ov-se ov-ir" id="ovHis"><b>📜 La historia de Martín</b><span>Una escena nueva de la historia.</span></button>` : ''}
       ${nu.especies && nu.especies.length ? `<button class="ov-gu ov-ir" id="ovGu"><b>🌿 Nueva especie en tu guía</b><span>${nu.especies.map(esc).join(' · ')}</span></button>` : ''}
       ${nu.sello ? '<button class="ov-se ov-ir" id="ovSe"><b>🏅 ¡Nuevo sello en el cuaderno!</b><span>Ábrelo para ver una curiosidad más de este lugar.</span></button>' : ''}
+      ${nu.logros ? `<button class="ov-se ov-ir" id="ovLog"><b>🏆 ¡Nuevo logro!</b><span>${nu.logros.map(l => l.ic + ' ' + esc(l.t)).join(' · ')}</span></button>` : ''}
       ${nu.fantasma ? '<div class="ov-fan">👻 Tu nueva mejor carrera será tu rival la próxima vez.</div>' : ''}
       ${RUN.modo === 'diario' ? `<div class="ov-env" id="ovEnv">${envioTxt()}</div>` : ''}
       ${RUN.modo === 'nivel' && LUG[RUN.idx] ? `<button class="ov-fi" id="ovFi">📖 ${(RUN.nuevo || {}).primera ? '✨ Nueva ficha: ' : 'Conoce '}${esc(LUG[RUN.idx].lugar)}</button>` : ''}
@@ -835,7 +881,8 @@ function ponOverlay() {
     const rk = $('#ovRank'); if (rk) rk.onclick = () => openRanking();
     const mp = $('#ovMapa'); if (mp) mp.onclick = salirAlMapa;
     const fi = $('#ovFi'); if (fi) fi.onclick = () => openFicha(RUN.idx, false);
-    const se = $('#ovSe'); if (se) se.onclick = () => openFicha(RUN.idx, false);   // la ficha enseña el sello y la curiosidad nueva
+    const se = $('#ovSe'); if (se) se.onclick = () => openFicha(RUN.idx, false);
+    const ol = $('#ovLog'); if (ol) ol.onclick = openLogros;   // la ficha enseña el sello y la curiosidad nueva
     const oh = $('#ovHis'); if (oh) oh.onclick = () => openHistoria(nu.escena, false);
     const gu = $('#ovGu'); if (gu) gu.onclick = () => { const ids = nu.espIds || []; if (ids.length === 1) openEspecie(ids[0]); else openGuia(); };
     pintaFrutos($('#ovFru'), n, s.obj || {}, 26);

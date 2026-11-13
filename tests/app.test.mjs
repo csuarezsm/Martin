@@ -212,6 +212,10 @@ console.log('Niveles completos (partidas grabadas por el robot, repetidas en la 
       check('secreto ' + id + ': llega a la meta igual que el robot', f && f.fase === 'meta' && f.t === Math.round(PART[id].ms * 60 / 1000) && f.agua === PART[id].agua, JSON.stringify(f));
       await p.evaluate(() => salirAlMapa());
     }
+    // 3.2: logros — se apuntan solos y la pantalla los enseña
+    check('logros: 16 logros; los conseguidos quedan apuntados y el de terminarlo todo no', await p.evaluate(() => { revisaLogros(); return LOGROS.length === 16 && !!S.logros.primeros && !!S.logros.frutos1 && !S.logros.todo; }));
+    check('logros: la pantalla se abre desde el mapa', await p.evaluate(() => { salirAlMapa(); const b = document.getElementById('mpLog'); if (!b) return false; b.click(); return /Logros · \d+\/16/.test(document.getElementById('modal').textContent) && document.querySelectorAll('.lg.si').length >= 2; }));
+    await p.evaluate(() => closeModal());
     // 3.1: los dos niveles nuevos del Mundo 2 (dunas y barcas) se abren tras el último del Mundo 2 y el robot los termina igual en la app
     check('niveles nuevos: el jable va detrás del nivel 11 y las barcas detrás del jable', await p.evaluate(() => anteriorNivel(21) === 10 && anteriorNivel(22) === 21 && INFO[21].num === '12' && INFO[22].num === '13' && INFO[13].num === '3-1'));
     for (const [i, id] of [[21, 'norte_e01_jable_famara'], [22, 'norte_e02_barcas_orzola']]) {
