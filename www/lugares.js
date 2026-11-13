@@ -205,7 +205,7 @@
   // (la del eclipse espera a tener los datos de Lanzarote del Instituto Geográfico Nacional).
   const L3 = [
     {
-      lugar: 'Uga', titulo: 'El guelfo', img: 'paisaje-uga.jpg', pos: '40% 45%',
+      lugar: 'Uga', titulo: 'El guelfo', img: 'escena-biberon.jpg', pos: '55% 45%',
       texto: [
         'En Canarias, a la cría del camello, desde que nace hasta que deja de mamar, se le llama guelfo.',
         'El camello canario es una raza propia: el Catálogo Oficial de Razas de Ganado de España la clasifica como raza autóctona en peligro de extinción.',

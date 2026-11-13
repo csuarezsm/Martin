@@ -584,10 +584,10 @@
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
     { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
     // Mundo 3: las calles de Uga (panorámicas)
-    { src: 'paisaje-uga-iglesia.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
-    { src: 'paisaje-uga-calle.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
-    { src: 'paisaje-uga-vallito.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
-    { src: 'paisaje-uga-mercado.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
+    { src: 'paisaje-uga-iglesia.jpg', esc: 0.68, cielo: ['#217fd2', '#217fd2'] },
+    { src: 'paisaje-uga-calle.jpg', esc: 0.68, cielo: ['#1785f3', '#1785f3'] },
+    { src: 'paisaje-uga-vallito.jpg', esc: 0.68, cielo: ['#0e7ff4', '#0e7ff4'] },
+    { src: 'paisaje-uga-mercado.jpg', esc: 0.68, cielo: ['#2c74b0', '#2c74b0'] }],
     porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 13, 0, 2, 14, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
@@ -647,7 +647,7 @@
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)
     const ref = H - H * (W < H ? 0.27 : 0.3), suelo = ref + u * 0.5;   // fijo en vertical: seguir al suelo daba saltos
     // el dibujo nunca se repite (repetirlo, aunque fuera en espejo, duplicaba el sol, los molinos…): si la pantalla es muy ancha se agranda hasta cubrirla
-    let alto = Math.max(ref * 0.78, u * 6.5), dib = alto * 1.25, k = dib / PAI.h;
+    let alto = Math.max(ref * 0.78, u * 6.5) * (F.esc || 1), dib = alto * 1.25, k = dib / PAI.h;   // esc: las panorámicas del pueblo se ven más de lejos (las casas no deben parecer enormes al lado de Martín)
     if (F.tile.width * k < W * 1.15) { k = W * 1.15 / F.tile.width; dib = k * PAI.h; alto = dib / 1.25; }
     const ancho = F.tile.width * k, top = suelo - alto, sobra = Math.max(0, ancho - W);
     let g = ctx.createLinearGradient(0, 0, 0, Math.max(1, top + 2)); g.addColorStop(0, F.cielo[0]); g.addColorStop(1, F.cielo[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, top) + 2);
@@ -1053,13 +1053,15 @@
       for (const [a, b] of pos) esfera(ctx, x + a * r, y + b * r, r * 0.3, '#f0f0a0', '#7f9a2a');
     }
   }
+  const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.png' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.png' }) } : {};
   function dibujaObjetos(ctx, W, H, u, sx, sy, L, st, t) {
     const tom = (st && st.obj) || {};
     for (const it of L.objetos) {
       const x = sx(it.x), y = sy(it.y); if (x < -u * 2 || x > W + u * 2) continue;
-      if (it.kind === 'toma') {   // el camellero espera con el biberón en la mano; cuando Martín bebe, el biberón ya no está
-        const gy = y + u * 0.9; camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
-        if (!tom[it.id]) { const b = Math.sin(t * 3) * u * 0.06; fruto(ctx, 'biberon', x + u * 0.35, gy - u * 1.15 + b, u * 0.32); ctx.fillStyle = 'rgba(255,240,150,.25)'; ctx.beginPath(); ctx.arc(x + u * 0.35, gy - u * 1.15 + b, u * 0.55, 0, TAU); ctx.fill(); }
+      if (it.kind === 'toma') {   // el camellero, agachado, ofrece el biberón a Martín; cuando bebe, la mano queda vacía
+        const im = tom[it.id] ? CAG.vacio : CAG.lleno, gy = y + u * 0.9, h = u * 1.85;
+        if (im.complete && im.naturalWidth) { const w = h * im.naturalWidth / im.naturalHeight, dcha = x + h * 588 / 640 * 0.88; ctx.drawImage(im, dcha - w, gy - h, w, h); }   // alineados por la derecha (las botas), aunque los dos dibujos no midan lo mismo
+        else camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
         continue;
       }
       if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
@@ -1425,7 +1427,7 @@
     const cs = cielos[k] || cielos[3], g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, cs[0]); g.addColorStop(0.6, cs[1]); g.addColorStop(1, cs[2]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
-    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['escena-calle-palmera.jpg', 'rgba(255,220,170,.04)', 1], 3: ['escena-calle-farolas.jpg', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
+    const fotos = { 1: ['paisaje-uga.jpg', 'rgba(20,24,70,.55)'], 2: ['escena-biberon.jpg', 'rgba(0,0,0,0)', 1], 3: ['escena-calle-farolas.jpg', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.jpg', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.jpg', 'rgba(255,190,140,.06)', 1], 9: ['echadero.jpg', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.jpg', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.jpg', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.jpg', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
     if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
       if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
@@ -1437,7 +1439,8 @@
     if (!conFoto) ctx.fillStyle = '#2a1f1c'; if (!conFoto) for (let i = 0; i < 18; i++) { const bx = i * W / 17 - u * 0.2; ctx.beginPath(); ctx.ellipse(bx, suelo - u * 0.3, u * 0.32, u * 0.3, 0, 0, TAU); ctx.fill(); }   // muro de piedra seca al fondo
     const ilus = fo && fo[2] && HIST_IMG[fo[0]] && HIST_IMG[fo[0]].naturalWidth;
     if (ilus) { const im = HIST_IMG[fo[0]], kk = Math.max(W / im.naturalWidth, H / im.naturalHeight); ctx.drawImage(im, (W - im.naturalWidth * kk) / 2, (H - im.naturalHeight * kk) / 2, im.naturalWidth * kk, im.naturalHeight * kk); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H);
-      if (k === 2 || k === 3) { camelleroFig(ctx, W * (k === 2 ? 0.3 : 0.42), H * 0.95, H * 0.115, 0, 1, 1); dibujaMartin(ctx, H * 0.085, W * (k === 2 ? 0.5 : 0.6), H * 0.95, { dir: k === 2 ? -1 : 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
+      if (k === 2) return;   // la ilustración ya tiene al camellero dando el biberón a Martín
+      if (k === 3) { camelleroFig(ctx, W * (k === 2 ? 0.3 : 0.42), H * 0.95, H * 0.115, 0, 1, 1); dibujaMartin(ctx, H * 0.085, W * (k === 2 ? 0.5 : 0.6), H * 0.95, { dir: k === 2 ? -1 : 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
       if (k === 5) dibujaMartin(ctx, H * 0.055, W * 0.955, H * 0.475, { dir: -1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });   // el último de la fila, al fondo
       else if (k === 9) dibujaMartin(ctx, H * 0.2, W * 0.5, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true });
       else dibujaMartin(ctx, H * 0.11, W * 0.12, H * 0.97, { dir: 1, fase: 0.6, anim: 'idle', agua: 100, golpe: 0, t: 1, guelfo: true }); return; }
