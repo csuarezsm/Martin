@@ -726,6 +726,10 @@
       const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), k = (x1 - x0) / (BARCA.d1 - BARCA.d0), im = BARCA.img;
       ctx.fillStyle = 'rgba(0,30,50,.3)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, yd + u * 0.62, (x1 - x0) * 0.55, u * 0.1, 0, 0, TAU); ctx.fill();
       ctx.drawImage(im, x0 - BARCA.d0 * k, yd - BARCA.dy * k, im.width * k, im.height * k);
+      { // la parte de abajo del casco va dentro del agua: se tapa con el mismo agua del río (más opaca cuanto más hondo), solo bajo el casco
+        const yw0 = yd + u * 0.5, xa = x0 - u * 0.2, xb = x1 + (im.width - BARCA.d1) * k, g = ctx.createLinearGradient(0, yw0, 0, yw0 + u * 4);
+        g.addColorStop(0, 'rgba(58,166,216,.35)'); g.addColorStop(0.18, 'rgba(38,130,190,.8)'); g.addColorStop(0.35, 'rgba(26,111,166,1)'); g.addColorStop(1, 'rgba(7,50,81,1)');
+        ctx.fillStyle = g; ctx.fillRect(xa, yw0, xb - xa, (im.height - BARCA.dy) * k - u * 0.5 + 2); }
       ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = Math.max(1, u * 0.05); ctx.beginPath(); const yw = yd + u * 0.5 + Math.sin(t * 2.2) * u * 0.05; ctx.moveTo(x0 - u * 0.3, yw); ctx.quadraticCurveTo((x0 + x1) / 2, yw + u * 0.06, x1 + u * 0.2, yw); ctx.stroke();   // espuma
       return;
     }

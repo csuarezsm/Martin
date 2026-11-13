@@ -393,15 +393,15 @@ function e01() {   // El jable de Famara: cuestas de arena (arriba despacio, aba
 function e02() {   // Las barcas de Órzola: el agua no se salta; hay que subir a la barca cuando llega al muelle
   const n = new N(22, 'orzola');
   n.llano(30).pista('barca', 10, 60, { hasta_x: 60 });
-  n.rio(8.6, 5.2, 300, 0).llano(14); rocas(n, [[1.4, 0.8]], 10); n.control();
-  n.llano(12).rio(9.6, 5.2, 330, 80).llano(10).hueco(2.4).llano(12);
-  n.sube(1.0).llano(8).rio(10.1, 5.2, 300, 150).llano(10).baja(1.0).llano(14).control();
-  n.rio(8.6, 5.2, 280, 40).llano(3).rio(8.6, 5.2, 280, 180).llano(16);
+  n.rio(10.9, 7.5, 300, 0).llano(14); rocas(n, [[1.4, 0.8]], 10); n.control();
+  n.llano(12).rio(11.9, 7.5, 330, 80).llano(10).hueco(2.4).llano(12);
+  n.sube(1.0).llano(8).rio(12.4, 7.5, 300, 150).llano(10).baja(1.0).llano(14).control();
+  n.rio(10.9, 7.5, 280, 40).llano(3).rio(10.9, 7.5, 280, 180).llano(16);
   rocas(n, [[1.4, 0.9]], 12); n.control();
-  n.rio(10.6, 5.2, 360, 200).llano(14).hueco(2.6).llano(12).rio(9.1, 5.2, 300, 90).llano(20);
+  n.rio(12.9, 7.5, 360, 200).llano(14).hueco(2.6).llano(12).rio(11.4, 7.5, 300, 90).llano(20);
   n.llano(46);
   n.pista('entrega', n.x - 28, n.x - 6, {});
-  return cierra(n, { id: 'norte_e02_barcas_orzola', nombre: 'Las barcas de Órzola', resumen: 'El agua no se salta: sube a la barca cuando llegue al muelle y deja que te lleve.', estrella3: 175, tema: 'graciosa' });
+  return cierra(n, { id: 'norte_e02_barcas_orzola', nombre: 'Las barcas de Órzola', resumen: 'El agua no se salta: sube a la barca cuando llegue al muelle y deja que te lleve.', estrella3: 185, tema: 'graciosa' });
 }
 
 /* ---------- Peligros vivos (2.1): se colocan sobre tramos llanos, lejos del inicio, de los puntos de control y de la meta ---------- */

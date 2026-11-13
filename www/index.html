@@ -464,7 +464,7 @@ window.NOTICIAS_MARTIN = ['https://www.laprovincia.es/videos/lanzarote/2026/08/1
   'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html',
   'https://www.tiktok.com/@unahoramenostv/video/7605692657339256097'];   // el Martín real (prensa, agosto de 2026)
 window.NOTICIA_MARTIN = NOTICIAS_MARTIN[0];
-const APP_VERSION = '3.3.1';
+const APP_VERSION = '3.3.2';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -648,12 +648,9 @@ async function wipeAll() {
 }
 
 /* ---------- Pantalla de bienvenida ---------- */
-const WELCOME = [
-  ['🐪', 'Bienvenido a Martín', 'Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
-  ['👆', 'Cómo se juega', 'Mantén ◀ ▶ para caminar y toca ⬆ para saltar. Mantén el salto para llegar un poco más alto. En ordenador: flechas o A/D, barra espaciadora y Esc para pausa.'],
-  ['💧', 'Cuida el agua', 'Tienes 100 de agua. Una caída desde muy alto o un golpe fuerte contra una roca derrama parte. Si se acaba, hay que volver a intentarlo; si te caes por un hueco, vuelves al último punto de control y pierdes 15.'],
-  ['🌋', 'Peligros vivos', 'Piedras que ruedan, géiseres de vapor, rachas de viento, olas y suelo que se hunde. Todos avisan antes: fíjate en el «!», el humo, la manga de viento o las burbujas. Y en Timanfaya… ¡corre, que viene la lava!'],
-  ['⭐', 'Estrellas y caminos', 'Una estrella por entregar, otra por llegar con mucha agua y otra por hacerlo rápido. A veces hay dos caminos: uno rápido y arriesgado, y otro lento y seguro. Busca también los 3 frutos escondidos de cada nivel y gana a tu fantasma. Cada día hay además un reto igual para todos.']
+const WELCOME = [   // 3.3: solo lo justo para empezar a jugar; lo demás se aprende por el camino (pistas) o en «Reglas»
+  ['🐪', 'Bienvenido a Martín', 'Martín es un camello de Uga, en Lanzarote, y existe de verdad. Ayúdale a llevar el agua por los caminos que dejó la tormenta. Gratis, sin anuncios y sin cuentas.'],
+  ['👆', 'Cómo se juega', 'Mantén ◀ ▶ para caminar y toca ⬆ para saltar. Cuida el agua del cántaro: las caídas y los golpes la derraman. Lo demás lo irás descubriendo por el camino.']
 ];
 function openWelcome(i) {
   i = Math.max(0, Math.min(WELCOME.length - 1, i || 0));
@@ -665,10 +662,12 @@ function openWelcome(i) {
       <div style="display:flex;justify-content:center;gap:6px;margin:14px 0 4px">${WELCOME.map((_, k) => `<i style="width:${k === i ? 20 : 8}px;height:8px;border-radius:4px;background:${k === i ? 'var(--gold)' : 'var(--line)'}"></i>`).join('')}</div>
     </div>
     <div class="acts">${i ? '<button class="btn-ghost" id="wbPrev">‹ Atrás</button>' : '<button class="btn-ghost" id="wbSkip">Omitir</button>'}<button class="btn-gold" id="wbNext">${last ? '¡A jugar!' : 'Siguiente ›'}</button></div>`);
-  const done = () => { S.onboarded = true; save(); closeModal(); openIOSInstall(false); };
-  const sk = $('#wbSkip'); if (sk) sk.onclick = done;
+  const done = (jugarYa) => { S.onboarded = true; save(); closeModal(); openIOSInstall(false);
+    // la primera vez, «¡A jugar!» lleva directo al nivel 1 (sin pasar por el mapa ni por la ficha del nivel)
+    if (jugarYa && typeof jugar === 'function' && !S.archive.some(a => a.mode === 'nivel')) jugar(0, 'nivel'); };
+  const sk = $('#wbSkip'); if (sk) sk.onclick = () => done(false);
   const pv = $('#wbPrev'); if (pv) pv.onclick = () => openWelcome(i - 1);
-  $('#wbNext').onclick = () => last ? done() : openWelcome(i + 1);
+  $('#wbNext').onclick = () => last ? done(true) : openWelcome(i + 1);
 }
 
 /* ---------- Reglas del juego ---------- */

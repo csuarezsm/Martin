@@ -93,9 +93,11 @@ console.log('Mapa de Uga');
 {
   const { p, ctx } = await fresh({ iosHint: true });
   check('la primera vez sale la bienvenida', await waitFor(p, () => document.querySelector('#wbNext')));
-  for (let k = 0; k < 4; k++) await p.click('#wbNext');
+  check('la bienvenida es corta: dos pantallas', await p.evaluate(() => WELCOME.length === 2));
+  await p.click('#wbNext');
   await p.click('#wbNext');
   check('la bienvenida se cierra y no vuelve', await waitFor(p, () => document.querySelector('#modal').classList.contains('hidden')) && (await store(p)).onboarded === true);
+  check('«¡A jugar!» lleva directo al nivel 1, listo para empezar', await waitFor(p, () => !!__martin.RUN.L && __martin.RUN.L.level_id === 'uga_l01_water_delivery' && !!document.getElementById('ovGo')));
   await ctx.close();
 }
 
