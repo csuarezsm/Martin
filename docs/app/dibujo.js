@@ -296,9 +296,11 @@
     return (C[clave] = f);
   }
   // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
-  const GW = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, cache: {} };
-  if (typeof Image !== 'undefined') { GW.img = new Image(); GW.img.onload = () => { GW.ok = true; }; GW.img.src = 'guelfo-paso.png'; }
-  function pasoEscalado(hp) {
+  const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
+  // el paso del camellero: 12 dibujos (camellero-paso.png, 207×353 cada uno; todos son del paso)
+  const CW = { img: null, ok: false, n: 12, fw: 207, fh: 353, ax: 110, ay: 349, alto: 2.3, pie: 0, cache: {} };
+  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
+  function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
     const s = k / GW.fh, c = document.createElement('canvas'); c.width = Math.ceil(GW.fw * GW.n * s); c.height = k;
     let src = GW.img, w = GW.fw * GW.n, h = GW.fh;
@@ -307,10 +309,10 @@
     const ks = Object.keys(GW.cache); if (ks.length > 6) delete GW.cache[ks[0]];
     return (GW.cache[k] = c);
   }
-  function dibujaGuelfoPaso(ctx, u, px, py, st) {
-    const T = st.t || 0, anim = st.anim, hp = GW.alto * u, c = pasoEscalado(hp), s = c.s;
+  function dibujaGuelfoPaso(ctx, u, px, py, st, SP) {
+    const GW = SP || GW0, T = st.t || 0, anim = st.anim, hp = GW.alto * u, c = pasoEscalado(hp, GW), s = c.s;
     let f = 0, dy = 0, rot = 0, sy = 1;
-    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 0.55, v = ((fase / (Math.PI * 2)) % 1 + 1) % 1; f = 1 + Math.floor(v * (GW.n - 1)) % (GW.n - 1); }
+    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 0.55, v = ((fase / (Math.PI * 2)) % 1 + 1) % 1; f = GW.pie + Math.floor(v * (GW.n - GW.pie)) % (GW.n - GW.pie); }
     else if (anim === 'salta') { f = 2; rot = -0.06; }
     else if (anim === 'cae') { f = 8; rot = 0.05; }
     else sy = 1 + Math.sin(T * 2.4) * 0.012;
@@ -339,7 +341,7 @@
   }
 
   function dibujaMartin(ctx, u, px, py, st) {
-    if (st.guelfo && GW.ok) return dibujaGuelfoPaso(ctx, u, px, py, st);
+    if (st.guelfo && GW0.ok) return dibujaGuelfoPaso(ctx, u, px, py, st);
     if (st.guelfo && GSP.ok) return dibujaGuelfo(ctx, u, px, py, st);
     if (SPR.ok && !st.guelfo) return dibujaMartinSprite(ctx, u, px, py, st);
     const GU = !!st.guelfo;   // Mundo 3: guelfo sin manta, sin silla, sin tinaja y sin cabezada; cabeza más grande
@@ -1328,6 +1330,7 @@
   /* ================== Mundo 3 (3.0): el camellero, la manada, la escultura de Uga, la sombra, el calor y el eclipse ================== */
   // camellero: de lado, sombrero de paja, camisa clara y vara; nunca se le ve la cara de cerca (pies en x,y de pantalla; u = px por unidad)
   function camelleroFig(ctx, x, y, u, fase, dir, alfa) {
+    if (CW.ok) { dibujaGuelfoPaso(ctx, u, x, y, { dir, fase: fase || 0, anim: fase ? 'corre' : 'idle', t: 0, golpe: 0, alpha: alfa }, CW); return; }
     if (CSP.ok) { dibujaGuelfo(ctx, u, x, y, { dir, fase: (fase || 0) / 1.6 * 0.9, anim: fase ? 'corre' : 'idle', t: 0, golpe: 0, alpha: alfa }, CSP); return; }
     ctx.save(); ctx.translate(x, y); ctx.scale(dir < 0 ? -u : u, -u); ctx.globalAlpha = alfa == null ? 1 : alfa; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const pa = Math.sin(fase) * 0.22, br = Math.sin(fase) * 0.25;
@@ -1390,7 +1393,7 @@
     if (G && st && st.guia != null) {
       const gx = st.guia, anda = gx < G.hasta && (st.fase === 'jugando'), f = gx * 1.9;
       for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
-      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? f : 0, 1);
+      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 3.6 : 0, 1);
     } else if (L.camellero != null || L.cuerpo) { const cx = L.camellero != null ? L.camellero : L.goals.finish_x + 1.5, x = sx(cx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(cx, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
   // eclipse del 12 de agosto (parcial en Lanzarote, a la caída de la tarde): la luz baja y se enfría poco a poco y el Sol se vuelve media luna
