@@ -295,6 +295,32 @@
     } else for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
     return (C[clave] = f);
   }
+  // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
+  const GW = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, cache: {} };
+  if (typeof Image !== 'undefined') { GW.img = new Image(); GW.img.onload = () => { GW.ok = true; }; GW.img.src = 'guelfo-paso.png'; }
+  function pasoEscalado(hp) {
+    const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
+    const s = k / GW.fh, c = document.createElement('canvas'); c.width = Math.ceil(GW.fw * GW.n * s); c.height = k;
+    let src = GW.img, w = GW.fw * GW.n, h = GW.fh;
+    while (h * 0.5 > k) { const t2 = document.createElement('canvas'); t2.width = Math.ceil(w * 0.5); t2.height = Math.ceil(h * 0.5); const g2 = t2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(src, 0, 0, t2.width, t2.height); src = t2; w = t2.width; h = t2.height; }
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); c.s = s;
+    const ks = Object.keys(GW.cache); if (ks.length > 6) delete GW.cache[ks[0]];
+    return (GW.cache[k] = c);
+  }
+  function dibujaGuelfoPaso(ctx, u, px, py, st) {
+    const T = st.t || 0, anim = st.anim, hp = GW.alto * u, c = pasoEscalado(hp), s = c.s;
+    let f = 0, dy = 0, rot = 0, sy = 1;
+    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 0.55, v = ((fase / (Math.PI * 2)) % 1 + 1) % 1; f = 1 + Math.floor(v * (GW.n - 1)) % (GW.n - 1); }
+    else if (anim === 'salta') { f = 2; rot = -0.06; }
+    else if (anim === 'cae') { f = 8; rot = 0.05; }
+    else sy = 1 + Math.sin(T * 2.4) * 0.012;
+    if (anim === 'gana') dy -= Math.abs(Math.sin(T * 6)) * 0.3 * u;
+    if (st.golpe > 0) sy *= 1 - st.golpe * 0.12;
+    const fw = GW.fw * s;
+    ctx.save(); ctx.globalAlpha = st.alpha == null ? 1 : st.alpha; ctx.translate(px, py + dy); if (st.dir < 0) ctx.scale(-1, 1); ctx.rotate(rot); ctx.scale(1, sy);
+    ctx.drawImage(c, f * fw, 0, fw, c.height, -GW.ax * s, -GW.ay * s, fw, c.height);
+    ctx.restore();
+  }
   function dibujaGuelfo(ctx, u, px, py, st, SP) {
     const GSP = SP || GSP0, T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
     let dy = 0, rot = 0, sx = 1, sy = 1, clave = 'q', ang = [0, 0];
@@ -313,6 +339,7 @@
   }
 
   function dibujaMartin(ctx, u, px, py, st) {
+    if (st.guelfo && GW.ok) return dibujaGuelfoPaso(ctx, u, px, py, st);
     if (st.guelfo && GSP.ok) return dibujaGuelfo(ctx, u, px, py, st);
     if (SPR.ok && !st.guelfo) return dibujaMartinSprite(ctx, u, px, py, st);
     const GU = !!st.guelfo;   // Mundo 3: guelfo sin manta, sin silla, sin tinaja y sin cabezada; cabeza más grande
