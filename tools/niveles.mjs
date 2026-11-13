@@ -567,6 +567,7 @@ const mundo3 = [
 ];
 const tomas = L => { const lejos = c => !L.items.some(o => o.kind === 'biberon' && Math.abs(o.x - (c.x + 2.2)) < 9);   // nunca en el mismo sitio que un biberón escondido
   const todos = [L.checkpoint].concat(L.checkpoints_extra || []).sort((a, b) => a.x - b.x), cps = todos.filter(lejos).concat(todos.filter(c => !lejos(c))).slice(0, 2).sort((a, b) => a.x - b.x);   // el camellero espera con el biberón junto a los dos primeros puntos de control
+  if (L.guia) { L.guia.paradas = cps.map(c => r2(c.x + 2.2)); return L; }   // si el camellero va delante, es él quien se para a darle el biberón (no hay otro camellero esperando)
   cps.forEach((c, k) => { const s = L.solids.find(q => q.kind === 'ground' && !q.route && q.x0 <= c.x + 2 && q.x1 >= c.x + 2.5); if (s) L.items.push({ id: 'TOM-' + (k + 1), kind: 'toma', x: r2(c.x + 2.2), y: r2(s.top + 0.9) }); });
   // si aun así un biberón escondido queda junto al camellero, el biberón se cambia a otro tramo llano libre
   const ts = L.items.filter(o => o.kind === 'toma');

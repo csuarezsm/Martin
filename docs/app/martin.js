@@ -94,7 +94,7 @@ function validar(L) {
   // Mundo 3 (3.0): el guelfo (más pequeño y salta algo menos), el camellero o la manada que hay que seguir y el calor de julio
   const cu = L.cuerpo; if (cu != null && !(num(cu.escala) && cu.escala >= 0.5 && cu.escala <= 1 && num(cu.salto) && cu.salto >= 0.7 && cu.salto <= 1)) err('cuerpo');
   o.hw = HW * (cu ? cu.escala : 1); o.h = H * (cu ? cu.escala : 1); o.salto = SALTO * (cu ? cu.salto : 1);
-  const gu = L.guia; if (gu != null && !(num(gu.ventaja) && gu.ventaja > 0 && num(gu.vel) && gu.vel > 0 && gu.vel < VMAX && num(gu.pierde) && gu.pierde > gu.ventaja && num(gu.hasta))) err('guía');
+  const gu = L.guia; if (gu != null && !(num(gu.ventaja) && gu.ventaja > 0 && num(gu.vel) && gu.vel > 0 && gu.vel < VMAX && num(gu.pierde) && gu.pierde > gu.ventaja && num(gu.hasta) && (gu.paradas == null || (Array.isArray(gu.paradas) && gu.paradas.every(num))))) err('guía');
   const ca = L.calor; if (ca != null && !(num(ca.sube) && ca.sube > 0 && num(ca.baja) && ca.baja > 0 && Array.isArray(ca.sombras) && ca.sombras.every(z => Array.isArray(z) && num(z[0]) && num(z[1]) && z[1] > z[0]))) err('calor');
   const extra = L.checkpoints_extra || [];
   for (const c of extra) { if (typeof c.id !== 'string' || !num(c.x) || !num(c.y)) err('checkpoint extra'); uno(c.id, 'checkpoints_extra'); if (!apoyo(c.x, c.y)) err('el punto de control ' + c.id + ' no está sobre suelo'); }
@@ -122,7 +122,7 @@ function nuevo(L, opts) {
     cp: 0, saltos: 0, rx: L.spawn.x, ry: L.spawn.y, rt: 0,
     causa: '', estrellas: 0, mod: opts.mod || 'normal', dm: m.dano, lf: m.lava || 1,
     ruta: '', der: {}, obj: {}, ag0: agua, lava: null, sal: false, ev: [], conEv: !!opts.eventos,
-    guia: L.guia ? L.spawn.x + L.guia.ventaja : null, calor: L.calor ? 0 : null, perdidas: 0, sofocos: 0
+    guia: L.guia ? L.spawn.x + L.guia.ventaja : null, gp: 0, calor: L.calor ? 0 : null, perdidas: 0, sofocos: 0
   };
 }
 const emite = (s, e) => { if (s.conEv) s.ev.push(e); };
@@ -162,7 +162,7 @@ function paso(L, s, m) {
     if (s.rt <= 0) {
       s.fase = 'jugando'; s.x = s.rx; s.y = s.ry; s.vx = 0; s.vy = 0; s.suelo = true; s.der = {};
       if (s.lava != null) s.lava = Math.min(s.lava, s.rx - L.lava.ventaja);
-      if (L.guia) s.guia = s.rx + L.guia.ventaja;
+      if (L.guia) { s.guia = s.rx + L.guia.ventaja; const PA = L.guia.paradas || []; if (s.gp < PA.length) s.guia = Math.min(s.guia, PA[s.gp]); }
       if (L.calor) s.calor = 0; s.coy = COYOTE; s.buf = 0; s.sos = 0; s.frio = INVULN; s.pj = (m & 4) ? 1 : 0;
       emite(s, { t: 'reaparecido' });
     }
@@ -283,7 +283,11 @@ function paso(L, s, m) {
   // guía: el camellero (o la manada) avanza a su paso; si Martín se queda demasiado atrás, lo pierde y vuelve al punto de control
   const GU = L.guia;
   if (GU && s.guia != null) {
-    if (s.guia < GU.hasta) s.guia = Math.min(GU.hasta, s.guia + GU.vel * (s.lf || 1) * DT);
+    const PA = GU.paradas || [], pa = s.gp < PA.length ? PA[s.gp] : null;
+    if (pa != null && s.guia >= pa) {   // el camellero se para, se agacha y espera con el biberón; cuando Martín llega, bebe y siguen
+      s.guia = pa;
+      if (s.x >= pa - 1.6) { const id = 'TOM-' + (s.gp + 1), antes = s.agua; s.agua = Math.min(s.ag0, s.agua + AGUA_ALJIBE); s.obj[id] = 'toma'; s.gp++; emite(s, { t: 'recoge', id, kind: 'toma', mas: s.agua - antes }); }
+    } else if (s.guia < GU.hasta) s.guia = Math.min(GU.hasta, s.guia + GU.vel * (s.lf || 1) * DT);
     if (s.guia - s.x > GU.pierde) { s.perdidas++; emite(s, { t: 'perdido' }); s.fase = 'reaparece'; s.rt = REAPARECE; s.vx = 0; s.vy = 0; return s; }
   }
   // calor de julio: sube al sol y baja a la sombra de muros y piedras; si llega a 100, Martín vuelve al punto de control a refrescarse

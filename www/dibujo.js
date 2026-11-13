@@ -1055,18 +1055,22 @@
   }
   const CLL = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: 'camellero-llama.png' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
   const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.png' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.png' }) } : {};
+  // el camellero llama con la mano, se agacha según se acerca Martín (d = distancia) y le ofrece el biberón; mismo tamaño que cuando camina
+  function camelleroBiberon(ctx, x, gy, u, d, t) {
+    const h = u * 0.95 * CW.alto * 506 / 500, k = h / 506, fw = 360;
+    const f = d > 9 ? Math.floor(t * 2.5) % 2 : d > 3 ? 2 + Math.min(2, Math.floor((9 - d) / 2)) : 5 + Math.floor(t * 2.5) % 3;
+    ctx.drawImage(CLL, f * fw, 0, fw, 506, x - 100 * k, gy - 503 * k, fw * k, 506 * k);
+  }
   function dibujaObjetos(ctx, W, H, u, sx, sy, L, st, t) {
     const tom = (st && st.obj) || {};
     for (const it of L.objetos) {
       const x = sx(it.x), y = sy(it.y); if (x < -u * 2 || x > W + u * 2) continue;
       if (it.kind === 'toma') {   // el camellero llama a Martín con la mano, se agacha cuando se acerca y le ofrece el biberón; cuando bebe, la mano queda vacía
-        const gy = y + u * 0.9, h = u * 2.35 * 506 / 470;
-        if (tom[it.id]) { const im = CAG.vacio; if (im.complete && im.naturalWidth) { const hv = u * 1.85, w = hv * im.naturalWidth / im.naturalHeight, dcha = x + hv * 588 / 640 * 0.88; ctx.drawImage(im, dcha - w, gy - hv, w, hv); } }
-        else if (CLL.complete && CLL.naturalWidth) {
-          const d = it.x - (st ? st.x : -1e9), fw = 360, k = h / 506;
-          const f = d > 9 ? Math.floor(t * 2.5) % 2 : d > 3 ? 2 + Math.min(2, Math.floor((9 - d) / 2)) : 5 + Math.floor(t * 2.5) % 3;
-          ctx.drawImage(CLL, f * fw, 0, fw, 506, x - 100 * k, gy - 503 * k, fw * k, 506 * k);
-        } else camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
+        const gy = y + u * 0.9;
+        if (tom[it.id]) { const im = CAG.vacio; if (im.complete && im.naturalWidth) { const hv = u * 0.95 * CW.alto * 415 / 500, w = hv * im.naturalWidth / im.naturalHeight, dcha = x + hv * 588 / 640 * 0.88; ctx.drawImage(im, dcha - w, gy - hv, w, hv); } }
+        else if (CLL.complete && CLL.naturalWidth) camelleroBiberon(ctx, x, gy, u, it.x - (st ? st.x : -1e9), t);
+        else camelleroFig(ctx, x + u * 0.9, gy, u * 0.95, 0, -1, 1);
+
         continue;
       }
       if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
@@ -1406,9 +1410,10 @@
     if (L.manadaFin) for (let k = 0; k < 4; k++) { const wx = L.goals.finish_x + 1.5 + k * 2.6, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(Math.min(wx, L.world.max_x - 0.5))), u * 0.95, null, 0.95); }
     const G = L.guia;
     if (G && st && st.guia != null) {
-      const gx = st.guia, anda = gx < G.hasta && (st.fase === 'jugando'), f = gx * 1.9;
+      const gx = st.guia, PA0 = G.paradas || [], anda = gx < G.hasta && (st.fase === 'jugando') && !(st.gp < PA0.length && gx >= PA0[st.gp] - 0.01), f = gx * 1.9;
       for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
-      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 7.3 : 0, 1);
+      const PA = G.paradas || [], espera = st.gp < PA.length && gx >= PA[st.gp] - 0.01;
+      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) { if (espera && CLL.complete && CLL.naturalWidth) camelleroBiberon(ctx, x, sy(top(gx)), u, gx - st.x, t); else camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 7.3 : 0, 1); }
     } else if (L.camellero != null || L.cuerpo) { const cx = L.camellero != null ? L.camellero : L.goals.finish_x + 1.5, x = sx(cx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(cx, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
   // eclipse del 12 de agosto (parcial en Lanzarote, a la caída de la tarde): la luz baja y se enfría poco a poco y el Sol se vuelve media luna
