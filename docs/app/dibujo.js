@@ -297,8 +297,8 @@
   }
   // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
   const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
-  // el paso del camellero: 8 dibujos (camellero-paso.png, 380×480 cada uno), de la zancada más larga a la más corta: cada vuelta es un paso
-  const CW = { img: null, ok: false, n: 8, fw: 380, fh: 480, ax: 182, ay: 479, alto: 2.35, pie: 0, cache: {} };
+  // el paso del camellero: 7 dibujos (camellero-paso.png, 380×480 cada uno), de la zancada más larga a la más corta: cada vuelta es un paso
+  const CW = { img: null, ok: false, n: 7, fw: 380, fh: 480, ax: 182, ay: 479, alto: 2.35, pie: 0, cache: {} };
   if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
@@ -582,8 +582,11 @@
     { src: 'paisaje-janubio.jpg', cielo: ['#007cf0', '#0089fe'] },
     { src: 'paisaje-famara.jpg', mar: [0.55, 1], cielo: ['#0070e8', '#007ffb'] },
     { src: 'paisaje-haria.jpg', ini: 0.2, cielo: ['#0070e8', '#0080fd'] },
-    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] }],
-    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 0, 0, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
+    { src: 'paisaje-mirador.jpg', mar: [0.27, 1], cielo: ['#006ae8', '#0078fb'] },
+    // Mundo 3: las calles de Uga (panorámicas)
+    { src: 'paisaje-uga-iglesia.jpg', cielo: ['#1f6fd8', '#3d8fe6'] },
+    { src: 'paisaje-uga-calle.jpg', cielo: ['#1f6fd8', '#3d8fe6'] }],
+    porTema: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 8, 11, 12, 0, 0, 2, 5, 2, 6] };   // Mundo 3: Uga, Timanfaya (calor y Echadero), atardecer (eclipse) y El Golfo (arena negra)   // 11: cueva (fondo dibujado); 12: La Graciosa (vista del risco de Famara)
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
