@@ -297,8 +297,8 @@
   }
   // el paso del guelfo: 12 dibujos (guelfo-paso.png, 278×286 cada uno; el 1 es de pie y del 2 al 12 un paso completo)
   const GW0 = { img: null, ok: false, n: 12, fw: 278, fh: 286, ax: 143, ay: 284, alto: 2.75, pie: 1, cache: {} };
-  // el paso del camellero: 12 dibujos (camellero-paso.png, 207×353 cada uno; todos son del paso)
-  const CW = { img: null, ok: false, n: 12, fw: 207, fh: 353, ax: 110, ay: 349, alto: 2.3, pie: 0, cache: {} };
+  // el paso del camellero: 8 dibujos (camellero-paso.png, 380×480 cada uno), de la zancada más larga a la más corta: cada vuelta es un paso
+  const CW = { img: null, ok: false, n: 8, fw: 380, fh: 480, ax: 182, ay: 479, alto: 2.35, pie: 0, cache: {} };
   if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.png'], [CW, 'camellero-paso.png']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
@@ -1391,7 +1391,7 @@
     if (G && st && st.guia != null) {
       const gx = st.guia, anda = gx < G.hasta && (st.fase === 'jugando'), f = gx * 1.9;
       for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
-      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 3.6 : 0, 1);
+      const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? gx * 7.3 : 0, 1);
     } else if (L.camellero != null || L.cuerpo) { const cx = L.camellero != null ? L.camellero : L.goals.finish_x + 1.5, x = sx(cx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(cx, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
   // eclipse del 12 de agosto (parcial en Lanzarote, a la caída de la tarde): la luz baja y se enfría poco a poco y el Sol se vuelve media luna
