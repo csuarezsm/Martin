@@ -298,8 +298,8 @@
   function dibujaGuelfo(ctx, u, px, py, st, SP) {
     const GSP = SP || GSP0, T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
     let dy = 0, rot = 0, sx = 1, sy = 1, clave = 'q', ang = [0, 0];
-    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * (GSP.patas ? 0.55 : 1.6), q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
-      if (GSP.patas) { const w = q / 16 * Math.PI * 2; clave = 'q'; dy = -Math.abs(Math.sin(w)) * 0.03 * u; rot = Math.sin(w) * 0.018; sy = 1 + Math.cos(w * 2) * 0.006; }   // guelfo: no se deforman las patas (con una sola ilustración no quedaba natural); solo un balanceo suave al andar
+    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 0.55, q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
+      if (true) { const w = q / 16 * Math.PI * 2; clave = 'q'; dy = -Math.abs(Math.sin(w)) * 0.03 * u; rot = Math.sin(w) * 0.018; sy = 1 + Math.cos(w * 2) * 0.006; }   // guelfo: no se deforman las patas (con una sola ilustración no quedaba natural); solo un balanceo suave al andar
       else { clave = 'c' + q; ang = [a, -a]; dy = -Math.abs(Math.cos(q / 16 * Math.PI * 2)) * 0.035 * u; } }
     else if (anim === 'salta') { clave = 's'; ang = [0.22, -0.26]; rot = -0.07; }
     else if (anim === 'cae') { clave = 'f'; ang = [-0.12, 0.16]; rot = 0.06; }
