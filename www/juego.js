@@ -33,6 +33,8 @@ const PISTAS = {
   cueva: 'Dentro del tubo de lava: atento a las piedras que caen del techo.',
   graciosa: 'Calles de arena, olas en la orilla y viento del norte: salta con calma.',
   entrega: '¡Ya casi! Llega al punto de entrega con agua en el cántaro.',
+  duna: 'Dunas de arena: cuesta arriba se va despacio y cuesta abajo se coge carrerilla. Si te paras en la cuesta, la arena te baja.',
+  barca: 'El agua no se salta: espera en el muelle a que llegue la barca, súbete y deja que te lleve.',
   guelfo: 'Martín es un guelfo: aún es pequeño. Mantén ◀ ▶ para caminar.',
   guelfo_salta: 'Toca ⬆ para saltar. Todavía salta poco: las piedras pequeñas, de una en una.',
   camellero: '¡Mira! El camellero te espera al final del camino.',
@@ -213,23 +215,30 @@ const prog = i => (S.prog[lid(i)] = S.prog[lid(i)] || PROG0());          // para
 const progR = i => S.prog[lid(i)] || PROG0();                              // para leer (no crea nada)
 // niveles secretos (secretos.js): van detrás de los normales y se abren con todos los frutos de su mundo
 // Mundo 3 (mundo3.js): 6 niveles, un secreto y un nivel de premio, detrás de los secretos de los Mundos 1 y 2
-const SECS = window.MARTIN_SECRETOS || [], M3 = window.MARTIN_MUNDO3 || [];
-const NBASE = NIV.length - SECS.length - M3.length;
+// niveles nuevos (extras.js, 3.1): van al final y cada uno dice su mundo; no entran en el reto diario ni cuentan para abrir el secreto de su mundo
+const SECS = window.MARTIN_SECRETOS || [], M3 = window.MARTIN_MUNDO3 || [], EXT = window.MARTIN_EXTRAS || [];
+const NBASE = NIV.length - SECS.length - M3.length - EXT.length, NANT = NBASE + SECS.length + M3.length;
 const INFO = NIV.map((_, i) => {
   if (i < NBASE) return { mundo: i >= 6 ? 1 : 0, tipo: 'nivel', num: String(i + 1) };
   if (i < NBASE + SECS.length) return { mundo: SECS[i - NBASE].mundo, tipo: 'secreto', num: '' };
+  if (i >= NANT) { const e = i - NANT, x = EXT[e], prev = EXT.slice(0, e).map((y, j) => y.mundo === x.mundo ? NANT + j : -1).filter(j => j >= 0).pop();
+    const ultBase = x.mundo === 0 ? 5 : NBASE - 1, cuenta = (x.mundo === 0 ? 6 : NBASE) + EXT.slice(0, e + 1).filter(y => y.mundo === x.mundo).length;
+    return { mundo: x.mundo, tipo: 'nivel', num: String(cuenta), extra: true, ant: prev != null ? prev : ultBase }; }
   const k = i - NBASE - SECS.length, x = M3[k];
   return { mundo: 2, tipo: x.tipo, num: x.tipo === 'nivel' ? '3-' + M3.slice(0, k + 1).filter(y => y.tipo === 'nivel').length : '' };
 });
+// paisaje de los niveles nuevos: el del nivel de su misma zona (Famara, La Graciosa…)
+const temaDe = i => { if (!INFO[i] || !INFO[i].extra || !NIV[i].ok) return i; const t = NIV[i].nivel.theme, j = NIV.findIndex((n, k) => k < NANT && n.ok && n.nivel.theme === t); return j >= 0 ? j : i; };
+INFO.forEach((x, i) => { if (x.extra && NIV[i].ok) NIV[i].nivel.temaIdx = temaDe(i); });
 const esM3 = i => !!(INFO[i] && INFO[i].mundo === 2);
 const secretoDe = i => INFO[i] && INFO[i].tipo === 'secreto' ? INFO[i].mundo : -1;
 const premioDe = i => !!(INFO[i] && INFO[i].tipo === 'premio');
 const nomNivel = i => secretoDe(i) >= 0 ? 'Nivel secreto' : premioDe(i) ? 'Nivel de premio' : `Nivel ${INFO[i] ? INFO[i].num : i + 1}`;
 const nivelesMundo = m => INFO.map((x, i) => (x.mundo === m && x.tipo === 'nivel' ? i : -1)).filter(i => i >= 0);
-function frutosMundo(m) { let h = 0, t = 0; for (const i of nivelesMundo(m)) { if (!NIV[i].ok) continue; t += frutosDe(NIV[i].nivel).length; h += frutosHechos(i); } return { h, t }; }
+function frutosMundo(m) { let h = 0, t = 0; for (const i of nivelesMundo(m)) { if (INFO[i].extra) continue; if (!NIV[i].ok) continue; t += frutosDe(NIV[i].nivel).length; h += frutosHechos(i); } return { h, t }; }
 const mundoCompleto = m => { const f = frutosMundo(m); return f.t > 0 && f.h >= f.t; };
 const estrellasMundo = m => nivelesMundo(m).every(i => progR(i).stars >= 3);
-const anteriorNivel = i => { for (let j = i - 1; j >= 0; j--) if (INFO[j].tipo === 'nivel') return j; return -1; };
+const anteriorNivel = i => { if (INFO[i] && INFO[i].ant != null) return INFO[i].ant; for (let j = i - 1; j >= 0; j--) if (INFO[j].tipo === 'nivel') return j; return -1; };
 const desbloqueado = i => { const m = secretoDe(i); if (m >= 0) return mundoCompleto(m); if (premioDe(i)) return estrellasMundo(INFO[i].mundo); const j = anteriorNivel(i); return j < 0 || (!!S.prog[lid(j)] && !!S.prog[lid(j)].done); };
 const ORDEN = []; [0, 1, 2].forEach(m => ['nivel', 'secreto', 'premio'].forEach(tp => INFO.forEach((x, i) => { if (x.mundo === m && x.tipo === tp) ORDEN.push(i); })));
 const MUNDOS = [{ desde: 0, nombre: 'Mundo 1 · Uga y el sur', lema: 'Aprender el camino y llevar el agua' }, { desde: 6, nombre: 'Mundo 2 · La costa y el norte', lema: 'El Golfo, Janubio, Famara, Haría y el Mirador del Río' }, { desde: NBASE + SECS.length, nombre: 'Mundo 3 · El guelfo de Uga', lema: 'Cómo Martín aprendió a ser camello' }];
@@ -539,7 +548,7 @@ function renderSetup() {
     if (!n.ok) { h += `<div class="lv bad"><div class="lv-n">!</div><div class="lv-b"><b>${nomNivel(i)}</b><span>No se ha podido cargar (${esc(n.error)}).</span></div></div>`; return; }
     const p = progR(i), ab = desbloqueado(i);
     h += `<button class="lv ${ab ? '' : 'cerrado'} ${p.done ? 'hecho' : ''} ${sm >= 0 ? 'secreto' : ''}" data-lv="${i}" ${ab ? '' : 'disabled'}>
-      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${i}" width="112" height="112" aria-hidden="true"></canvas>`}<span class="${m3 && sm < 0 && !pr ? 'lv-m3' : ''}">${sm >= 0 ? (ab ? '✨' : '?') : pr ? (ab ? '🎁' : '?') : ab ? INFO[i].num : '🔒'}</span></div>
+      <div class="lv-n">${LUG[i] ? `<div class="lv-c" style="background:url('${LUG[i].img}') ${LUG[i].pos}/cover"></div>` : `<canvas class="lv-c" data-tema="${temaDe(i)}" width="112" height="112" aria-hidden="true"></canvas>`}<span class="${m3 && sm < 0 && !pr ? 'lv-m3' : ''}">${sm >= 0 ? (ab ? '✨' : '?') : pr ? (ab ? '🎁' : '?') : ab ? INFO[i].num : '🔒'}</span></div>
       <div class="lv-b"><b>${sm >= 0 && !ab ? 'Nivel secreto' : pr && !ab ? 'Nivel de premio' : esc(n.nivel.name)}</b><span>${ab ? esc(n.nivel.brief) : sm === 2 ? 'Encuentra todos los biberones del Mundo 3 para abrirlo.' : sm >= 0 ? `Encuentra todos los frutos del Mundo ${sm + 1} para abrirlo.` : pr ? 'Consigue todas las estrellas del Mundo 3 para abrirlo.' : m3 && anteriorNivel(i) === NBASE - 1 ? 'Termina el Mundo 2 para abrirlo.' : 'Termina el nivel anterior para abrirlo.'}</span>
         ${p.done ? `<small>⏱ ${fmtT(p.bestMs)} · ${m3 ? '💛' : '💧'} ${p.bestAgua}/100${frutosDe(n.nivel).length ? ` · ${m3 ? '🍼' : '🧺'} ${frutosHechos(i)}/${frutosDe(n.nivel).length}` : ''}</small>` : ''}</div>
       <div class="lv-s" aria-label="${p.stars} de 3 estrellas">${ab ? estrellasTxt(p.stars) : ''}</div></button>`;
@@ -683,7 +692,8 @@ function mapaIsla(sig) {
   const Z = window.MAPA_LZ; if (!Z) return '';
   // Mundo 3: todo pasa entre Uga, el Vallito, el sendero y el Echadero; los botones van en fila sobre el mar, unidos a su sitio
   const R3 = [[106, 316], [105, 318], [102, 311], [109, 298], [112, 290], [101, 313], [116, 279], [47, 300]], E3 = R3.map((_, k) => [158 + k * 30, 408]);
-  const P = Z.puntos.slice(0, NBASE + SECS.length).concat(R3.slice(0, M3.length)), ET = (Z.etiquetas || Z.puntos).slice(0, NBASE + SECS.length).concat(E3.slice(0, M3.length));
+    const RX = [[248, 186], [347, 76]], EX = [[226, 200], [372, 64]];   // 3.1: el jable de Famara y el muelle de Órzola
+  const P = Z.puntos.slice(0, NBASE + SECS.length).concat(R3.slice(0, M3.length), RX.slice(0, EXT.length)), ET = (Z.etiquetas || Z.puntos).slice(0, NBASE + SECS.length).concat(E3.slice(0, M3.length), EX.slice(0, EXT.length));
   const n = Math.min(P.length, NBASE), nt = Math.min(P.length, NIV.length);
   let camino = ''; for (let i = 0; i < n; i++) { const [x, y] = P[i]; if (!i) { camino += `M${x} ${y}`; continue; } const [a, b] = P[i - 1], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; camino += `Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }
   let hecho = ''; for (let i = 1; i < n; i++) if (progR(i - 1).done && desbloqueado(i)) { const [a, b] = P[i - 1], [x, y] = P[i], mx = (a + x) / 2 + (b - y) * 0.18, my = (b + y) / 2 + (x - a) * 0.18; hecho += `M${a} ${b}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x} ${y}`; }

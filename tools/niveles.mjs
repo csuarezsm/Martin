@@ -22,6 +22,16 @@ class N {
   control() { this.cps.push({ id: 'CP-' + String(this.cps.length + 1).padStart(2, '0'), x: r2(this.x), y: r2(this.top) }); return this; }
   pista(id, x0, x1, hide) { this.pistas.push(Object.assign({ id, x0, x1 }, hide || {})); return this; }
   ruta(id, x0, x1) { this.rutas.push({ id, x0, x1 }); return this; }
+  // 3.1: dunas de arena (cuesta de h, que puede ser negativa) y suelo de arena
+  duna(w, h) { this.sol.push({ id: this.id('D'), kind: 'duna', x0: r2(this.x), x1: r2(this.x + w), top: r2(this.top), top1: r2(this.top + h), arena: true }); this.x = r2(this.x + w); this.top = r2(this.top + h); this.minTop = Math.min(this.minTop, this.top); return this; }
+  arenal(w) { return this.llano(w, '', { arena: true }); }
+  // 3.1: agua que no se puede saltar; una barca va y viene de orilla a orilla (sube a bordo al nivel del muelle)
+  rio(w, bw, periodo, desfase) {
+    const x0 = r2(this.x + 0.15);
+    this.sol.push({ id: this.id('B'), kind: 'oneway', x0, x1: r2(x0 + bw), top: r2(this.top), bottom: r2(this.top - 0.3), mov: { dx: r2(w - bw - 0.3), periodo, desfase } });
+    this.obs.push({ id: 'RIO-' + String(++this.nobs).padStart(2, '0'), kind: 'gap', x0: r2(this.x), x1: r2(this.x + w), agua: true });
+    this.x = r2(this.x + w); return this;
+  }
 }
 
 function cierra(n, meta) {
@@ -363,6 +373,37 @@ function s02() {
   return cierra(n, { id: 'secreto_s2_la_graciosa', nombre: 'La octava isla', resumen: 'Nivel secreto: La Graciosa, sin asfalto, con olas y viento del norte.', estrella3: 240, tema: 'graciosa' });
 }
 
+/* ---------- 3.1 · Mundo 2: dos niveles nuevos, cada uno con su truco (van en www/extras.js, aparte del reto diario) ---------- */
+function e01() {   // El jable de Famara: cuestas de arena (arriba despacio, abajo con carrerilla; quieto, la arena te baja)
+  const n = new N(21, 'jable');
+  n.arenal(28).pista('duna', 10, 60, { hasta_x: 60 });
+  n.duna(6, 1.5).arenal(4).duna(6, -1.5).arenal(10);
+  n.duna(5, 2.0).arenal(3).hueco(2.4).arenal(3).duna(5, -2.0).arenal(12).control();
+  n.duna(8, 2.4).arenal(2).duna(4, -1.2).arenal(2).duna(4, -1.2).arenal(14);
+  n.hueco(2.6).arenal(12);
+  n.duna(6, 1.8).arenal(4).hueco(2.4).arenal(4).duna(6, -1.8).arenal(14).control();
+  n.duna(10, 3.0).arenal(3).duna(10, -3.0).arenal(16);
+  for (let k = 0; k < 3; k++) n.duna(3, 0.8).duna(3, -0.8);
+  n.arenal(12).hueco(2.8).arenal(16).control();
+  n.duna(7, 2.1).arenal(6).hueco(2.6).arenal(6).duna(7, -2.1).arenal(20);
+  n.arenal(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_e01_jable_famara', nombre: 'El jable de Famara', resumen: 'Dunas de arena: cuesta arriba se va despacio y cuesta abajo se coge carrerilla.', estrella3: 150, tema: 'famara' });
+}
+function e02() {   // Las barcas de Órzola: el agua no se salta; hay que subir a la barca cuando llega al muelle
+  const n = new N(22, 'orzola');
+  n.llano(30).pista('barca', 10, 60, { hasta_x: 60 });
+  n.rio(6, 2.6, 300, 0).llano(14); rocas(n, [[1.4, 0.8]], 10); n.control();
+  n.llano(12).rio(7, 2.6, 330, 80).llano(10).hueco(2.4).llano(12);
+  n.sube(1.0).llano(8).rio(7.5, 2.4, 300, 150).llano(10).baja(1.0).llano(14).control();
+  n.rio(6, 2.6, 280, 40).llano(3).rio(6, 2.6, 280, 180).llano(16);
+  rocas(n, [[1.4, 0.9]], 12); n.control();
+  n.rio(8, 2.4, 360, 200).llano(14).hueco(2.6).llano(12).rio(6.5, 2.6, 300, 90).llano(20);
+  n.llano(46);
+  n.pista('entrega', n.x - 28, n.x - 6, {});
+  return cierra(n, { id: 'norte_e02_barcas_orzola', nombre: 'Las barcas de Órzola', resumen: 'El agua no se salta: sube a la barca cuando llegue al muelle y deja que te lleve.', estrella3: 165, tema: 'graciosa' });
+}
+
 /* ---------- Peligros vivos (2.1): se colocan sobre tramos llanos, lejos del inicio, de los puntos de control y de la meta ---------- */
 function peligros(L, plan) {
   const hz = [], ocup = [], cps = [L.checkpoint].concat(L.checkpoints_extra || []);
@@ -441,6 +482,10 @@ const niveles = [
 const secretos = [
   { mundo: 0, L: objetos(peligros(s01(), plan(['piedra', 'piedra', 'piedra'], 3)), ['higo', 'tuno', 'malvasia']) },
   { mundo: 1, L: objetos(peligros(s02(), plan(['ola', 'viento', 'ola', 'viento', 'ola'], 1, { fragilSinViento: true })), ['tuno', 'malvasia', 'higo']) }
+];
+const extras = [
+  { mundo: 1, L: objetos(peligros(e01(), plan(['viento', 'viento', 'viento'])), ['higo', 'tuno', 'malvasia']) },
+  { mundo: 1, L: objetos(peligros(e02(), plan(['ola', 'ola'])), ['tuno', 'higo', 'malvasia']) }
 ];
 
 /* ======================= Mundo 3 · El guelfo de Uga (3.0) =======================
@@ -589,6 +634,12 @@ const outS = '/* Niveles secretos de Martín: se abren con todos los frutos de s
   + '(function (root) {\nconst S = [\n' + secretos.map(x => '  { mundo: ' + x.mundo + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'
   + 'root.MARTIN_SECRETOS = S;\nif (root.MARTIN_NIVELES) for (const x of S) root.MARTIN_NIVELES.push(x.texto);\nif (typeof module !== "undefined" && module.exports) module.exports = S;\n})(typeof self !== "undefined" ? self : globalThis);\n';
 fs.writeFileSync(path.join(aqui, '..', 'www', 'secretos.js'), outS);
+const outE = '/* Niveles nuevos de Martín (3.1): dunas y barcas, en los mundos que dice cada uno. GENERADO por tools/niveles.mjs: no editar a mano.\n'
+  + '   Van aparte de niveles.js para que la lista del reto diario (servidor) no cambie. © 2026 IT Canarias. */\n'
+  + '(function (root) {\nconst S = [\n' + extras.map(x => '  { mundo: ' + x.mundo + ', texto: ' + JSON.stringify(JSON.stringify(x.L)) + ' }').join(',\n') + '\n];\n'
+  + 'root.MARTIN_EXTRAS = S;\nif (root.MARTIN_NIVELES) for (const x of S) root.MARTIN_NIVELES.push(x.texto);\nif (typeof module !== "undefined" && module.exports) module.exports = S;\n})(typeof self !== "undefined" ? self : globalThis);\n';
+fs.writeFileSync(path.join(aqui, '..', 'www', 'extras.js'), outE);
+console.log('extras.js escrito:', extras.map(x => x.L.level_id + ' (' + x.L.world.max_x + ' u)').join(', '));
 console.log('secretos.js escrito:', secretos.map(x => x.L.level_id + ' (' + x.L.world.max_x + ' u)').join(', '));
 const out = '/* Niveles de Uga (JSON validado por Martin.cargar). GENERADO por tools/niveles.mjs: no editar a mano. © 2026 IT Canarias. */\n'
   + '(function (root) {\nconst N = [\n' + niveles.map(l => '  ' + JSON.stringify(JSON.stringify(l))).join(',\n') + '\n];\n'

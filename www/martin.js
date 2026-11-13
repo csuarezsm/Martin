@@ -37,7 +37,7 @@ const MODS = { normal: { dano: 1, agua: 100 }, fragil: { dano: 1.5, agua: 100 },
 
 /* ---------- Validación y carga del nivel (dossier §11) ---------- */
 function fnv(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('00000000' + h.toString(16)).slice(-8); }
-const KINDS = ['ground', 'rock', 'oneway', 'wall'];
+const KINDS = ['ground', 'rock', 'oneway', 'wall', 'duna'];   // duna (3.1): cuesta de arena, de top (izquierda) a top1 (derecha)
 const num = v => typeof v === 'number' && isFinite(v);
 
 /* Lanza Error con el motivo si el nivel no es válido. Devuelve el nivel preparado (sólidos ordenados). */
@@ -60,6 +60,8 @@ function validar(L) {
     if (!num(s.x0) || !num(s.x1) || !num(s.top) || s.x1 <= s.x0) err('geometría de ' + s.id);
     if (s.bottom != null && (!num(s.bottom) || s.bottom >= s.top)) err('bottom de ' + s.id);
     if (s.x0 < w.min_x - EPS || s.x1 > w.max_x + EPS) err(s.id + ' fuera del mundo');
+    if (s.kind === 'duna' && (!num(s.top1) || s.bottom != null || Math.abs(s.top1 - s.top) / (s.x1 - s.x0) > 0.6)) err('duna ' + s.id);
+    if (s.mov != null && !(s.kind === 'oneway' && num(s.mov.dx) && s.mov.dx > 0 && num(s.mov.periodo) && s.mov.periodo >= 120 && num(s.mov.desfase) && s.x1 + s.mov.dx <= w.max_x + EPS)) err('movimiento de ' + s.id);
   }
   for (const o of L.obstacles || []) { uno(o.id, 'obstacles'); if (!num(o.x0) || !num(o.x1) || o.x1 <= o.x0) err('obstáculo ' + o.id); }
   for (const r of L.routes || []) { uno(r.id, 'routes'); if (!num(r.x0) || !num(r.x1) || r.x1 <= r.x0) err('ruta ' + r.id); }
@@ -86,7 +88,14 @@ function validar(L) {
     if ((h.kind === 'viento') && !(num(h.x0) && num(h.x1) && h.x1 > h.x0 && num(h.activo) && num(h.fuerza) && h.activo < h.periodo)) err('viento ' + h.id);
   }
   const o = Object.assign({}, L);
-  o.solids = L.solids.map(s => ({ id: s.id, kind: s.kind, x0: s.x0, x1: s.x1, top: s.top, bot: s.bottom == null ? -1e9 : s.bottom, route: s.route || '', fragil: !!s.fragil, sal: !!s.sal }));
+  o.solids = L.solids.map(s => {
+    const c = { id: s.id, kind: s.kind, x0: s.x0, x1: s.x1, top: s.top, bot: s.bottom == null ? -1e9 : s.bottom, route: s.route || '', fragil: !!s.fragil, sal: !!s.sal };
+    if (s.kind === 'duna') { c.top0 = s.top; c.top1 = s.top1; c.top = Math.max(s.top, s.top1); c.pend = (s.top1 - s.top) / (s.x1 - s.x0); }
+    if (s.arena) c.arena = true;
+    if (s.mov) { c.bx0 = s.x0; c.bx1 = s.x1; c.mdx = s.mov.dx; c.mper = s.mov.periodo; c.mdes = s.mov.desfase; c.barca = s.mov.cosa || 'barca'; }
+    return c;
+  });
+  o.movs = o.solids.filter(c => c.mdx);
   o.peligros = (L.hazards || []).filter(h => h.kind !== 'lava');
   o.lava = (L.hazards || []).find(h => h.kind === 'lava') || null;
   for (const it of L.items || []) { uno(it.id, 'items'); if (!OBJETOS.includes(it.kind) || !num(it.x) || !num(it.y)) err('objeto ' + it.id); }
@@ -111,6 +120,7 @@ function cargar(texto) {
 /* ---------- Estado ---------- */
 function nuevo(L, opts) {
   opts = opts || {};
+  colocaMovs(L, 0);
   const m = MODS[opts.mod || 'normal'] || MODS.normal;
   const agua = Math.min(100, Math.max(1, Math.round(opts.agua != null ? opts.agua : Math.min(L.cargo.initial_integrity, m.agua))));
   return {
@@ -122,7 +132,8 @@ function nuevo(L, opts) {
     cp: 0, saltos: 0, rx: L.spawn.x, ry: L.spawn.y, rt: 0,
     causa: '', estrellas: 0, mod: opts.mod || 'normal', dm: m.dano, lf: m.lava || 1,
     ruta: '', der: {}, obj: {}, ag0: agua, lava: null, sal: false, ev: [], conEv: !!opts.eventos,
-    guia: L.guia ? L.spawn.x + L.guia.ventaja : null, gp: 0, calor: L.calor ? 0 : null, perdidas: 0, sofocos: 0
+    guia: L.guia ? L.spawn.x + L.guia.ventaja : null, gp: 0, calor: L.calor ? 0 : null, perdidas: 0, sofocos: 0,
+    sobre: '', pend: 0        // dónde pisa (para que la barca lo lleve) y la cuesta de la duna
   };
 }
 const emite = (s, e) => { if (s.conEv) s.ev.push(e); };
@@ -155,12 +166,18 @@ function peligro(h, t) {
   return { aviso: c < h.aviso, activo: c >= h.aviso && c < h.aviso + h.activo, c };
 }
 const caido = (s, c) => s.der[c.id] === 0;
+/* Barca o camello que va y viene (3.1): la posición solo depende del reloj, igual que los peligros */
+function movOff(c, t) { const q = ((t + c.mdes) % c.mper + c.mper) % c.mper / c.mper; return c.mdx * (1 - Math.cos(q * 2 * Math.PI)) / 2; }
+function colocaMovs(L, t) { const MV = L.movs; if (MV) for (let i = 0; i < MV.length; i++) { const c = MV[i], o = movOff(c, t); c.x0 = c.bx0 + o; c.x1 = c.bx1 + o; } }
+/* altura de una duna en x (fuera de ella, la del extremo) */
+function alturaDuna(c, x) { const q = Math.min(1, Math.max(0, (x - c.x0) / (c.x1 - c.x0))); return c.top0 + (c.top1 - c.top0) * q; }
+const DUNA_PEGA = 0.35, DUNA_VEL = 0.3, DUNA_DESLIZ = 1.5;   // al bajar sigue pegado a la arena; cuesta arriba se va más despacio y cuesta abajo más deprisa
 function paso(L, s, m) {
   const hw = L.hw || HW, hh = L.h || H;                         // tamaño de Martín (el guelfo del Mundo 3 es más pequeño)
   if (s.fase === 'reaparece') {
     s.t++; s.rt--;
     if (s.rt <= 0) {
-      s.fase = 'jugando'; s.x = s.rx; s.y = s.ry; s.vx = 0; s.vy = 0; s.suelo = true; s.der = {};
+      s.fase = 'jugando'; s.x = s.rx; s.y = s.ry; s.vx = 0; s.vy = 0; s.suelo = true; s.der = {}; s.sobre = ''; s.pend = 0;
       if (s.lava != null) s.lava = Math.min(s.lava, s.rx - L.lava.ventaja);
       if (L.guia) { s.guia = s.rx + L.guia.ventaja; const PA = L.guia.paradas || []; if (s.gp < PA.length) s.guia = Math.min(s.guia, PA[s.gp]); }
       if (L.calor) s.calor = 0; s.coy = COYOTE; s.buf = 0; s.sos = 0; s.frio = INVULN; s.pj = (m & 4) ? 1 : 0;
@@ -170,6 +187,10 @@ function paso(L, s, m) {
   }
   if (s.fase !== 'jugando') return s;
   s.t++;
+  if (L.movs && L.movs.length) {   // la barca avanza; si Martín está encima, lo lleva con ella
+    for (let i = 0; i < L.movs.length; i++) { const c = L.movs[i]; if (s.suelo && s.sobre === c.id) s.x += movOff(c, s.t) - movOff(c, s.t - 1); }
+    colocaMovs(L, s.t);
+  }
   if (s.t > MAX_PASOS) { s.fase = 'fallo'; s.causa = 'tiempo'; emite(s, { t: 'fallo', causa: s.causa }); return s; }
   if (s.frio > 0) s.frio--;
   for (const id in s.der) if (s.der[id] > 0 && --s.der[id] === 0) emite(s, { t: 'derrumbe', id });
@@ -187,9 +208,11 @@ function paso(L, s, m) {
     const e = peligro(h, s.t); if (e.activo) vv += h.fuerza * e.q;
   }
   const k = s.suelo ? 1 : AIRE, ks = s.suelo && s.sal;
+  const du = s.suelo ? s.pend : 0;
+  if (du && !dir) vv -= du * DUNA_DESLIZ;   // en la duna, quieto, la arena lo va bajando
   if (dir) {
     s.cara = dir;
-    const a = ((s.vx * dir < 0) ? FRENO * (ks ? SAL_FRENO * 1.5 : 1) : ACC * (ks ? SAL_ACC : 1)) * k * DT, obj = dir * VMAX + vv;
+    const a = ((s.vx * dir < 0) ? FRENO * (ks ? SAL_FRENO * 1.5 : 1) : ACC * (ks ? SAL_ACC : 1)) * k * DT, obj = (du ? dir * VMAX * (1 - DUNA_VEL * Math.max(-1, Math.min(1, du * dir * 2))) : dir * VMAX) + vv;
     if (s.vx < obj) s.vx = Math.min(obj, s.vx + a); else if (s.vx > obj) s.vx = Math.max(obj, s.vx - a);
   } else {
     const a = FRENO * k * (ks ? SAL_FRENO : 1) * DT;
@@ -208,7 +231,7 @@ function paso(L, s, m) {
   const oldX = s.x, oldY = s.y;
   s.x += s.vx * DT;
   for (let i = 0; i < n; i++) {
-    const c = S[i]; if (c.kind === 'oneway' || (c.fragil && caido(s, c))) continue;
+    const c = S[i]; if (c.kind === 'oneway' || c.kind === 'duna' || (c.fragil && caido(s, c))) continue;
     if (!(s.y < c.top - EPS && s.y + hh > c.bot + EPS)) continue;
     if (!(s.x + hw > c.x0 && s.x - hw < c.x1)) continue;
     if (oldX + hw <= c.x0 + EPS && s.vx > 0) {
@@ -226,15 +249,20 @@ function paso(L, s, m) {
   s.y += s.vy * DT;
   let aterrizo = false;
   if (s.vy <= 0) {
-    let mejor = -1e18, idm = '', rutaDe = '', fr = false, sl = false;
+    let mejor = -1e18, idm = '', rutaDe = '', fr = false, sl = false, pd = 0;
     for (let i = 0; i < n; i++) {
       const c = S[i]; if (c.fragil && caido(s, c)) continue;
       if (!(s.x + hw > c.x0 + EPS && s.x - hw < c.x1 - EPS)) continue;
-      if (oldY >= c.top - EPS && s.y <= c.top + EPS && c.top > mejor) { mejor = c.top; idm = c.id; rutaDe = c.route; fr = c.fragil; sl = c.sal; }
+      if (c.kind === 'duna') {   // cuesta: se compara con la arena justo debajo; al bajar andando no se despega
+        const tn = alturaDuna(c, s.x), to = alturaDuna(c, oldX);
+        if (oldY >= to - 0.02 && s.y <= tn + (s.suelo ? DUNA_PEGA : EPS) && tn > mejor) { mejor = tn; idm = c.id; rutaDe = c.route; fr = false; sl = false; pd = c.pend; }
+        continue;
+      }
+      if (oldY >= c.top - EPS && s.y <= c.top + EPS && c.top > mejor) { mejor = c.top; idm = c.id; rutaDe = c.route; fr = c.fragil; sl = c.sal; pd = 0; }
     }
     if (mejor > -1e17 && fr && s.der[idm] == null) { s.der[idm] = DERRUMBE; emite(s, { t: 'cruje', id: idm }); }
     if (mejor > -1e17) {
-      s.y = mejor; s.vy = 0; aterrizo = true; s.sal = sl;
+      s.y = mejor; s.vy = 0; aterrizo = true; s.sal = sl; s.sobre = idm; s.pend = pd;
       if (!s.ruta && rutaDe) { s.ruta = rutaDe; emite(s, { t: 'ruta', id: rutaDe }); }
       const v = -vyAntes;
       if (v >= V_FUERTE) dano(s, DANO_FUERTE, 'fuerte', idm);
@@ -346,7 +374,7 @@ const resultado = s => ({ fase: s.fase, pasos: s.t, ms: Math.round(s.t * 1000 / 
 function clonar(s) { const c = Object.assign({}, s); c.der = Object.assign({}, s.der); c.obj = Object.assign({}, s.obj); c.ev = []; c.conEv = false; return c; }
 
 const Mar = { DT, VMAX, ACC, FRENO, AIRE, SALTO, G, G_SOSTENIDO, SOSTENER, COYOTE, BUFER, W, H, HW, DANO_MEDIO, DANO_FUERTE, DANO_ROCA, DANO_CAIDA, V_MEDIO, V_FUERTE, V_ROCA,
-  INVULN, REAPARECE, MAX_PASOS, MODS, DANO_PIEDRA, DANO_VAPOR, DANO_OLA, DERRUMBE, peligro, AGUA_ALJIBE, SAL_ACC, SAL_FRENO, retoDelDia, validar, cargar, nuevo, empezar, pausar, reanudar, paso, repetir, grabadora, resultado, estrellas, clonar, fnv };
+  INVULN, REAPARECE, MAX_PASOS, MODS, DANO_PIEDRA, DANO_VAPOR, DANO_OLA, DERRUMBE, peligro, AGUA_ALJIBE, SAL_ACC, SAL_FRENO, retoDelDia, validar, cargar, nuevo, empezar, pausar, reanudar, paso, repetir, grabadora, resultado, estrellas, clonar, fnv, movOff, colocaMovs, alturaDuna };
 if (typeof module !== 'undefined' && module.exports) module.exports = Mar;
 root.Martin = Mar;
 })(typeof self !== 'undefined' ? self : globalThis);

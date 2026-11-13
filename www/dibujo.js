@@ -69,7 +69,7 @@
 
   /* ---- Preparación de lo que no cambia ---- */
   function preparaEscena(L, idx) {
-    const sc = { rocas: [], deco: [], huecos: [], tema: (idx || 0) % TEMAS.length };
+    const sc = { rocas: [], deco: [], huecos: [], tema: (L.temaIdx != null ? L.temaIdx : idx || 0) % TEMAS.length };   // los niveles nuevos usan el paisaje de un nivel de su zona
     for (const s of L.solids) {
       if (s.kind === 'rock') {
         let base = L.world.kill_y;
@@ -87,7 +87,7 @@
       let a = -99, b = -99;
       for (const g of L.solids) { if (g.bot > -1e8) continue; if (Math.abs(g.x1 - o.x0) < 0.01) a = g.top; if (Math.abs(g.x0 - o.x1) < 0.01) b = g.top; }
       const top = Math.max(a, b) > -90 ? Math.min(a > -90 ? a : b, b > -90 ? b : a) : 0;
-      sc.huecos.push({ x0: o.x0, x1: o.x1, top });
+      sc.huecos.push({ x0: o.x0, x1: o.x1, top, agua: !!o.agua });
     }
     let k = 0;
     for (const g of L.solids) {
@@ -670,6 +670,57 @@
     ctx.fillStyle = '#16100f'; ctx.fillRect(0, top + dib - 1, W, H);
     if (false) { ctx.fillStyle = TM.tinte.replace(/[\d.]+\)$/, m => (parseFloat(m) * 2.5).toFixed(2) + ')'); ctx.fillRect(0, 0, W, suelo); }
   }
+  /* 3.1 · Jable de Famara: arena dorada con rizos del viento. Sirve para las dunas (cuesta) y para el suelo llano de arena */
+  function dibujaArena(ctx, s, W, H, u, sx, sy) {
+    const x0 = sx(s.x0), x1 = sx(s.x1), a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
+    const t0 = s.kind === 'duna' ? s.top0 : s.top, t1 = s.kind === 'duna' ? s.top1 : s.top, y0 = sy(t0), y1 = sy(t1), yAt = x => y0 + (y1 - y0) * (x - x0) / Math.max(1, x1 - x0);
+    const ya = yAt(a), yb = yAt(b), ytop = Math.min(ya, yb);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, yb); ctx.lineTo(b, H + 2); ctx.lineTo(a, H + 2); ctx.closePath(); ctx.clip();
+    // fondo anclado a una altura fija (no a cada tramo): dos tramos vecinos casan sin costura
+    const yb0 = sy(0); let g = ctx.createLinearGradient(0, yb0 - u * 3, 0, yb0 + u * 4); g.addColorStop(0, '#e9bb6e'); g.addColorStop(0.42, '#d4a15a'); g.addColorStop(0.7, '#a26f38'); g.addColorStop(1, '#5e3c1e');
+    ctx.fillStyle = g; ctx.fillRect(a, ytop - 2, b - a, H - ytop + 4);
+    // capa de arena suelta junto a la superficie, más clara (sigue la cuesta)
+    for (const [d, al] of [[u * 0.9, 0.22], [u * 0.45, 0.3]]) { ctx.fillStyle = 'rgba(255,236,185,' + al + ')'; ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, yb); ctx.lineTo(b, yb + d); ctx.lineTo(a, ya + d); ctx.closePath(); ctx.fill(); }
+    // granos y conchitas sueltas
+    ctx.fillStyle = 'rgba(120,80,40,.35)'; for (let k = 0; k < 10; k++) { const q = hash(Math.floor(s.x0 * 17) + k * 5), x = x0 + (x1 - x0) * q; if (x < a || x > b) continue; ctx.fillRect(x, yAt(x) + u * (0.3 + hash(k + Math.floor(s.x0)) * 2.5), u * 0.06, u * 0.05); }
+    // rizos de arena: rayitas curvas paralelas a la superficie (fijas: dependen del sitio, no del tiempo)
+    ctx.strokeStyle = 'rgba(150,100,50,.32)'; ctx.lineWidth = Math.max(1, u * 0.035); ctx.lineCap = 'round'; ctx.beginPath();
+    const paso = u * 0.55, k0 = Math.floor((a - x0) / paso);
+    for (let k = k0; ; k++) { const x = x0 + k * paso; if (x > b) break; const h = hash(Math.floor(s.x0 * 10) + k * 13); for (let f = 0; f < 3; f++) { const d = u * (0.35 + f * 0.75 + h * 0.3), xx = x + h * paso, yy = yAt(xx) + d; ctx.moveTo(xx - u * 0.22, yy); ctx.quadraticCurveTo(xx, yy - u * 0.08, xx + u * 0.22, yy); } }
+    ctx.stroke();
+    ctx.restore();
+    // borde de arriba iluminado
+    ctx.strokeStyle = 'rgba(255,246,215,.75)'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, yb); ctx.stroke();
+  }
+  /* 3.1 · Agua de los muelles de Órzola: mar que se mueve, con espuma junto a las orillas */
+  function dibujaMar(ctx, x0, x1, yt, H, u, t, wx0) {
+    const ys = yt + u * 0.5;
+    ctx.fillStyle = '#1b1210'; ctx.fillRect(x0, yt, x1 - x0, ys - yt + 2);   // pared del muelle por encima del agua
+    const g = ctx.createLinearGradient(0, ys, 0, ys + u * 4); g.addColorStop(0, '#3aa6d8'); g.addColorStop(0.35, '#1a6fa6'); g.addColorStop(1, '#073251');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0, H + 2);
+    for (let x = x0; x <= x1 + 1; x += Math.max(4, u * 0.2)) ctx.lineTo(x, ys + Math.sin(t * 2.2 + (x / u) * 1.3) * u * 0.07);
+    ctx.lineTo(x1, H + 2); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = Math.max(1, u * 0.04); ctx.beginPath();
+    for (let x = x0; x <= x1 + 1; x += Math.max(4, u * 0.2)) { const y = ys + Math.sin(t * 2.2 + (x / u) * 1.3) * u * 0.07; if (x === x0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; for (let k = 0; k < 6; k++) { const q = hash(Math.floor(wx0 * 10) + k), x = x0 + (x1 - x0) * ((q + t * 0.03 * (k % 2 ? 1 : -1)) % 1 + 1) % 1, y = ys + u * (0.5 + hash(k + 7) * 2.2); ctx.fillRect(x, y, u * 0.5, Math.max(1, u * 0.04)); }
+  }
+  /* 3.1 · Barca de pesca de Lanzarote (casco blanco con franjas de color) que va y viene de muelle a muelle */
+  function dibujaBarca(ctx, s, u, sx, sy, t) {
+    const x0 = sx(s.x0), x1 = sx(s.x1), yd = sy(s.top), h = u * 0.85, w = x1 - x0;
+    const casco = () => { ctx.beginPath(); ctx.moveTo(x0 - u * 0.12, yd - u * 0.14); ctx.lineTo(x1 + u * 0.3, yd - u * 0.26); ctx.quadraticCurveTo(x1 + u * 0.05, yd + h * 0.8, x1 - w * 0.22, yd + h); ctx.lineTo(x0 + w * 0.12, yd + h); ctx.quadraticCurveTo(x0 - u * 0.1, yd + h * 0.55, x0 - u * 0.12, yd - u * 0.14); ctx.closePath(); };
+    ctx.fillStyle = 'rgba(0,30,50,.35)'; ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, yd + h * 0.95, w * 0.6, u * 0.12, 0, 0, TAU); ctx.fill();
+    casco(); const g = ctx.createLinearGradient(0, yd, 0, yd + h); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d9e2e8'); ctx.fillStyle = g; ctx.fill();
+    ctx.save(); casco(); ctx.clip();
+    ctx.fillStyle = '#1f6fb5'; ctx.fillRect(x0 - u, yd + h * 0.18, w + u * 2, h * 0.16);   // franja azul
+    ctx.fillStyle = '#e8b22a'; ctx.fillRect(x0 - u, yd + h * 0.34, w + u * 2, h * 0.06);   // filete amarillo
+    ctx.fillStyle = '#c33a2c'; ctx.fillRect(x0 - u, yd + h * 0.8, w + u * 2, h * 0.3);     // fondo rojo (línea de flotación)
+    ctx.restore();
+    casco(); ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = Math.max(1.2, u * 0.04); ctx.stroke();
+    ctx.strokeStyle = '#7a4b25'; ctx.lineWidth = Math.max(2, u * 0.09); ctx.beginPath(); ctx.moveTo(x0 - u * 0.1, yd - u * 0.12); ctx.lineTo(x1 + u * 0.28, yd - u * 0.24); ctx.stroke();   // regala de madera
+    // espuma en la línea de flotación
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = Math.max(1, u * 0.05); ctx.beginPath(); const yw = yd + u * 0.5 + Math.sin(t * 2.2) * u * 0.05; ctx.moveTo(x0 - u * 0.2, yw); ctx.quadraticCurveTo((x0 + x1) / 2, yw + u * 0.06, x1 + u * 0.15, yw); ctx.stroke();
+  }
   /* Cueva de los Verdes: roca volcánica, techo con estalactitas y focos de luz cálida. Se pinta una vez (por tamaño) y cada imagen solo la copia. */
   const CUEVA = { key: '', cv: null };
   function capaCueva(W, H, u) {
@@ -1178,6 +1229,7 @@
     // abismo de los huecos
     for (const h of esc.huecos) {
       const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
+      if (h.agua) { dibujaMar(ctx, x0, x1, sy(h.top), H, u, t, h.x0); continue; }
       if (TX.lavaP) { // abismo pintado: la misma lava, más oscura según se hunde
         const yt = sy(h.top); ctx.fillStyle = relleno(ctx, TX.lavaP, -cam.x * u, yt, '#1a0d0c', u * 2.2 / TX.lavaP.height); ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
         const g = ctx.createLinearGradient(0, yt, 0, yt + u * 3); g.addColorStop(0, 'rgba(8,4,4,.55)'); g.addColorStop(1, 'rgba(4,2,2,.92)'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
@@ -1193,8 +1245,10 @@
       const x0 = sx(s.x0), x1 = sx(s.x1); if (x1 < -4 || x0 > W + 4) continue;
       let jit = 0;
       if (s.fragil && st && st.der) { const dv = st.der[s.id]; if (dv === 0) continue; if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
-      if (s.kind === 'ground' || s.kind === 'wall') dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX);
-      if (s.sal) { // salina: costra blanca y rosada, con cuadrícula de tajos y destellos de sal
+      if (s.kind === 'duna' || s.arena) dibujaArena(ctx, s, W, H, u, sx, sy);
+      else if (s.kind === 'ground' || s.kind === 'wall') dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX);
+      if (s.mdx) dibujaBarca(ctx, s, u, sx, sy, t);
+      else if (s.sal) { // salina: costra blanca y rosada, con cuadrícula de tajos y destellos de sal
         const yt = sy(s.top), xa = Math.max(x0, -4), xb = Math.min(x1, W + 4), g = ctx.createLinearGradient(0, yt - u * 0.08, 0, yt + u * 1.1);
         g.addColorStop(0, '#fdfaf7'); g.addColorStop(0.3, '#f3e3e2'); g.addColorStop(0.55, 'rgba(226,170,180,.85)'); g.addColorStop(1, 'rgba(190,120,135,0)'); ctx.fillStyle = g; ctx.fillRect(xa, yt - u * 0.08, xb - xa, u * 1.18);
         ctx.strokeStyle = 'rgba(190,140,150,.45)'; ctx.lineWidth = Math.max(1, u * 0.03); ctx.beginPath();
