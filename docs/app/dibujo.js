@@ -265,7 +265,8 @@
 
   /* Martín de guelfo (Mundo 3): ilustración guelfo.png (461×640, mirando a la derecha, las cuatro pezuñas en la misma línea).
      Las patas se mueven inclinando la franja de debajo de la cadera: traseras y delanteras a contratiempo. Los fotogramas se pintan una vez y se guardan. */
-  const GSP0 = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 384, corte: 0.45, cache: {} };
+  const GSP0 = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 376, corte: 0.45, cache: {}, paso: 0.24, alza: 0.1,
+    patas: [[0, 95, 0, 0], [95, 125, 0, 1], [125, 240, 1, 1], [240, 290, 1, 0], [290, 461, 0, 0]] };
   const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.png'; }
   const CSP = { img: null, ok: false, w: 380, h: 640, ax: 190, ay: 636, alto: 2.25, cad: 330, corte: 0.5, cache: {} };   // el camellero (camellero.png, 380×640, de lado mirando a la derecha)
   if (typeof Image !== 'undefined') { CSP.img = new Image(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.png'; }
@@ -283,14 +284,22 @@
     const f = document.createElement('canvas'); f.width = b.width + pad * 2; f.height = b.height; f.pad = pad; const g = f.getContext('2d');
     g.drawImage(b, 0, 0, b.width, y0, pad, 0, b.width, y0);
     const bh = b.height - y0;
-    for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
+    if (GSP.patas && ang.length === 3) {   // paso de camello (ambladura): las dos patas del mismo lado se mueven a la vez; cada pata, en tiras finas que giran desde la cadera
+      const ph = ang[0], S = GSP.paso * bh, N = 120, cw = b.width / N, z = GSP.patas;
+      const pie = c => { const v = ((c % 1) + 1) % 1, P = 0.6; if (v < P) return [S / 2 - (v / P) * S, 0]; const w = (v - P) / (1 - P); return [-S / 2 + S * (0.5 - 0.5 * Math.cos(Math.PI * w)), Math.sin(Math.PI * w) * GSP.alza]; };
+      const lado = xo => { for (const [a0, a1, l0, l1] of z) if (xo >= a0 && xo <= a1) return l0 + (l1 - l0) * (xo - a0) / Math.max(1, a1 - a0); return 0; };   // 0 = lado cercano, 1 = lado lejano (con transición suave)
+      for (let i = 0; i < N; i++) {
+        const x0 = i * cw, xo = (x0 + cw / 2) / s, l = lado(xo), [d0, h0] = pie(ph), [d1, h1] = pie(ph + 0.5), dx = d0 + (d1 - d0) * l, lift = h0 + (h1 - h0) * l, w = Math.min(cw + 1.5, b.width - x0);
+        g.save(); g.translate(pad + x0, y0); g.transform(1, 0, dx / bh, 1 - lift, 0, 0); g.drawImage(b, x0, y0, w, bh, 0, 0, w, bh); g.restore();
+      }
+    } else for (const [x0, x1, sh] of [[0, xc, ang[0]], [xc, b.width, ang[1]]]) { g.save(); g.translate(pad + x0, y0); g.transform(1, 0, sh, 1, 0, 0); g.drawImage(b, x0, y0, x1 - x0, bh, 0, 0, x1 - x0, bh); g.restore(); }
     return (C[clave] = f);
   }
   function dibujaGuelfo(ctx, u, px, py, st, SP) {
     const GSP = SP || GSP0, T = st.t || 0, anim = st.anim, hp = GSP.alto * u, s = hp / GSP.h;
     let dy = 0, rot = 0, sx = 1, sy = 1, clave = 'q', ang = [0, 0];
-    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * 1.6, q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
-      clave = 'c' + q; ang = [a, -a]; dy = -Math.abs(Math.cos(q / 16 * Math.PI * 2)) * 0.035 * u; }
+    if (anim === 'corre' || anim === 'gana') { const fase = anim === 'gana' ? T * 7 : (st.fase || 0) * (GSP.patas ? 0.8 : 1.6), q = Math.round(((fase / (Math.PI * 2)) % 1 + 1) % 1 * 16) % 16, a = Math.sin(q / 16 * Math.PI * 2) * 0.2;
+      clave = 'c' + q; ang = GSP.patas ? [q / 16, 0, 0] : [a, -a]; dy = -Math.abs(Math.cos(q / 16 * Math.PI * 4)) * 0.025 * u; }
     else if (anim === 'salta') { clave = 's'; ang = [0.22, -0.26]; rot = -0.07; }
     else if (anim === 'cae') { clave = 'f'; ang = [-0.12, 0.16]; rot = 0.06; }
     else sy = 1 + Math.sin(T * 2.4) * 0.012;
@@ -1156,9 +1165,9 @@
       ctx.fillStyle = ya ? '#2f93d4' : '#e6dfd0'; ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y - u * 2.3); ctx.bezierCurveTo(x + u * 0.5, y - u * (2.4 + o * 0.08), x + u * 0.7, y - u * (2.0 - o * 0.08), x + u * 1.0, y - u * (1.95 + o * 0.05)); ctx.lineTo(x, y - u * 1.5); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.arc(x, y - u * 2.33, u * 0.08, 0, TAU); ctx.fill();
     }
-    // meta: casita del pueblo con pozo
+    // meta: casita del pueblo con pozo (en el Mundo 3 no: Martín aún no lleva agua; la meta es el camellero, que le espera)
     const mx = sx(L.goals.finish_x);
-    if (mx > -300 && mx < W + 300) {
+    if (!L.cuerpo && mx > -300 && mx < W + 300) {
       const gs = L.solids.find(s => s.kind !== 'wall' && s.x0 <= L.goals.finish_x && s.x1 >= L.goals.finish_x && s.bot < -1e8), y = sy(gs ? gs.top : 0);
       ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(mx + u * 3.4, y, u * 2.6, u * 0.2, 0, 0, TAU); ctx.fill();
       casa(ctx, mx + u * 1.6, y, u * 3.6, u * 2.5);
@@ -1326,20 +1335,19 @@
   function dibujaSombrasCalor(ctx, W, H, u, sx, sy, L) {
     const C = L.calor; if (!C) return;
     for (const z of C.sombras) {
-      const x0 = sx(z[0]), x1 = sx(z[1]); if (x1 < -u || x0 > W + u) continue;
+      const x0 = sx(z[0]), x1 = sx(z[1]); if (x1 < -u * 2 || x0 > W + u * 2) continue;
       let top = null; for (const s of L.solids) if (s.kind === 'ground' && s.x0 <= (z[0] + z[1]) / 2 && s.x1 >= (z[0] + z[1]) / 2) top = s.top; if (top == null) continue;
       const y = sy(top);
-      if (z[1] - z[0] > 4.5) {   // muro de piedra seca volcánica: dos hiladas de piedras de distinto tamaño, con luz por arriba
-        const n = Math.max(2, Math.round((x1 - x0) / (u * 0.62)));
-        for (let fila = 0; fila < 2; fila++) for (let k = 0; k < n + fila; k++) {
-          const hh = hash(k * 7 + fila * 131 + Math.floor(z[0] * 3)), w = (x1 - x0) / n, cx = x0 + (k + (fila ? 0 : 0.5)) * w, cy = y - u * (0.36 + fila * 0.62), rx = w * (0.5 + hh * 0.12), ry = u * (0.32 + hh * 0.08);
-          if (cx < x0 - w * 0.2 || cx > x1 + w * 0.2) continue;
-          ctx.fillStyle = hh < 0.33 ? '#2e2729' : hh < 0.66 ? '#3a3133' : '#453a3b'; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, (hh - 0.5) * 0.4, 0, TAU); ctx.fill();
-          ctx.fillStyle = 'rgba(255,210,170,.12)'; ctx.beginPath(); ctx.ellipse(cx - rx * 0.15, cy - ry * 0.45, rx * 0.6, ry * 0.3, 0, 0, TAU); ctx.fill();
-        }
+      // la sombra solo en el suelo: una mancha oscura y alargada, más fuerte en el centro
+      const g = ctx.createRadialGradient((x0 + x1) / 2, y, 0, (x0 + x1) / 2, y, (x1 - x0) * 0.6);
+      g.addColorStop(0, 'rgba(25,12,20,.45)'); g.addColorStop(1, 'rgba(25,12,20,0)');
+      ctx.save(); ctx.translate((x0 + x1) / 2, y); ctx.scale(1, 0.16); ctx.translate(-(x0 + x1) / 2, -y); ctx.fillStyle = g; ctx.beginPath(); ctx.arc((x0 + x1) / 2, y, (x1 - x0) * 0.6, 0, TAU); ctx.fill(); ctx.restore();
+      // muro de piedra seca: las mismas piedras pintadas del paisaje, en una hilera baja (solo en las sombras anchas; las demás son de las rocas del camino)
+      if (z[1] - z[0] > 4.5 && FLO.ok) {
+        const m = FLO.m.piedras, hh = u * 0.85, ww = hh * m[2] / m[3], n = Math.max(2, Math.ceil((x1 - x0) / (ww * 0.8)));
+        for (let k = 0; k < n; k++) { const cx = x0 + (k + 0.5) * (x1 - x0) / n, f = hash(k + Math.floor(z[0] * 7)) < 0.5 ? -1 : 1;
+          ctx.save(); ctx.translate(cx, y + hh * 0.08); ctx.scale(f, 1); ctx.drawImage(FLO.img, m[0], m[1], m[2], m[3], -ww / 2, -hh, ww, hh); ctx.restore(); }
       }
-      const g = ctx.createLinearGradient(0, y - u * 2.6, 0, y); g.addColorStop(0, 'rgba(20,10,30,0)'); g.addColorStop(1, 'rgba(20,10,30,.32)'); ctx.fillStyle = g; ctx.fillRect(x0, y - u * 2.6, x1 - x0, u * 2.6);
-      ctx.fillStyle = 'rgba(20,10,30,.35)'; ctx.fillRect(x0, y, x1 - x0, u * 0.25);
     }
   }
   // capa por encima de la escena: el camellero o la manada, la escultura y los camellos del Echadero (no cambia nada de las reglas)
@@ -1353,7 +1361,7 @@
       const gx = st.guia, anda = gx < G.hasta && (st.fase === 'jugando'), f = gx * 1.9;
       for (let k = (G.manada || 0); k >= 1; k--) { const wx = gx - 0.8 - k * 2.05, x = sx(wx); if (x > -u * 4 && x < W + u * 4) camelloManada(ctx, x, sy(top(wx)), u, anda ? f - k : null); }
       const x = sx(gx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(gx)), u * 0.95, anda ? f : 0, 1);
-    } else if (L.camellero != null) { const x = sx(L.camellero); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(L.camellero, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
+    } else if (L.camellero != null || L.cuerpo) { const cx = L.camellero != null ? L.camellero : L.goals.finish_x + 1.5, x = sx(cx); if (x > -u * 2 && x < W + u * 2) camelleroFig(ctx, x, sy(top(Math.min(cx, L.world.max_x - 0.5))), u * 0.95, 0, -1); }
   }
   // eclipse del 12 de agosto (parcial en Lanzarote, a la caída de la tarde): la luz baja y se enfría poco a poco y el Sol se vuelve media luna
   const ECL = new Map();   // medias lunas ya pintadas (no se crea nada nuevo en cada imagen)
