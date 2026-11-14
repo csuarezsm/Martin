@@ -10,7 +10,7 @@ const HTTP_BASE = ONLINE_URL ? ONLINE_URL.replace(/^ws/, 'http').replace(/\/ws$/
 const NIV = (window.MARTIN_NIVELES || []).map(t => M.cargar(t));
 const MODS_TXT = { normal: ['Agua normal', 'Todo como siempre.'], fragil: ['Cántaro frágil', 'Los golpes y las caídas derraman un 50 % más.'], poca: ['Poca agua', 'Sales con solo 70 de agua.'] };
 const CAUSAS3 = { agua: 'Martín se ha quedado sin fuerzas.', caida: 'Martín se ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.' };
-const CAUSAS = { agua: 'Se ha derramado toda el agua.', caida: 'Martín ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.', lava: '¡La lava ha alcanzado a Martín!' };
+const CAUSAS = { agua: 'Se ha derramado toda el agua.', caida: 'Martín ha caído demasiadas veces.', tiempo: 'Se ha acabado el tiempo.', lava: '¡La lava ha alcanzado a Martín!', rio_lava: '¡Martín ha caído en la lava!' };
 const TR = x => (window.Idioma && Idioma.tr ? Idioma.tr(x) : x);
 const FRUTOS = { tuno: 'Tuno', higo: 'Higo', malvasia: 'Uva malvasía', biberon: 'Biberón' };
 const PISTAS = {
@@ -874,7 +874,7 @@ function ponOverlay() {
       <button class="btn-gold ov-go" id="ovSig">▶ Seguir</button><button class="btn-ghost" id="ovRei">↻ Empezar de nuevo</button><button class="btn-ghost" id="ovMapa">Salir al mapa</button></div>`;
     $('#ovSig').onclick = reanudar; $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = abandonar;
   } else if (o === 'fallo') {
-    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${s.causa === 'lava' ? '🌋' : n.cuerpo ? '💛' : '💧'} ${n.cuerpo ? '¡Uf! Otra vez' : 'Misión fallida'}</div><div class="ov-s">${esc((n.cuerpo ? CAUSAS3 : CAUSAS)[s.causa] || '')}</div>
+    ov.innerHTML = `<div class="ov-c"><div class="ov-t">${s.causa === 'lava' || s.causa === 'rio_lava' ? '🌋' : n.cuerpo ? '💛' : '💧'} ${n.cuerpo ? '¡Uf! Otra vez' : 'Misión fallida'}</div><div class="ov-s">${esc((n.cuerpo ? CAUSAS3 : CAUSAS)[s.causa] || '')}</div>
       <div class="ov-d"><span>⏱ ${fmtT(s.t * 1000 / 60)}</span><span>Caídas ${s.caidas}</span><span>Golpes ${s.golpes}</span></div>
       <button class="btn-gold ov-go" id="ovRei">↻ Reintentar</button><button class="btn-ghost" id="ovMapa">Volver al mapa</button></div>`;
     $('#ovRei').onclick = reintentar; $('#ovMapa').onclick = salirAlMapa;

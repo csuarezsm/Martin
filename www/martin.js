@@ -330,6 +330,8 @@ function paso(L, s, m) {
   // 5) punto de control, límite de caída y meta
   while (s.cp < L.cps.length && s.x >= L.cps[s.cp].x) { const c = L.cps[s.cp++]; s.rx = c.x; s.ry = c.y; emite(s, { t: 'control', id: c.id }); }
   if (s.y < L.world.kill_y) {
+    // 3.4: caer al río de lava (Ríos de fuego) acaba la partida, igual que si le alcanza la colada
+    const RL = L.obstacles; if (RL) for (let i = 0; i < RL.length; i++) { const g = RL[i]; if (g.agua === 'lava' && s.x > g.x0 - 0.5 && s.x < g.x1 + 0.5) { s.caidas++; s.fase = 'fallo'; s.causa = 'rio_lava'; emite(s, { t: 'fallo', causa: s.causa }); return s; } }
     const c = Math.max(1, Math.round(DANO_CAIDA * s.dm));
     s.agua = Math.max(0, s.agua - c); s.danos += c; s.caidas++;
     emite(s, { t: 'caida', cantidad: c, resto: s.agua });

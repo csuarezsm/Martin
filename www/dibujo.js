@@ -1130,10 +1130,9 @@
       } else if (h.kind === 'geiser') {
         const x = sx(h.x), y = sy(h.y); if (x < -u * 3 || x > W + u * 3) continue;
         if (OBJ.geiser) {   // 6 dibujos: quieto, aviso, sube, chorro, se apaga, humo
-          const q = e.activo ? (e.c - h.aviso) / h.activo : 0, f = e.activo ? (q < 0.15 ? 2 : q < 0.75 ? 3 : q < 0.9 ? 4 : 5) : e.aviso ? 1 : 0;
-          const im = OBJ.geiser, fw = im.width / 6, hd = u * 4.6, wd = hd * fw / im.height;
+          const p = faseHoja(e, h), im = OBJ.geiser, hd = u * 4.6;
           if (e.aviso || e.activo) { const g = ctx.createRadialGradient(x, y, 0, x, y, u * 0.9); g.addColorStop(0, 'rgba(255,140,50,' + (e.activo ? 0.7 : 0.4) + ')'); g.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = g; ctx.fillRect(x - u, y - u, u * 2, u * 1.3); }
-          ctx.drawImage(im, f * fw, 0, fw, im.height, x - wd / 2, y - hd + u * 0.3, wd, hd); continue;
+          hojaSuave(ctx, im, p, x, y + u * 0.3, hd, p > 2.5 && p < 3.5 ? 1 + Math.sin(t * 3) * 0.025 : 1); continue;   // el chorro respira un poco mientras está arriba
         }
         ctx.fillStyle = '#1a1012'; ctx.beginPath(); ctx.ellipse(x, y + u * 0.02, u * 0.55, u * 0.14, 0, 0, TAU); ctx.fill();
         const brillo = e.aviso ? 0.35 + 0.4 * (e.c / h.aviso) : e.activo ? 0.8 : 0.18;
@@ -1171,9 +1170,8 @@
         const x0 = sx(h.x0), x1 = sx(h.x1), y = sy(h.y); if (x1 < -u * 3 || x0 > W + u * 3) continue;
         const cx = (x0 + x1) / 2, w = x1 - x0;
         if (OBJ.bufadero) {   // 6 dibujos de un bufadero (chorro que sale de un agujero en la roca), cuando llegue el dibujo; la ola de orilla no encaja aquí
-          const q = e.activo ? (e.c - h.aviso) / h.activo : 0, f = e.activo ? (q < 0.3 ? 2 : q < 0.55 ? 3 : q < 0.8 ? 4 : 5) : e.aviso ? 1 : 0;
-          const im = OBJ.bufadero, fw = im.width / 6, hd = u * (h.alto * 1.35 + 1.1), wd = hd * fw / im.height;
-          ctx.drawImage(im, f * fw, 0, fw, im.height, cx - wd / 2, y - hd + u * 0.35, wd, hd); continue;
+          const p = faseHoja(e, h), hd = u * (h.alto * 1.35 + 1.1);
+          hojaSuave(ctx, OBJ.bufadero, p, cx, y + u * 0.35, hd, p > 2.5 && p < 3.5 ? 1 + Math.sin(t * 5) * 0.03 : 1); continue;
         }
         ctx.fillStyle = 'rgba(15,40,60,.45)'; ctx.beginPath(); ctx.ellipse(cx, y + u * 0.05, w * 0.5, u * 0.16, 0, 0, TAU); ctx.fill();   // roca mojada del bufadero
         ctx.fillStyle = '#0d1a22'; ctx.beginPath(); ctx.ellipse(cx, y + u * 0.04, w * 0.18, u * 0.08, 0, 0, TAU); ctx.fill();
@@ -1199,6 +1197,20 @@
   // 3.4: dibujos ilustrados de objetos (frutos, meta, punto de control, repisa); si no han cargado, se dibujan como antes
   const OBJ = {};
   if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'bufadero', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
+  // hoja de 6 dibujos mostrada de forma continua: mezcla cada dibujo con el siguiente (p va de 0 a 5 con decimales)
+  function hojaSuave(ctx, im, p, x, yb, hd, sy) {
+    const fw = im.width / 6, wd = hd * fw / im.height, a = Math.max(0, Math.min(5, Math.floor(p))), b = Math.min(5, a + 1), f = Math.max(0, Math.min(1, p - a)), h2 = hd * (sy || 1);
+    ctx.globalAlpha = 1; ctx.drawImage(im, a * fw, 0, fw, im.height, x - wd / 2, yb - h2, wd, h2);
+    if (f > 0.01 && b !== a) { ctx.globalAlpha = f; ctx.drawImage(im, b * fw, 0, fw, im.height, x - wd / 2, yb - h2, wd, h2); }
+    ctx.globalAlpha = 1;
+  }
+  // de la fase del peligro (aviso, activo) a la posición en la hoja: sube, se mantiene arriba y se apaga poco a poco
+  function faseHoja(e, h) {
+    if (e.activo) { const q = Math.max(0, Math.min(1, (e.c - h.aviso) / h.activo));
+      return q < 0.15 ? 1 + q / 0.15 : q < 0.3 ? 2 + (q - 0.15) / 0.15 : q < 0.72 ? 3 : q < 0.88 ? 3 + (q - 0.72) / 0.16 : 4 + (q - 0.88) / 0.12; }
+    if (e.aviso) return Math.max(0, Math.min(1, e.c / h.aviso));
+    return 0;
+  }
   function fruto(ctx, k, x, y, r) {
     const im = OBJ[k];
     if (im) {
