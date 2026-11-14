@@ -1198,7 +1198,7 @@
   const AGUA_FONDO = '#197475';   // color del fondo del mar ilustrado (obj-agua), para seguirlo hacia abajo
   // 3.4: dibujos ilustrados de objetos (frutos, meta, punto de control, repisa); si no han cargado, se dibujan como antes
   const OBJ = {};
-  if (typeof Image !== 'undefined') for (const k of ['tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'ola', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
+  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'ola', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
   function fruto(ctx, k, x, y, r) {
     const im = OBJ[k];
     if (im) {
@@ -1251,13 +1251,17 @@
         continue;
       }
       if (it.kind === 'aljibe') { // aljibe: cubo encalado con tapa redonda, puertecita y una gota que flota si aún tiene agua
-        const lleno = !tom[it.id], gy = y + u * 0.9, w = u * 1.3, h = u * 0.95;
+        const lleno = !tom[it.id], gy = y + u * 0.9; let w = u * 1.3, h = u * 0.95;
+        if (OBJ.aljibe) {   // aljibe ilustrado (vacío, algo apagado)
+          const im = OBJ.aljibe, wd = u * 2.3, hd = wd * im.height / im.width; ctx.globalAlpha = lleno ? 1 : 0.7; ctx.drawImage(im, x - wd / 2, gy - hd + u * 0.12, wd, hd); ctx.globalAlpha = 1; h = hd * 0.9;
+        } else {
         ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(x, gy, w * 0.62, u * 0.12, 0, 0, TAU); ctx.fill();
         ctx.fillStyle = lleno ? '#f3efe4' : '#cfc8b8'; rr(ctx, x - w / 2, gy - h, w, h, u * 0.08); ctx.fill();
         ctx.beginPath(); ctx.ellipse(x, gy - h, w * 0.42, u * 0.38, 0, Math.PI, 0); ctx.fill();
         ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(x + w * 0.18, gy - h, w * 0.32, h);
         ctx.fillStyle = '#2c6e8f'; rr(ctx, x - u * 0.2, gy - u * 0.62, u * 0.4, u * 0.5, u * 0.05); ctx.fill();
         ctx.strokeStyle = 'rgba(60,50,40,.35)'; ctx.lineWidth = Math.max(1, u * 0.03); ctx.strokeRect(x - w / 2, gy - h, w, h);
+        }
         if (lleno) { const by = gy - h - u * (0.9 + Math.sin(t * 3 + it.x) * 0.1), r = u * 0.22;
           const g = ctx.createRadialGradient(x, by, 0, x, by, u * 0.7); g.addColorStop(0, 'rgba(120,210,255,.45)'); g.addColorStop(1, 'rgba(120,210,255,0)'); ctx.fillStyle = g; ctx.fillRect(x - u * 0.7, by - u * 0.7, u * 1.4, u * 1.4);
           ctx.fillStyle = COL.agua; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); ctx.moveTo(x, by - r * 1.5); ctx.quadraticCurveTo(x + r * 1.1, by - r * 0.1, x + r, by + r * 0.2); ctx.arc(x, by + r * 0.2, r, 0, Math.PI); ctx.quadraticCurveTo(x - r * 1.1, by - r * 0.1, x, by - r * 1.5); ctx.fill(); ctx.stroke(); }
