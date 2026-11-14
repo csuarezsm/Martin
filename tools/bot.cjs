@@ -27,7 +27,7 @@ function jugar(L, o) {
         if (o.limpio && (s.sofocos > 0 || s.perdidas > 0)) continue;   // Mundo 3: sin perder al camellero ni sofocarse
         if (o.ruta && s.ruta && s.ruta !== o.ruta) continue;
         if (o.sinDano && s.danos > 0) continue;
-        const sc = s.x + 0.05 * s.agua - 40 * s.caidas - 0.05 * (s.calor || 0) + (s.fase === 'meta' ? 1e6 - s.t : 0) + 0.001 * s.y - (s.y < fondo ? 1000 : 0) - (rios.length && enAgua(s) ? 6 : 0);
+        const sc = s.x + 0.05 * s.agua - 40 * s.caidas - 0.05 * (s.calor || 0) + (s.fase === 'meta' ? 1e6 - s.t : 0) + 0.001 * s.y - (s.y < fondo ? 1000 : 0) - (rios.length && enAgua(s) ? 6 : 0) - (o.calma || 0) * (s.saltos || 0);   // «calma»: cada salto cuesta, así solo salta cuando hace falta (para el vídeo)
         if (s.fase === 'meta') {
           // reconstruye las pulsaciones
           const seq = []; seq.push([a, K]); for (let n = nodo; n && n.padre; n = n.padre) seq.push([n.m, K]);

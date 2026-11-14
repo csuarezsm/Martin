@@ -35,7 +35,7 @@ Google Play solo admite un enlace de YouTube:
 2. Sin anuncios en el vídeo (Play lo exige) y sin restricción de edad.
 3. Pega el enlace (`https://www.youtube.com/watch?v=…`) en Play Console → Ficha de Play Store → Vídeo.
 
-Son seis tomas reales de partidas del robot (Uga, la lava, las barcas, los ríos de fuego, el jable y las calles de Uga), con un titular cada una, y un cierre: «Gratis · Sin anuncios · Sin cuentas». Suena la música del juego.
+Son seis tomas reales de partidas del robot en modo «tranquilo» (`node tools/partidas-video.cjs`: solo salta cuando hace falta) (Uga, la lava, las barcas, los ríos de fuego, el jable y las calles de Uga), con un titular cada una, y un cierre: «Gratis · Sin anuncios · Sin cuentas». Suena la música del juego.
 
 ## Ficha principal
 
