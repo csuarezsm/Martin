@@ -9,6 +9,14 @@
     agua: '#3aa7e8', agua2: '#9ad6ff', cantaro: '#c0703f', cantaro2: '#8a4a28', verde: '#4f8a43', verde2: '#7aa94f', blanco: '#f4efe6'
   };
   const TAU = Math.PI * 2;
+  // todas las imágenes del juego pasan por aquí para poder decodificarlas por adelantado (y que no se atasque al empezar a jugar)
+  const TODAS = [];
+  function nuevaImg() { const im = new Image(); TODAS.push(im); return im; }
+  function precarga() {   // decodifica una imagen cada vez, en los ratos libres, sin bloquear
+    let i = 0; const sig = () => { if (i >= TODAS.length) return; const im = TODAS[i++]; const seguir = () => (window.requestIdleCallback ? requestIdleCallback(sig, { timeout: 400 }) : setTimeout(sig, 30));
+      if (im.complete && im.naturalWidth && im.decode) im.decode().then(seguir, seguir); else if (!im.complete) { im.addEventListener('load', seguir, { once: true }); im.addEventListener('error', seguir, { once: true }); } else seguir(); };
+    sig();
+  }
   const hash = n => { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -57,7 +65,7 @@
         for (let i = 0; i < 160; i++) { const x = hash(i * 5 + 1) * w, y = hash(i * 5 + 2) * h; g.fillStyle = hash(i * 5 + 3) < 0.5 ? 'rgba(255,190,120,.18)' : 'rgba(60,20,10,.22)'; g.fillRect(x, y, 1 + hash(i) * 3, 1 + hash(i + 9) * 2); }
       });
       // texturas pintadas sacadas de los paisajes (mismo estilo que el fondo)
-      for (const [k, src] of [['tierraP', 'suelo-tierra.webp'], ['lavaP', 'suelo-lava.webp']]) { const im = new Image(); im.onload = () => { TEX[k] = im; }; im.src = src; }
+      for (const [k, src] of [['tierraP', 'suelo-tierra.webp'], ['lavaP', 'suelo-lava.webp']]) { const im = nuevaImg(); im.onload = () => { TEX[k] = im; }; im.src = src; }
     } catch (e) { TEX = {}; }
     return TEX;
   }
@@ -196,7 +204,7 @@
     corte: [[235, 340], [222, 440], [214, 465], [200, 485], [196, 600]],
     pies: [[0, 484], [120, 484], [165, 500], [200, 520], [270, 522], [320, 553], [551, 553]] };
   const pieY = x => { const P = SPR.pies; for (let i = 1; i < P.length; i++) if (x <= P[i][0]) { const a = P[i - 1], b = P[i], q = (x - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * q; } return 553; };
-  if (typeof Image !== 'undefined') { SPR.img = new Image(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.webp'; }
+  if (typeof Image !== 'undefined') { SPR.img = nuevaImg(); SPR.img.onload = () => { SPR.ok = true; }; SPR.img.src = 'camello.webp'; }
   function sprEscalado(hp) {
     const k = Math.max(16, Math.round(hp)); if (SPR.cache[k]) return SPR.cache[k];
     const s = k / 560, c = document.createElement('canvas'); c.width = Math.ceil(551 * s); c.height = k;
@@ -274,9 +282,9 @@
      Las patas se mueven inclinando la franja de debajo de la cadera: traseras y delanteras a contratiempo. Los fotogramas se pintan una vez y se guardan. */
   const GSP0 = { img: null, ok: false, w: 461, h: 640, ax: 217, ay: 640, alto: 2.6, cad: 376, corte: 0.45, cache: {}, paso: 0.24, alza: 0.1,
     patas: [[0, 95, 0, 0], [95, 125, 0, 1], [125, 240, 1, 1], [240, 290, 1, 0], [290, 461, 0, 0]] };
-  const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = new Image(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.webp'; }
+  const GSP = GSP0; if (typeof Image !== 'undefined') { GSP.img = nuevaImg(); GSP.img.onload = () => { GSP.ok = true; }; GSP.img.src = 'guelfo.webp'; }
   const CSP = { img: null, ok: false, w: 380, h: 640, ax: 190, ay: 636, alto: 2.25, cad: 330, corte: 0.5, cache: {} };   // el camellero (camellero.webp, 380×640, de lado mirando a la derecha)
-  if (typeof Image !== 'undefined') { CSP.img = new Image(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.webp'; }
+  if (typeof Image !== 'undefined') { CSP.img = nuevaImg(); CSP.img.onload = () => { CSP.ok = true; }; CSP.img.src = 'camellero.webp'; }
   function guelfoFoto(hp, clave, ang, GSP) {
     const k = Math.max(16, Math.round(hp)), C = GSP.cache[k] || (GSP.cache[k] = {});
     if (!C.base) {
@@ -308,7 +316,7 @@
   const CW = { img: null, ok: false, n: 8, fw: 205, fh: 406, ax: 98, ay: 404, alto: 2.35, pie: 0, cache: {} };   // hoja a 0,625 (3.3): pesa y gasta menos y en pantalla se ve igual
   // subir y bajar un escalón (8 dibujos cada uno, a la misma escala que el paso: el camellero no cambia de tamaño)
   const CSU = { img: null, ok: false, n: 8, fw: 225, fh: 406, ax: 106, ay: 404, alto: 2.35, pie: 0, cache: {} }, CBA = { img: null, ok: false, n: 8, fw: 225, fh: 406, ax: 106, ay: 404, alto: 2.35, pie: 0, cache: {} };
-  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.webp'], [CW, 'camellero-paso.webp'], [CSU, 'camellero-sube.webp'], [CBA, 'camellero-baja.webp']]) { o.img = new Image(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
+  if (typeof Image !== 'undefined') for (const [o, src] of [[GW0, 'guelfo-paso.webp'], [CW, 'camellero-paso.webp'], [CSU, 'camellero-sube.webp'], [CBA, 'camellero-baja.webp']]) { o.img = nuevaImg(); o.img.onload = () => { o.ok = true; }; o.img.src = src; }
   function pasoEscalado(hp, GW) {
     const k = Math.max(16, Math.round(hp)); if (GW.cache[k]) return GW.cache[k];
     const s = k / GW.fh, c = document.createElement('canvas'); c.width = Math.ceil(GW.fw * GW.n * s); c.height = k;
@@ -604,7 +612,7 @@
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
     if (!f.img && typeof Image !== 'undefined') {
-      f.img = new Image();
+      f.img = nuevaImg();
       f.img.onload = () => {   // el dibujo entero (sin fundidos, que mezclaban dos sitios distintos); nunca se repite
         const x0 = Math.round(f.img.naturalWidth * (f.ini || 0)), w = Math.round(f.img.naturalWidth * (f.fin || 1)) - x0, h = f.img.naturalHeight;   // se recorta lo que no conviene en los bordes (palmeras grandes…)
         const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(f.img, x0, 0, w, h, 0, 0, w, h);
@@ -675,7 +683,7 @@
   }
   // textura de arena de verdad (sacada de las ilustraciones del jable): se repite sin costuras
   const ARENA = { img: null, ok: false };
-  if (typeof Image !== 'undefined') { ARENA.img = new Image(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.webp'; }
+  if (typeof Image !== 'undefined') { ARENA.img = nuevaImg(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.webp'; }
   /* 3.1 · Jable de Famara: arena dorada con rizos del viento. Sirve para las dunas (cuesta) y para el suelo llano de arena */
   function dibujaArena(ctx, s, W, H, u, sx, sy) {
     const x0 = sx(s.x0), x1 = sx(s.x1), a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
@@ -727,7 +735,7 @@
   /* 3.1 · Barca de pesca de Lanzarote (casco blanco con franjas de color) que va y viene de muelle a muelle */
   // barca ilustrada (barca.webp, 600×300): la cubierta pisable va de x 106,5 a 582,4 y está a y 192 del dibujo
   const BARCA = { img: null, ok: false, d0: 106.5, d1: 582.4, dy: 192.1 };
-  if (typeof Image !== 'undefined') { BARCA.img = new Image(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.webp'; }
+  if (typeof Image !== 'undefined') { BARCA.img = nuevaImg(); BARCA.img.onload = () => { BARCA.ok = true; }; BARCA.img.src = 'barca.webp'; }
   /* 3.3 · Río de lava (Timanfaya): brilla, burbujea y se mueve despacio */
   function dibujaRioLava(ctx, x0, x1, yt, H, u, t, wx0) {
     const ys = yt + u * 0.55;
@@ -873,7 +881,7 @@
   /* Plantas y piedras de Lanzarote dibujadas (flora.webp): [x, y, ancho, alto] en el atlas y altura en el mundo */
   const FLO = { ok: false, img: null, m: {"palmera": [0, 0, 203, 179, 3.3], "tabaibal": [205, 0, 227, 164, 1.6], "tunera": [434, 0, 172, 158, 1.5], "pita": [608, 0, 188, 143, 1.25], "vid": [798, 0, 200, 124, 1.0], "vid2": [0, 470, 200, 124, 1.0], "aloe": [0, 181, 147, 116, 1.3], "gris": [149, 181, 166, 112, 1.0], "bejeque": [317, 181, 160, 110, 1.05], "aulaga": [479, 181, 156, 110, 1.0], "morada": [637, 181, 143, 106, 0.95], "muro": [782, 181, 210, 106, 0.9], "salado": [0, 299, 145, 104, 0.9], "roca": [147, 299, 151, 104, 1.0], "hierba": [300, 299, 120, 84, 0.8], "piedra": [422, 299, 104, 80, 0.6], "rosas": [528, 299, 120, 80, 0.55], "amarillas": [650, 299, 135, 73, 0.5], "piedras": [787, 299, 112, 64, 0.45], "rojas": [0, 405, 152, 62, 0.45]},
     por: { tunera: ['tunera', 'tunera', 'bejeque', 'aloe'], cardon: ['tabaibal', 'aulaga', 'morada', 'gris', 'salado', 'bejeque', 'vid', 'palmera'], pita: ['pita', 'aloe'], piedra: ['piedra', 'piedras', 'roca', 'piedra'], flor: ['rojas', 'amarillas', 'rosas', 'hierba'] } };
-  if (typeof Image !== 'undefined') { FLO.img = new Image(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.webp'; }
+  if (typeof Image !== 'undefined') { FLO.img = nuevaImg(); FLO.img.onload = () => { FLO.ok = true; }; FLO.img.src = 'flora.webp'; }
   function decoSprite(ctx, d, x, y, u) {
     const l = FLO.por[d.t]; if (!l) return false;
     let n = l[Math.floor(hash(Math.floor(d.x * 7) + 5) * l.length)];
@@ -1196,7 +1204,7 @@
   const AGUA_FONDO = '#197475';   // color del fondo del mar ilustrado (obj-agua), para seguirlo hacia abajo
   // 3.4: dibujos ilustrados de objetos (frutos, meta, punto de control, repisa); si no han cargado, se dibujan como antes
   const OBJ = {};
-  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'bufadero', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
+  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'bufadero', 'colada', 'frente', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = nuevaImg(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
   // hoja de 6 dibujos mostrada de forma continua: mezcla cada dibujo con el siguiente (p va de 0 a 5 con decimales)
   function hojaSuave(ctx, im, p, x, yb, hd, sy) {
     const fw = im.width / 6, wd = hd * fw / im.height, a = Math.max(0, Math.min(5, Math.floor(p))), b = Math.min(5, a + 1), f = Math.max(0, Math.min(1, p - a)), h2 = hd * (sy || 1);
@@ -1242,8 +1250,8 @@
       for (const [a, b] of pos) esfera(ctx, x + a * r, y + b * r, r * 0.3, '#f0f0a0', '#7f9a2a');
     }
   }
-  const CLL = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: 'camellero-llama.webp' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
-  const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(new Image(), { src: 'camellero-biberon.webp' }), vacio: Object.assign(new Image(), { src: 'camellero-agachado.webp' }) } : {};
+  const CLL = typeof Image !== 'undefined' ? Object.assign(nuevaImg(), { src: 'camellero-llama.webp' }) : {};   // 8 dibujos: llama con la mano (0-1), se agacha (2-4), ofrece el biberón (5-7)
+  const CAG = typeof Image !== 'undefined' ? { lleno: Object.assign(nuevaImg(), { src: 'camellero-biberon.webp' }), vacio: Object.assign(nuevaImg(), { src: 'camellero-agachado.webp' }) } : {};
   // el camellero llama con la mano, se agacha según se acerca Martín (d = distancia) y le ofrece el biberón; mismo tamaño que cuando camina
   function camelleroBiberon(ctx, x, gy, u, d, t) {
     const h = u * 0.95 * CW.alto * 506 / 500, k = h / 506, fw = 360;
@@ -1318,7 +1326,14 @@
     { // lava fundida que asoma por las grietas de una costra oscura y rugosa; la costra se enfría (y oscurece) lejos del frente
       const top = Math.min(...arr.map(p => p[1])) - u, fondo = Math.min(H + 4, Math.max(...aba.map(p => p[1])) + u);
       let g = ctx.createLinearGradient(xe - u * 7, 0, xe, 0); g.addColorStop(0, '#3d0a03'); g.addColorStop(0.45, '#a3290a'); g.addColorStop(0.8, '#f06a18'); g.addColorStop(1, '#ffd27a'); ctx.fillStyle = g; ctx.fillRect(-2, top, xe + u, fondo - top);
-      if (OBJ.lava) {   // lava ilustrada: corre con la colada y se enfría (oscurece) lejos del frente
+      if (OBJ.colada) {   // cuerpo de la colada ilustrado: costra con lava entre las grietas; avanza con el frente
+        if (!OBJ.coladaEsp) { const w = OBJ.colada.width, h = OBJ.colada.height, c = lienzo(w * 2, h * 2), g = c.getContext('2d');   // azulejo en espejo: sin costuras al repetirse
+          for (const [sx, sy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) { g.setTransform(sx, 0, 0, sy, sx < 0 ? w * 2 : 0, sy < 0 ? h * 2 : 0); g.drawImage(OBJ.colada, 0, 0); }
+          OBJ.coladaEsp = c; }
+        const im = OBJ.coladaEsp, k = u * 3.4 / im.height, pat = ctx.createPattern(im, 'repeat');
+        pat.setTransform(new DOMMatrix([k, 0, 0, k, xe, Math.min(...arr.map(q => q[1])) - 24 * k])); ctx.fillStyle = pat; ctx.fillRect(-2, top, xe + u, fondo - top);
+        const gf = ctx.createLinearGradient(xe - u * 9, 0, xe - u, 0); gf.addColorStop(0, 'rgba(25,6,3,.55)'); gf.addColorStop(1, 'rgba(25,6,3,0)'); ctx.fillStyle = gf; ctx.fillRect(-2, top, xe + u, fondo - top);
+      } else if (OBJ.lava) {   // lava ilustrada: corre con la colada y se enfría (oscurece) lejos del frente
         const im = OBJ.lava, k = u * 2.4 / im.height, pat = ctx.createPattern(im, 'repeat');
         pat.setTransform(new DOMMatrix([k, 0, 0, k, xe - (t * u * 0.35) % (im.width * k), top + u * 0.2])); ctx.fillStyle = pat; ctx.fillRect(-2, top, xe + u, fondo - top);
         const gf = ctx.createLinearGradient(xe - u * 8, 0, xe - u * 0.5, 0); gf.addColorStop(0, 'rgba(25,6,3,.72)'); gf.addColorStop(0.6, 'rgba(40,10,4,.35)'); gf.addColorStop(1, 'rgba(40,10,4,0)'); ctx.fillStyle = gf; ctx.fillRect(-2, top, xe + u, fondo - top);
@@ -1345,10 +1360,17 @@
       ctx.strokeStyle = 'rgba(30,6,2,.55)'; ctx.lineWidth = u * 0.2; ctx.beginPath(); aba.forEach(([x, y], i) => i ? ctx.lineTo(x, y - u * 0.08) : ctx.moveTo(x, y - u * 0.08)); ctx.stroke();   // sombra en la base
     }
     ctx.restore();
+    if (OBJ.frente) {   // frente ilustrado: la lengua de lava que avanza, con 6 dibujos que se funden entre sí
+      const hd = u * ALTO * 1.2, im = OBJ.frente, wd = hd * (im.width / 6) / im.height;
+      const yb = aba[aba.length - 1][1] + u * 0.05, x0 = xe + u * 0.1 - wd * 0.94 + wd / 2;
+      for (let j = 1, x = x0 - wd * 0.62; x > -wd / 2 && j < 8; j++, x -= wd * 0.62) hojaSuave(ctx, im, (t * 0.9 + j * 1.7) % 5, x, yb + u * 0.04 * (j % 2), hd * (0.94 - 0.03 * (j % 2)));   // la colada sigue detrás: sin bordes cortados
+      hojaSuave(ctx, im, (t * 0.9) % 5, x0, yb, hd);
+    } else {
     ctx.strokeStyle = 'rgba(70,52,44,.85)'; ctx.lineWidth = Math.max(1.5, u * 0.05); ctx.beginPath(); { let ini = false; for (const [x, y] of arr) { if ((xe - x) / u < FR * 0.8) break; if (ini) ctx.lineTo(x, y); else { ctx.moveTo(x, y); ini = true; } } } ctx.stroke();
     // borde incandescente solo en la lengua del frente
     ctx.strokeStyle = 'rgba(255,225,140,.85)'; ctx.lineWidth = Math.max(2, u * 0.06); ctx.beginPath();
     { let ini = false; for (const [x, y] of arr) { if ((xe - x) / u > FR * 1.2) continue; if (ini) ctx.lineTo(x, y); else { ctx.moveTo(x, y); ini = true; } } ctx.quadraticCurveTo(xe + u * 0.35, yf - u * 0.1, xe, aba[aba.length - 1][1]); } ctx.stroke();
+    }
     // humo que sube de la colada y chispas en el frente
     for (let i = 0; i < 6; i++) {
       const f = (t * (0.18 + hash(i + 30) * 0.1) + hash(i + 31)) % 1, px = xe - u * (0.6 + hash(i + 32) * 5), ys = suelo(ux(px)) ?? suelo(st.lava); if (px < -u || ys == null) continue;
@@ -1671,7 +1693,7 @@
     const u = H / 6; let suelo = H * 0.82;
     // fondo: el mismo paisaje pintado de los niveles, con la luz de la hora de cada escena
     const fotos = { 1: ['paisaje-uga.webp', 'rgba(20,24,70,.55)'], 2: ['escena-biberon.webp', 'rgba(0,0,0,0)', 1], 3: ['escena-calle-farolas.webp', 'rgba(0,0,0,0)', 1], 4: ['fila-amanecer.webp', 'rgba(0,0,0,0)', 1], 5: ['fila-amanecer.webp', 'rgba(255,190,140,.06)', 1], 9: ['echadero.webp', 'rgba(0,0,0,0)', 1], 6: ['sendero-malpais.webp', 'rgba(255,200,110,.10)'], 7: ['paisaje-ocaso.webp', 'rgba(40,30,90,.18)'], 8: ['paisaje-ocaso.webp', 'rgba(30,24,80,.34)'] }, fo = fotos[k];
-    if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(new Image(), { src: fo[0] }));
+    if (fo) { const im = HIST_IMG[fo[0]] || (HIST_IMG[fo[0]] = Object.assign(nuevaImg(), { src: fo[0] }));
       if (im.complete && im.naturalWidth) { const kk = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * kk, h = im.naturalHeight * kk; ctx.drawImage(im, (W - w) * 0.5, H - h, w, h); ctx.fillStyle = fo[1]; ctx.fillRect(0, 0, W, H); suelo = H * 0.95; }
       else { if (luego) im.addEventListener('load', () => dibujaHistoria(ctx, W, H, k), { once: true }); } }
     if (k >= 7) dibujaEclipse(ctx, W, H, k === 7 ? 0.45 : 0.85, W * 0.76, H * 0.3, H * 0.09);
@@ -1695,5 +1717,6 @@
     if (k === 1) { ctx.fillStyle = 'rgba(255,255,255,.75)'; for (let i = 0; i < 30; i++) { ctx.beginPath(); ctx.arc(hash(i * 3) * W, hash(i * 3 + 1) * H * 0.5, 1 + hash(i) * 1.5, 0, TAU); ctx.fill(); } }   // de madrugada: estrellas
     const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.7); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
   }
-  window.Dibujo = { COL, especiesDe, dibujaEspecie, dibujaLavaVista, fruto, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini, dibujaMundo3, dibujaEclipse, dibujaHistoria, dibujaSombrasCalor, camelleroFig };
+  if (document.readyState === 'complete') setTimeout(precarga, 200); else window.addEventListener('load', () => setTimeout(precarga, 200), { once: true });
+  window.Dibujo = { precarga, COL, especiesDe, dibujaEspecie, dibujaLavaVista, fruto, hash, TEMAS, preparaEscena, dibujaMartin, dibujaEscena, dibujaSombra, dibujaFx, dibujaPost, dibujaFondo, dibujaPrimerPlano, dibujaHero, dibujaMini, dibujaMundo3, dibujaEclipse, dibujaHistoria, dibujaSombrasCalor, camelleroFig };
 })();

@@ -348,8 +348,8 @@ function startLoop() {
       } else if (s.fase === 'meta' || s.fase === 'fallo') { RUN.t += dt / 1000; RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n); }
       else RUN.t += dt / 1000;
       dibujar(dt); hud();
-      RUN.ema = RUN.ema == null ? dt : RUN.ema * 0.95 + dt * 0.05; RUN.nf = (RUN.nf || 0) + 1;
-      if (RUN.nf > 90 && RUN.ema > 22) { if (!window.SIN_OLAS) window.SIN_OLAS = true; else if (RUN.dprMax > 1.25) RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }   // si va lento: primero fuera el oleaje, luego menos resolución
+      if (s.fase === 'jugando') { const d = Math.min(dt, 60); RUN.ema = RUN.ema == null ? d : RUN.ema * 0.95 + d * 0.05; RUN.nf = (RUN.nf || 0) + 1; }   // solo se mide jugando, y un tirón suelto no cuenta como lentitud
+      if (RUN.nf > 150 && RUN.ema > 22) { if (!window.SIN_OLAS) window.SIN_OLAS = true; else if (RUN.dprMax > 1.25) RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }   // si va lento: primero fuera el oleaje, luego menos resolución
       if ((s.fase === 'meta' || s.fase === 'fallo') && RUN.tFin && !RUN.overlay && performance.now() - RUN.tFin > (s.fase === 'meta' ? 900 : 700) / Math.max(1, turbo() > 1 ? 4 : 1)) terminar();
     }
     Musica.tick(!!(RUN.s && RUN.modo !== undefined && (RUN.s.fase === 'jugando' || RUN.s.fase === 'reaparece') && !document.hidden), RUN.s ? estiloMusica(RUN.idx) : '');
@@ -497,7 +497,7 @@ function jugar(idx, modo, opts) {
 }
 function empezar() {
   if (!RUN.s || RUN.s.fase !== 'lista') return;
-  M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; soltarTodo(); ponOverlay(); keepAwake();
+  M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; RUN.nf = 0; RUN.ema = null; soltarTodo(); ponOverlay(); keepAwake();
   if (RUN.modo === 'nivel') prog(RUN.idx).plays++;
 }
 function pausar() { Musica.tick(false, '');
