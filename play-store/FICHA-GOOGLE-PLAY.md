@@ -24,7 +24,8 @@ Cómo se regeneran (desde la raíz del repo):
 ```bash
 SHOTS=1-partida,3-lava,barcas,fuego,jable,calles,5-cuaderno,8-reto OUTD=/tmp/shots/ node play-store/capturas.mjs   # capturas sin texto
 OUTD=/tmp/shots/ node play-store/marcos.mjs                                                                     # con titular
-node play-store/video.mjs                                                                                       # vídeo (necesita la web en http://localhost:8765)
+node play-store/video.mjs                                                                                       # vídeo horizontal (necesita la web en http://localhost:8765)
+VERTICAL=1 node play-store/video.mjs                                                                            # vídeo vertical 720×1280 (Shorts, estados, redes)
 ```
 
 ### Vídeo promocional (25 s)

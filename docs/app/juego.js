@@ -389,10 +389,11 @@ function dibujar(dt) {
   // cámara: Martín al ~35 % del ancho con un poco de anticipación; vertical suavizado con zona muerta
   const k = 1 - Math.exp(-(dt || 16) / 1000 * 5);
   const huye = s.lava != null && L.lava && s.x < L.lava.hasta;   // con la lava detrás, la cámara deja ver el frente que persigue
-  let objX = s.x - vw * (huye ? (W < H ? 0.6 : 0.5) : W < H ? 0.24 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
+  const CV = window.CAMARA_VIDEO;   // solo para grabar el vídeo de la tienda: encuadre fijo
+  let objX = CV ? s.x - vw * (huye ? CV.huye : CV.x) : s.x - vw * (huye ? (W < H ? 0.6 : 0.5) : W < H ? 0.24 : 0.33) + Math.max(-1, Math.min(1, s.vx / 4)) * 1.4;
   objX = Math.max(L.world.min_x - 0.5, Math.min(L.world.max_x - vw + 0.5, objX));
   const piso = s.fase === 'reaparece' ? s.ry : s.y;
-  const idealY = piso - vh * (W < H ? 0.27 : 0.30);
+  const idealY = piso - vh * (CV ? CV.y : W < H ? 0.27 : 0.30);
   if (RUN.camInit !== RUN.idx + ':' + RUN.modo + ':' + RUN.intento) { RUN.camInit = RUN.idx + ':' + RUN.modo + ':' + RUN.intento; RUN.cam.x = objX; RUN.cam.y = idealY; }
   RUN.cam.x += (objX - RUN.cam.x) * Math.min(1, k * 2.4);
   const dz = vh * 0.12; if (idealY - RUN.cam.y > dz) RUN.cam.y += (idealY - dz - RUN.cam.y) * k; else if (RUN.cam.y - idealY > dz) RUN.cam.y += (idealY + dz - RUN.cam.y) * k;

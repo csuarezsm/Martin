@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync, readdirSync, renameSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const TMP = process.env.VID || '/tmp/video/'; mkdirSync(TMP, { recursive: true });
+const TMP = (process.env.VID || '/tmp/video/') + (process.env.VERTICAL ? 'v/' : ''); mkdirSync(TMP, { recursive: true });
 const PART = JSON.parse(readFileSync(ROOT + 'play-store/partidas-video.json', 'utf8'));   // partidas tranquilas: node tools/partidas-video.cjs
-const W = 1280, H = 720, SEG = 3.6;
+const VERT = !!process.env.VERTICAL, W = VERT ? 720 : 1280, H = VERT ? 1280 : 720, SEG = 3.6, NOM = VERT ? 'promo-vertical' : 'promo';   // VERTICAL=1 → 720×1280 (Shorts, estados, redes)
 // [nivel, partida, desde qué fracción, texto]
 const TOMAS = [
   [0, 'uga_l01_water_delivery', 0.16, 'Lleva el agua por Lanzarote'],
@@ -38,11 +38,12 @@ for (let i = 0; i < TOMAS.length; i++) {
       const pt = pie / V + (quiere >= 0 ? Math.min(0.5, extra / V) * (quiere === 4 ? 3 : 1.2) : 0) - (ok ? 0 : 5) - Math.abs(a / T.length - Math.max(0.05, desde)) * 0.15;
       if (pt > mp) { mp = pt; mejor = a; }
     }
+    if (innerWidth < innerHeight) window.CAMARA_VIDEO = { x: 0.4, huye: 0.72, y: 0.16 };   // en vertical: Martín más centrado y menos tierra debajo
     window.MARTIN_REPLAY = runs; jugar(idx, 'nivel'); empezar();
     for (let j = 0; j < mejor; j++) paso1();
     console.log('tramo', idx, mejor, T.length, mp.toFixed(2));
     const R = __martin.RUN; R.acc = 0; R.last = performance.now();
-    const st = document.createElement('style'); st.textContent = '.mg-pad{display:none!important}.mg-hint{display:none!important}#promo{position:fixed;left:0;right:0;bottom:7%;text-align:center;font:800 54px "Inter Display",Inter,sans-serif;color:#ffd978;text-shadow:0 4px 18px #000,0 0 3px #000;z-index:99}'; document.head.appendChild(st);
+    const st = document.createElement('style'); st.textContent = '.mg-pad{display:none!important}.mg-hint{display:none!important}#promo{position:fixed;left:0;right:0;' + (innerWidth < innerHeight ? 'top:13%;padding:0 30px;' : 'bottom:7%;') + 'text-align:center;font:800 ' + (innerWidth < innerHeight ? 46 : 54) + 'px "Inter Display",Inter,sans-serif;color:#ffd978;text-shadow:0 4px 18px #000,0 0 3px #000;z-index:99}'; document.head.appendChild(st);
     window.dispatchEvent(new Event('resize')); if (R.s.lava != null) { const pega = () => { if (R.s && R.s.lava != null) R.s.lava = Math.max(R.s.lava, R.s.x - 3.6); requestAnimationFrame(pega); }; pega(); }   // solo para el vídeo: la lava, a la vista
     const d = document.createElement('div'); d.id = 'promo'; d.textContent = txt; document.body.appendChild(d);
   }, [idx, runs, desde, txt, SEG]);
@@ -59,15 +60,15 @@ for (let i = 0; i < TOMAS.length; i++) {
 const p = await b.newPage({ viewport: { width: W, height: H } });
 const fondo = 'data:image/png;base64,' + readFileSync(ROOT + 'play-store/grafico-destacado-1024x500.png').toString('base64');
 // el gráfico destacado (1024×500) entero, sin recortar: más ancho que 16:9, así que va arriba con su fondo difuminado y el texto debajo
-const GW = W - 120, GH = Math.round(GW * 500 / 1024);
+const GW = W - (VERT ? 40 : 120), GH = Math.round(GW * 500 / 1024), GT = VERT ? Math.round((H - GH) / 2) - 120 : 34;
 await p.setContent(`<html><body style="margin:0;width:${W}px;height:${H}px;overflow:hidden;background:#140805;font-family:'Inter Display',Inter,sans-serif">
   <div style="position:absolute;inset:-40px;background:url(${fondo}) center/cover;filter:blur(28px) brightness(.45)"></div>
-  <img src="${fondo}" style="position:absolute;left:60px;top:34px;width:${GW}px;height:${GH}px;border-radius:22px;box-shadow:0 0 0 3px #ffd97855,0 18px 50px #000c">
-  <div style="position:absolute;left:0;right:0;top:${34 + GH + 22}px;text-align:center;color:#fff3e4;font:700 38px 'Inter Display',Inter;text-shadow:0 2px 10px #000">Gratis · Sin anuncios · Sin cuentas<div style="color:#ffd978;font-size:28px;margin-top:6px">24 niveles por Lanzarote y reto diario</div></div>
+  <img src="${fondo}" style="position:absolute;left:${(W - GW) / 2}px;top:${GT}px;width:${GW}px;height:${GH}px;border-radius:22px;box-shadow:0 0 0 3px #ffd97855,0 18px 50px #000c">
+  <div style="position:absolute;left:0;right:0;top:${GT + GH + (VERT ? 50 : 22)}px;text-align:center;color:#fff3e4;font:700 ${VERT ? 36 : 38}px 'Inter Display',Inter;text-shadow:0 2px 10px #000">Gratis · Sin anuncios${VERT ? '<br>' : ' · '}Sin cuentas<div style="color:#ffd978;font-size:28px;margin-top:6px">24 niveles por Lanzarote y reto diario</div></div>
 </body></html>`);
 await p.waitForTimeout(200);
 await p.screenshot({ path: TMP + 'fin.png' }); await b.close();
 execSync(`ffmpeg -y -loglevel error -loop 1 -i ${TMP}fin.png -t 3.2 -vf "fps=30,fade=t=in:st=0:d=0.3,fade=t=out:st=2.8:d=0.4" -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p ${TMP}pfin.mp4`);
 writeFileSync(TMP + 'lista.txt', [...partes.map(q => q.out), TMP + 'pfin.mp4'].map(x => `file '${x}'`).join('\n'));
-execSync(`ffmpeg -y -loglevel error -f concat -safe 0 -i ${TMP}lista.txt -c copy ${TMP}promo-mudo.mp4`);
-console.log('Listo:', TMP + 'promo-mudo.mp4');
+execSync(`ffmpeg -y -loglevel error -f concat -safe 0 -i ${TMP}lista.txt -c copy ${TMP}${NOM}-mudo.mp4`);
+console.log('Listo:', TMP + NOM + '-mudo.mp4');
