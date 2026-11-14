@@ -1170,9 +1170,9 @@
       } else if (h.kind === 'ola') {
         const x0 = sx(h.x0), x1 = sx(h.x1), y = sy(h.y); if (x1 < -u * 3 || x0 > W + u * 3) continue;
         const cx = (x0 + x1) / 2, w = x1 - x0;
-        if (OBJ.ola) {   // 6 dibujos: la ola crece, se levanta, rompe con espuma, cae y se retira
+        if (OBJ.bufadero) {   // 6 dibujos de un bufadero (chorro que sale de un agujero en la roca), cuando llegue el dibujo; la ola de orilla no encaja aquí
           const q = e.activo ? (e.c - h.aviso) / h.activo : 0, f = e.activo ? (q < 0.3 ? 2 : q < 0.55 ? 3 : q < 0.8 ? 4 : 5) : e.aviso ? 1 : 0;
-          const im = OBJ.ola, fw = im.width / 6, hd = u * (h.alto * 1.35 + 1.1), wd = hd * fw / im.height;
+          const im = OBJ.bufadero, fw = im.width / 6, hd = u * (h.alto * 1.35 + 1.1), wd = hd * fw / im.height;
           ctx.drawImage(im, f * fw, 0, fw, im.height, cx - wd / 2, y - hd + u * 0.35, wd, hd); continue;
         }
         ctx.fillStyle = 'rgba(15,40,60,.45)'; ctx.beginPath(); ctx.ellipse(cx, y + u * 0.05, w * 0.5, u * 0.16, 0, 0, TAU); ctx.fill();   // roca mojada del bufadero
@@ -1198,7 +1198,7 @@
   const AGUA_FONDO = '#197475';   // color del fondo del mar ilustrado (obj-agua), para seguirlo hacia abajo
   // 3.4: dibujos ilustrados de objetos (frutos, meta, punto de control, repisa); si no han cargado, se dibujan como antes
   const OBJ = {};
-  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'ola', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
+  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
   function fruto(ctx, k, x, y, r) {
     const im = OBJ[k];
     if (im) {
