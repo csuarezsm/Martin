@@ -436,6 +436,7 @@ function openThemes() {
     <label class="f"><span>Botones<em>Dónde va el salto</em></span><span class="kinds" style="flex:none;width:58%;margin:0">${[['normal', 'Salto a la derecha'], ['invertida', 'Salto a la izquierda']].map(([v, l]) => `<button data-mano="${v}" class="${(S.mano || 'normal') === v ? 'on' : ''}">${l}</button>`).join('')}</span></label>
     <label class="f" style="margin-bottom:10px"><span>Sonidos<em>Salto, golpes, puntos de control y entrega</em></span><input type="checkbox" class="tg" id="thSound" ${S.sound !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>🎵 Música<em>Sonido de fondo suave mientras juegas, distinto en cada mundo</em></span><input type="checkbox" class="tg" id="thMus" ${S.musica !== false ? 'checked' : ''}></label>
+    <label class="f" style="margin-bottom:10px"><span>📳 Vibración<em>Un toque suave al recibir un golpe, caer o coger fruta</em></span><input type="checkbox" class="tg" id="thVib" ${S.vibra !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>Fantasma<em>Tu mejor carrera corre a tu lado en cada nivel</em></span><input type="checkbox" class="tg" id="thFan" ${S.fantasma !== false ? 'checked' : ''}></label>
     <label class="f" style="margin-bottom:10px"><span>🧒 Modo peque<em>Pierdes la mitad de agua y la lava va más despacio. El reto diario es igual para todos.</em></span><input type="checkbox" class="tg" id="thPeq" ${S.peque ? 'checked' : ''}></label>
     ${AvisoTurno.opcionHtml()}
@@ -453,6 +454,7 @@ function openThemes() {
   document.querySelectorAll('[data-mano]').forEach(b => b.onclick = () => { S.mano = b.dataset.mano; save(); openThemes(); });
   $('#thFan').onchange = e => { S.fantasma = e.target.checked; save(); };
   $('#thMus').onchange = e => { S.musica = e.target.checked; save(); };
+  $('#thVib').onchange = e => { S.vibra = e.target.checked; save(); if (S.vibra) vibrate(30); };
   $('#thPeq').onchange = e => { S.peque = e.target.checked; save(); if (typeof renderSetup === 'function' && !(window.__martin && __martin.RUN.on)) renderSetup(); };
   $('#thSound').onchange = e => { S.sound = e.target.checked; save(); if (S.sound) Sound.play('control'); };
   $('#thOk').onclick = closeModal;
@@ -464,7 +466,7 @@ window.NOTICIAS_MARTIN = ['https://www.laprovincia.es/videos/lanzarote/2026/08/1
   'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html',
   'https://www.tiktok.com/@unahoramenostv/video/7605692657339256097'];   // el Martín real (prensa, agosto de 2026)
 window.NOTICIA_MARTIN = NOTICIAS_MARTIN[0];
-const APP_VERSION = '3.4.6';
+const APP_VERSION = '3.4.7';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -492,7 +494,7 @@ S.prog = S.prog && typeof S.prog === 'object' ? S.prog : {};
 /* ================= Utilidades UI ================= */
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
-function vibrate(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+function vibrate(ms) { try { if (S.vibra !== false && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
 let modalOnClose = null;
 function openModal(html) { const m = $('#modal'); modalOnClose = null; m.innerHTML = '<div class="sheet">' + html + '</div>'; m.classList.remove('hidden'); }
 function closeModal() { const m = $('#modal'); m.classList.add('hidden'); m.innerHTML = ''; const f = modalOnClose; modalOnClose = null; if (f) f(); }

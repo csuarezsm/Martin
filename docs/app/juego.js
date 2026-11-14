@@ -186,6 +186,18 @@ const Musica = (() => {
       if (H(p * 1.7) > 0.88) pajaro(c, t, H(p + 3));
       if (p % 4 === 2 && H(p * 0.37) > 0.45) nota(c, t, 90 + H(p) * 20, 0.08, 0.016, 'sine', 0.004);
       if (p % 40 === 20 && H(p * 2.9) > 0.3) [1568, 2093, 1568].forEach((f, i) => nota(c, t + i * 0.17, f, 0.15, 0.012, 'sine', 0.01)); } },
+    // jable: el viento corre sobre la arena (siseo fino que sube y baja), algún pájaro y unas notas sueltas de timple
+    jable: { pulso: 0.5, toca(c, t, p) {
+      if (p % 10 === 0) viento(c, t, 6.5, 0.028 + H(p) * 0.012, 1400 + H(p + 1) * 900);
+      if (p % 14 === 7) viento(c, t, 8, 0.02, 300 + H(p + 2) * 200);
+      if (H(p * 1.7) > 0.9) pajaro(c, t, H(p + 3));
+      if (p % 20 === 12 && H(p * 2.1) > 0.4) [69, 72, 76, 74].slice(0, 2 + Math.floor(H(p) * 3)).forEach((m, i) => pulsa(c, t + i * 0.3, N(m), 1.4, 0.018, 4)); } },
+    // fuego: retumbar grave del volcán, un latido que mete prisa y chasquidos de roca caliente
+    fuego: { pulso: 0.45, toca(c, t, p) {
+      if (p % 10 === 0) viento(c, t, 5, 0.035, 120 + H(p) * 60);
+      if (p % 2 === 0) nota(c, t, N(p % 8 < 4 ? 33 : 31), 0.32, 0.05, 'sine', 0.006);
+      if (p % 8 === 1) nota(c, t, N(45), 0.25, 0.03, 'triangle', 0.005);
+      if (H(p * 1.3) > 0.7) nota(c, t + H(p) * 0.3, 1800 + H(p + 5) * 1500, 0.03, 0.012, 'square', 0.001); } },
     // cueva: zumbido grave y gotas con eco
     cueva: { pulso: 0.8, toca(c, t, p) { if (p % 8 === 0) nota(c, t, N(38), 7, 0.035, 'sine', 1.2);
       if (H(p) > 0.62) { const f = 1100 + H(p + 7) * 900; nota(c, t, f, 0.18, 0.02, 'sine', 0.003); nota(c, t + 0.28, f * 0.98, 0.18, 0.008, 'sine', 0.003); } } }
@@ -206,7 +218,8 @@ const Musica = (() => {
   function muestra(c, est, seg) { const E = EST[est]; let t = 0.1, p = 0; while (t < seg) { E.toca(c, t, p); t += E.pulso; p++; } }
   return { tick, muestra, estado: () => (on ? estilo : '') };
 })();
-const estiloMusica = i => secretoDe(i) === 0 ? 'cueva' : INFO[i] && INFO[i].tipo === 'premio' ? 'costa' : INFO[i] && INFO[i].mundo === 2 ? 'pueblo' : (INFO[i] && INFO[i].mundo === 1 ? 'costa' : 'sur');
+const estiloMusica = i => { const n = NIV[i] && NIV[i].nivel, ex = INFO[i] && INFO[i].extra; return n && ex && n.theme === 'jable' ? 'jable' : n && (n.lava || (ex && n.theme === 'timanfaya')) ? 'fuego' : estiloBase(i); };
+const estiloBase = i => secretoDe(i) === 0 ? 'cueva' : INFO[i] && INFO[i].tipo === 'premio' ? 'costa' : INFO[i] && INFO[i].mundo === 2 ? 'pueblo' : (INFO[i] && INFO[i].mundo === 1 ? 'costa' : 'sur');
 
 /* ================= Frutos y fantasma ================= */
 const frutosDe = L => (L.objetos || []).filter(o => o.kind !== 'aljibe' && o.kind !== 'toma');
