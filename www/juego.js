@@ -434,9 +434,9 @@ function pistaActual() {
     if (s.x < h.x0 || s.x > h.x1) continue;
     if (!S.peque && h.hasta_x != null && s.x > h.hasta_x) continue;          // en modo peque las pistas se quedan todo el tramo
     if (!S.peque && h.hasta_saltos != null && s.saltos >= h.hasta_saltos) continue;
-    return PISTAS[h.id] || '';
+    RUN.hintId = h.id; return PISTAS[h.id] || '';
   }
-  return '';
+  RUN.hintId = ''; return '';
 }
 function hud() {
   const s = RUN.s; if (!s) return;
@@ -450,6 +450,14 @@ function hud() {
   const lv = document.getElementById('mgLava'); if (lv) { const on = s.lava != null && s.x < RUN.L.lava.hasta && s.fase === 'jugando'; lv.classList.toggle('on', on); if (on) set('mgLavaD', Math.max(0, Math.round(s.x - s.lava)) + ' m'); }
   // pista del tramo: pequeña, debajo del marcador, y se va sola a los pocos segundos (o al tocarla); en modo peque se queda más
   const h = pistaActual(), el = document.getElementById('mgHint');
+  {   // primeras partidas: el botón que toca pulsar brilla hasta que se usa por primera vez
+    const co = S.coach || (S.coach = {}), id = RUN.hintId, mov = id === 'mover' || id === 'guelfo', sal = id === 'saltar' || id === 'guelfo_salta';
+    if (mov && !co.mover && s.x > RUN.L.spawn.x + 2) { co.mover = true; save(); }
+    if (sal && !co.saltar && s.saltos > 0) { co.saltar = true; save(); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.8, v: 0, n: 70, txt: TR('👍 ¡Así se salta!') }); }
+    const R = document.getElementById('mgR'), J = document.getElementById('mgJ');
+    if (R) R.classList.toggle('coach', s.fase === 'jugando' && mov && !co.mover);
+    if (J) J.classList.toggle('coach', s.fase === 'jugando' && sal && !co.saltar);
+  }
   if (h !== RUN.hint) { RUN.hint = h; RUN.hintT = s.t; if (el) { el.textContent = h; el.classList.toggle('on', !!h); el.onclick = () => el.classList.remove('on'); } }
   else if (h && el && el.classList.contains('on') && s.t - RUN.hintT > (S.peque ? 60 * 12 : 60 * 6)) el.classList.remove('on');
 }
