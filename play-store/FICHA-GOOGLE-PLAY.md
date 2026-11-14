@@ -2,7 +2,7 @@
 
 Paquete: `com.itcanarias.martin` · Archivo para subir: `martin-play.aab` (en la Release de GitHub) · Desarrollador: IT Canarias
 
-Las imágenes de esta carpeta se generan con `python3 tools/iconos.py` (icono y gráfico) y `node play-store/capturas.mjs` (capturas).
+Las imágenes de esta carpeta se generan con `python3 tools/iconos.py` (icono y gráfico) y con `capturas.mjs` + `marcos.mjs` (capturas con titular); el vídeo, con `video.mjs`.
 
 > ⚠️ **Revisión de marca pendiente**: el dossier del proyecto deja el nombre definitivo «Martín» pendiente de verificación (búsqueda de marca y de nombres en Google Play) antes de publicar en tiendas. El subtítulo «Los Caminos del Volcán» ayuda a distinguirlo. Martín y su historia son ficción; los niveles recorren lugares reales de Lanzarote, dibujados (no son fotos), y los textos del cuaderno y de la guía citan fuentes oficiales.
 
@@ -12,11 +12,30 @@ Las imágenes de esta carpeta se generan con `python3 tools/iconos.py` (icono y 
 | --- | --- |
 | `icono-512.png` | Icono de la aplicación (512×512) |
 | `grafico-destacado-1024x500.png` | Gráfico destacado |
-| `movil-1…8.png` (1080×1920) | Capturas de teléfono (de 2 a 8) |
-| `tablet7-1…8.png` (1200×1920) | Capturas de tablet de 7" |
-| `tablet10-1…8.png` (1920×1200) | Capturas de tablet de 10" |
+| `movil-1…8-*.png` (1080×1920) | Capturas de teléfono (las 8, en este orden) |
+| `tablet7-1…8-*.png` (1200×1920) | Capturas de tablet de 7" |
+| `tablet10-1…8-*.png` (1920×1200) | Capturas de tablet de 10" |
+| Vídeo de YouTube | Vídeo promocional (ver abajo) |
 
-Orden recomendado (las 8): 1-partida (Uga), 2-costa (El Golfo), 3-lava (la lava persigue a Martín), 4-mapa (el mapa de la isla), 5-cuaderno (cuaderno de viaje y sellos), 6-guia (ficha del lagarto atlántico), 7-final (¡Entregado!), 8-reto (reto diario).
+Orden de las capturas, cada una con su titular: 1-partida (Uga), 2-lava (la lava persigue a Martín), 3-barcas (Órzola), 4-fuego (ríos de lava en Timanfaya), 5-jable (dunas de Famara), 6-calles (Mundo 3, el guelfo y el camellero), 7-cuaderno (aprende mientras juegas), 8-reto (reto diario y mapa).
+
+Cómo se regeneran (desde la raíz del repo):
+
+```bash
+SHOTS=1-partida,3-lava,barcas,fuego,jable,calles,5-cuaderno,8-reto OUTD=/tmp/shots/ node play-store/capturas.mjs   # capturas sin texto
+OUTD=/tmp/shots/ node play-store/marcos.mjs                                                                     # con titular
+node play-store/video.mjs                                                                                       # vídeo (necesita la web en http://localhost:8765)
+```
+
+### Vídeo promocional (25 s)
+
+Google Play solo admite un enlace de YouTube:
+
+1. Sube `promo.mp4` a YouTube (canal de IT Canarias), visibilidad **Pública** u **Oculta** (no «Privada»).
+2. Sin anuncios en el vídeo (Play lo exige) y sin restricción de edad.
+3. Pega el enlace (`https://www.youtube.com/watch?v=…`) en Play Console → Ficha de Play Store → Vídeo.
+
+Son seis tomas reales de partidas del robot (Uga, la lava, las barcas, los ríos de fuego, el jable y las calles de Uga), con un titular cada una, y un cierre: «Gratis · Sin anuncios · Sin cuentas». Suena la música del juego.
 
 ## Ficha principal
 
@@ -24,42 +43,43 @@ Orden recomendado (las 8): 1-partida (Uga), 2-costa (El Golfo), 3-lava (la lava 
 Martín: Los Caminos del Volcán
 
 **Descripción breve** (máx. 80)
-Lleva el agua por Lanzarote: 13 niveles, guía de naturaleza y reto diario
+Lleva el agua por Lanzarote: 24 niveles, lava, barcas, dunas y reto diario
 
 **Descripción completa**
 
-Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Tras una tormenta, los caminos han quedado dañados y hay que llevar el agua por toda la isla sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
+Martín es un guelfo, una cría de camello canario de Uga, y existe de verdad. Tras una tormenta, los caminos de la isla han quedado dañados y hay que llevar el agua sin derramarla. Un juego de plataformas con reglas claras, para partidas cortas y para toda la familia. Sin anuncios y sin cuentas.
 
 🐪 UN JUEGO DE REGLAS CLARAS
-• Un salto (más alto si lo mantienes), sin trucos: lo que pasa siempre tiene una causa que se ve.
-• El agua baja solo por caídas fuertes, golpes contra rocas y huecos. Con 0, hay que reintentar.
-• Puntos de control, pistas en cada tramo y tres estrellas por nivel.
+• Un salto (más alto si lo mantienes) y nada de trucos: lo que pasa siempre tiene una causa que se ve.
+• El agua baja con las caídas fuertes, los golpes contra las rocas y los huecos. Con 0, se reintenta.
+• Puntos de control, pistas en cada tramo y tres estrellas por nivel. En las primeras partidas, el botón que toca pulsar se ilumina.
 
-🌋 13 NIVELES POR LANZAROTE
-• Mundo 1, Uga y el sur: rocas, grietas, géiseres y caminos que se bifurcan… y en Timanfaya la lava baja por el camino detrás de ti.
+🌋 24 NIVELES POR LANZAROTE
+• Mundo 1, Uga y el sur: rocas, grietas, géiseres… y en Timanfaya la lava baja por el camino detrás de ti.
 • Mundo 2, la costa y el norte: El Golfo, Janubio, Famara, Haría y el Mirador del Río, con el mar en movimiento.
-• Dos niveles secretos, la Cueva de los Verdes y La Graciosa, que se abren al recoger todos los frutos de cada mundo.
-• Un mapa de la isla con tu viaje, tus estrellas y tus frutos.
+• Mundo 3, el guelfo de Uga: cómo Martín aprendió a ser camello, siguiendo al camellero y a la manada por el pueblo.
+• Niveles nuevos: las dunas del jable de Famara, las barcas de Órzola y los ríos de fuego, donde hay que subirse a las costras de roca que flotan.
+• Niveles secretos y un nivel de premio que se abren recogiendo todos los frutos y biberones.
 
 📖 APRENDE MIENTRAS JUEGAS
 • Cuaderno de viaje: cada nivel abre la ficha de su lugar real, con datos de fuentes oficiales.
 • Sellos: recoge los 3 frutos de un nivel (tunos, higos, uvas…) y gana su sello y una curiosidad más.
-• Guía de la naturaleza: el camello canario (una raza propia), el lagarto atlántico, el bejeque, la tabaiba, la palmera canaria… 11 plantas y animales que se descubren por el camino, explicando cuáles solo viven aquí y cuáles llegaron de fuera.
+• Guía de la naturaleza: el camello canario, el lagarto atlántico, el bejeque, la tabaiba, la palmera canaria… 11 plantas y animales de la isla, explicando cuáles solo viven aquí y cuáles llegaron de fuera.
+
+🏆 LOGROS Y RETO DIARIO
+• 16 logros para conseguir por toda la isla.
+• Cada día, el mismo nivel y las mismas condiciones para todos, con ranking del mejor tiempo. El servidor repite tu partida para comprobar que es posible.
 
 🧒 MODO PEQUE
 • Para los más pequeños: se derrama la mitad de agua, la lava va más despacio y las pistas no se quitan.
 
-📅 RETO DIARIO
-• Cada día, el mismo nivel y las mismas condiciones para todos (agua normal, cántaro frágil o poca agua).
-• Ranking con el mejor tiempo: el servidor repite tu partida con tus pulsaciones para comprobar que es posible.
-
 👆 CONTROLES A TU GUSTO
 • Botones grandes con multitáctil, mano invertida y teclado en tablet y ordenador.
-• Pausa automática si sales de la app.
+• Vibración suave en los golpes y al coger fruta (se puede quitar). Pausa automática si sales de la app.
 
-✨ A TU GUSTO
-• Sonido de fondo suave (viento y pájaros en el sur, olas y gaviotas en la costa), temas de colores y tamaño de letra.
-• Funciona en vertical, en horizontal y en tablet, también en móviles sencillos, y en español, inglés, francés, alemán e italiano.
+✨ HECHO EN LANZAROTE
+• Música propia en cada zona: viento y pájaros en el sur, olas y gaviotas en la costa, arena en el jable y el retumbar del volcán en Timanfaya.
+• Temas de colores y tamaño de letra. Funciona en vertical, en horizontal y en tablet, también en móviles sencillos, y en español, inglés, francés, alemán e italiano.
 
 🔒 SIN ANUNCIOS Y SIN CUENTAS
 Tu progreso se guarda solo en tu móvil. Solo si juegas el reto diario se envían el nombre que pongas y las pulsaciones de esa partida, para comprobar el tiempo.
@@ -91,7 +111,7 @@ Juego de entretenimiento sin apuestas. Martín está inspirado en un guelfo real
 | Aplicación gubernamental | No |
 | Funciones financieras | Ninguna |
 | Salud | Ninguna |
-| Permisos | Solo `INTERNET`. El permiso de instalar paquetes va solo en la versión de GitHub, no en el AAB de Play |
+| Permisos | `INTERNET` y `VIBRATE` (vibración, que se puede quitar en Ajustes). El permiso de instalar paquetes va solo en la versión de GitHub, no en el AAB de Play |
 
 ## Versión
 
