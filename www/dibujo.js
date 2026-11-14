@@ -1198,7 +1198,7 @@
   const AGUA_FONDO = '#197475';   // color del fondo del mar ilustrado (obj-agua), para seguirlo hacia abajo
   // 3.4: dibujos ilustrados de objetos (frutos, meta, punto de control, repisa); si no han cargado, se dibujan como antes
   const OBJ = {};
-  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
+  if (typeof Image !== 'undefined') for (const k of ['aljibe', 'higo', 'tuno', 'malvasia', 'biberon', 'casa', 'control', 'repisa', 'bufadero', 'geiser', 'balsa', 'piedra', 'lava', 'agua', 'sal']) { const im = new Image(); im.onload = () => { OBJ[k] = im; }; im.src = 'obj-' + k + '.webp'; }
   function fruto(ctx, k, x, y, r) {
     const im = OBJ[k];
     if (im) {
@@ -1306,6 +1306,11 @@
     { // lava fundida que asoma por las grietas de una costra oscura y rugosa; la costra se enfría (y oscurece) lejos del frente
       const top = Math.min(...arr.map(p => p[1])) - u, fondo = Math.min(H + 4, Math.max(...aba.map(p => p[1])) + u);
       let g = ctx.createLinearGradient(xe - u * 7, 0, xe, 0); g.addColorStop(0, '#3d0a03'); g.addColorStop(0.45, '#a3290a'); g.addColorStop(0.8, '#f06a18'); g.addColorStop(1, '#ffd27a'); ctx.fillStyle = g; ctx.fillRect(-2, top, xe + u, fondo - top);
+      if (OBJ.lava) {   // lava ilustrada: corre con la colada y se enfría (oscurece) lejos del frente
+        const im = OBJ.lava, k = u * 2.4 / im.height, pat = ctx.createPattern(im, 'repeat');
+        pat.setTransform(new DOMMatrix([k, 0, 0, k, xe - (t * u * 0.35) % (im.width * k), top + u * 0.2])); ctx.fillStyle = pat; ctx.fillRect(-2, top, xe + u, fondo - top);
+        const gf = ctx.createLinearGradient(xe - u * 8, 0, xe - u * 0.5, 0); gf.addColorStop(0, 'rgba(25,6,3,.72)'); gf.addColorStop(0.6, 'rgba(40,10,4,.35)'); gf.addColorStop(1, 'rgba(40,10,4,0)'); ctx.fillStyle = gf; ctx.fillRect(-2, top, xe + u, fondo - top);
+      } else {
       // costra: placas pequeñas e irregulares; avanzan con la colada
       const R = u * 0.3, dx = R * 1.5, dy = R * 1.732, fx = (st.lava * u) % dx;
       const cols = Math.ceil((xe + u) / dx) + 2, rows = Math.ceil((fondo - top) / dy) + 2;
@@ -1319,6 +1324,7 @@
           if (cerca > 0.4) { ctx.fillStyle = 'rgba(140,115,100,.16)'; ctx.beginPath(); ctx.ellipse(cx - r * 0.25, cy - r * 0.35, r * 0.45, r * 0.16, 0.2, 0, TAU); ctx.fill();   // brillo mate de la costra
             ctx.fillStyle = 'rgba(15,8,6,.45)'; for (let q = 0; q < 3; q++) ctx.fillRect(cx + (hash(k + q * 3) - 0.5) * r, cy + (hash(k + q * 3 + 1) - 0.5) * r, Math.max(1, u * 0.03), Math.max(1, u * 0.03)); }   // poros
         }
+      }
       }
       // volumen: arriba la piel enfriada, abajo más oscuro
       g = ctx.createLinearGradient(0, top + u, 0, fondo); g.addColorStop(0, 'rgba(255,190,140,.10)'); g.addColorStop(0.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(20,4,0,.45)'); ctx.fillStyle = g; ctx.fillRect(-2, top, xe + u, fondo - top);
@@ -1416,7 +1422,7 @@
     if (!L.cuerpo && mx > -300 && mx < W + 300) {
       const gs = L.solids.find(s => s.kind !== 'wall' && s.x0 <= L.goals.finish_x && s.x1 >= L.goals.finish_x && s.bot < -1e8), y = sy(gs ? gs.top : 0);
       ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(mx + u * 3.4, y, u * 2.6, u * 0.2, 0, 0, TAU); ctx.fill();
-      if (OBJ.casa) { const im = OBJ.casa, w = u * 6.4, h = w * im.height / im.width; ctx.drawImage(im, mx - u * 0.6, y - h + u * 0.25, w, h); }   // la casita de Uga con su abrevadero
+      if (OBJ.casa) { const im = OBJ.casa, w = u * 4.4, h = w * im.height / im.width; ctx.drawImage(im, mx - u * 0.3, y - h + u * 0.2, w, h); }   // la casita de Uga con su abrevadero
       else {
       casa(ctx, mx + u * 1.6, y, u * 3.6, u * 2.5);
       ctx.fillStyle = '#b5532f'; ctx.beginPath(); ctx.moveTo(mx + u * 1.3, y - u * 2.5); ctx.lineTo(mx + u * 5.5, y - u * 2.5); ctx.lineTo(mx + u * 5.0, y - u * 3.0); ctx.lineTo(mx + u * 1.8, y - u * 3.0); ctx.closePath(); ctx.fill();
