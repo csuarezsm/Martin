@@ -58,7 +58,14 @@ for (let i = 0; i < TOMAS.length; i++) {
 // cierre: título y lo esencial
 const p = await b.newPage({ viewport: { width: W, height: H } });
 const fondo = 'data:image/png;base64,' + readFileSync(ROOT + 'play-store/grafico-destacado-1024x500.png').toString('base64');
-await p.setContent(`<html><body style="margin:0;width:${W}px;height:${H}px;background:#140805 url(${fondo}) center/cover;display:flex;align-items:flex-end;justify-content:flex-start;font-family:'Inter Display',Inter,sans-serif"><div style="margin:0 0 70px 60px;padding:18px 36px;border-radius:24px;background:#140805cc;color:#fff3e4;font:700 40px 'Inter Display',Inter;text-align:center">Gratis · Sin anuncios · Sin cuentas<br><span style="color:#ffd978;font-size:30px">24 niveles por Lanzarote y reto diario</span></div></body></html>`);
+// el gráfico destacado (1024×500) entero, sin recortar: más ancho que 16:9, así que va arriba con su fondo difuminado y el texto debajo
+const GW = W - 120, GH = Math.round(GW * 500 / 1024);
+await p.setContent(`<html><body style="margin:0;width:${W}px;height:${H}px;overflow:hidden;background:#140805;font-family:'Inter Display',Inter,sans-serif">
+  <div style="position:absolute;inset:-40px;background:url(${fondo}) center/cover;filter:blur(28px) brightness(.45)"></div>
+  <img src="${fondo}" style="position:absolute;left:60px;top:34px;width:${GW}px;height:${GH}px;border-radius:22px;box-shadow:0 0 0 3px #ffd97855,0 18px 50px #000c">
+  <div style="position:absolute;left:0;right:0;top:${34 + GH + 22}px;text-align:center;color:#fff3e4;font:700 38px 'Inter Display',Inter;text-shadow:0 2px 10px #000">Gratis · Sin anuncios · Sin cuentas<div style="color:#ffd978;font-size:28px;margin-top:6px">24 niveles por Lanzarote y reto diario</div></div>
+</body></html>`);
+await p.waitForTimeout(200);
 await p.screenshot({ path: TMP + 'fin.png' }); await b.close();
 execSync(`ffmpeg -y -loglevel error -loop 1 -i ${TMP}fin.png -t 3.2 -vf "fps=30,fade=t=in:st=0:d=0.3,fade=t=out:st=2.8:d=0.4" -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p ${TMP}pfin.mp4`);
 writeFileSync(TMP + 'lista.txt', [...partes.map(q => q.out), TMP + 'pfin.mp4'].map(x => `file '${x}'`).join('\n'));
