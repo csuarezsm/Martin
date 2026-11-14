@@ -1333,6 +1333,13 @@
         const im = OBJ.coladaEsp, k = u * 3.4 / im.height, pat = ctx.createPattern(im, 'repeat');
         pat.setTransform(new DOMMatrix([k, 0, 0, k, xe, Math.min(...arr.map(q => q[1])) - 24 * k])); ctx.fillStyle = pat; ctx.fillRect(-2, top, xe + u, fondo - top);
         const gf = ctx.createLinearGradient(xe - u * 9, 0, xe - u, 0); gf.addColorStop(0, 'rgba(25,6,3,.55)'); gf.addColorStop(1, 'rgba(25,6,3,0)'); ctx.fillStyle = gf; ctx.fillRect(-2, top, xe + u, fondo - top);
+        for (let i = 0; i < aba.length; i++) {   // en las grietas la lava se ve como un pozo: brilla arriba y se oscurece hacia el fondo, con bordes al rojo
+          if (aba[i][1] < H) continue; let j = i; while (j + 1 < aba.length && aba[j + 1][1] >= H) j++;
+          const x0 = aba[i][0] - paso, x1 = aba[j][0] + paso, ys = arr[Math.min(j, arr.length - 1)][1] + u * ALTO * 0.9;
+          const gv = ctx.createLinearGradient(0, ys + u * 0.2, 0, ys + u * 1.8); gv.addColorStop(0, 'rgba(20,4,2,0)'); gv.addColorStop(1, 'rgba(14,3,2,.93)'); ctx.fillStyle = gv; ctx.fillRect(x0, ys, x1 - x0, H - ys + 4);
+          for (const [xb, sg] of [[x0 + paso, 1], [x1 - paso, -1]]) { const gb = ctx.createLinearGradient(xb, 0, xb + sg * u * 0.6, 0); gb.addColorStop(0, 'rgba(255,150,50,.55)'); gb.addColorStop(1, 'rgba(255,120,40,0)'); ctx.fillStyle = gb; ctx.fillRect(Math.min(xb, xb + sg * u * 0.6), ys - u * 0.3, u * 0.6, H - ys + 4); }
+          i = j;
+        }
       } else if (OBJ.lava) {   // lava ilustrada: corre con la colada y se enfría (oscurece) lejos del frente
         const im = OBJ.lava, k = u * 2.4 / im.height, pat = ctx.createPattern(im, 'repeat');
         pat.setTransform(new DOMMatrix([k, 0, 0, k, xe - (t * u * 0.35) % (im.width * k), top + u * 0.2])); ctx.fillStyle = pat; ctx.fillRect(-2, top, xe + u, fondo - top);
