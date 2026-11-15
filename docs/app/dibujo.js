@@ -106,7 +106,7 @@
         if (h < 0.62) {
           const choque = L.solids.some(r => r.kind === 'rock' && r.x0 < x + 1.4 && r.x1 > x - 1.4 && Math.abs(r.top - g.top) < 3);
           const cerca = (L.obstacles || []).some(o => o.kind === 'gap' && o.x0 < x + 1.3 && o.x1 > x - 1.3);
-          if (!choque && !cerca) {
+          if (!choque && !cerca && !g.fragil) {   // en el suelo que se hunde no crece nada (si no, las plantas quedarían en el aire)
             const q = hash(Math.floor(x * 13) + k * 31);
             if (sc.tema === 11) { if (q < 0.5) sc.deco.push({ x: x + h * 1.0, y: g.top, t: 'piedra', s: 0.75 + h * 1.0, h: q }); continue; }   // en la cueva no crecen plantas: solo piedras
             sc.deco.push({ x: x + h * 1.0, y: g.top, t: q < 0.22 ? 'tunera' : q < 0.4 ? 'cardon' : q < 0.62 ? 'pita' : q < 0.8 ? 'piedra' : q < 0.88 ? 'lagarto' : 'flor', s: 0.75 + h * 1.0, h: q });
@@ -1449,7 +1449,9 @@
     for (const s of L.solids) {
       const x0 = sx(s.x0), x1 = sx(s.x1); if (x1 < -4 || x0 > W + 4) continue;
       let jit = 0;
-      if (s.fragil && st && st.der) { const dv = st.der[s.id]; if (dv === 0) continue; if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
+      if (s.fragil && st && st.der) { const dv = st.der[s.id]; if (dv === 0) {   // ya se ha hundido: queda un hoyo oscuro (no el cielo del fondo)
+          const yt = sy(s.top), g = ctx.createLinearGradient(0, yt, 0, H); g.addColorStop(0, '#3a1d18'); g.addColorStop(0.35, '#1a0d0c'); g.addColorStop(1, '#070304'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
+          bordeHueco(ctx, { x0: s.x0, x1: s.x1, top: s.top }, W, H, u, sx, sy); continue; } if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
       if (s.kind === 'duna' || s.arena) dibujaArena(ctx, s, W, H, u, sx, sy);
       else if (s.kind === 'ground' || s.kind === 'wall') dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX);
       if (s.mdx) dibujaBarca(ctx, s, u, sx, sy, t);
