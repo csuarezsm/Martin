@@ -685,6 +685,37 @@
   const ARENA = { img: null, ok: false };
   if (typeof Image !== 'undefined') { ARENA.img = nuevaImg(); ARENA.img.onload = () => { ARENA.ok = true; }; ARENA.img.src = 'suelo-arena.webp'; }
   /* 3.1 · Jable de Famara: arena dorada con rizos del viento. Sirve para las dunas (cuesta) y para el suelo llano de arena */
+  // bordes de los huecos: en vez de dos paredes rectas, roca mellada (o arena que se desmorona hacia dentro)
+  function bordeHueco(ctx, h, W, H, u, sx, sy) {
+    const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -u || x0 > W + u) return;
+    const yt = sy(h.top), hond = Math.min(H + 2, yt + u * 6), ancho = x1 - x0;
+    const rnd = k => { const v = Math.sin(h.x0 * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+    for (const lado of [1, -1]) {   // 1: pared izquierda (entra hacia la derecha); -1: pared derecha
+      const xb = lado > 0 ? x0 : x1, pts = [[xb, yt - 1]], n = 9;
+      if (!h.arena) {   // mordiscos hacia dentro de la pared: el borde deja de ser una raya recta
+        ctx.beginPath(); ctx.moveTo(xb, yt + u * 0.14);
+        for (let i = 1; i <= 12; i++) { const f = i / 12, y = yt + u * 0.14 + (hond - yt) * f; ctx.lineTo(xb - lado * u * (0.08 + 0.42 * rnd(i * 5 + lado * 3)) * Math.min(1, f * 4), y); }
+        ctx.lineTo(xb, hond); ctx.closePath();
+        const gm = ctx.createLinearGradient(0, yt, 0, hond); gm.addColorStop(0, '#24110d'); gm.addColorStop(1, 'rgba(10,5,4,.9)'); ctx.fillStyle = gm; ctx.fill();
+      }
+      for (let i = 0; i <= n; i++) {
+        const f = i / n, y = yt + (hond - yt) * f;
+        const dentro = h.arena ? u * (0.15 + 0.75 * Math.pow(f, 0.6)) * (0.8 + 0.4 * rnd(i + lado * 7))   // la arena cae en talud
+          : u * (0.05 + 0.3 * rnd(i * 3 + lado * 11)) * (i === 0 ? 0.6 : 1);   // la roca, mellada
+        pts.push([xb + lado * Math.min(ancho * 0.42, dentro), y]);
+      }
+      pts.push([xb, hond], [xb, yt - 1]);
+      ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+      const g = ctx.createLinearGradient(0, yt, 0, hond);
+      if (h.arena) { g.addColorStop(0, '#d9a560'); g.addColorStop(0.35, '#9c6c38'); g.addColorStop(1, 'rgba(50,30,14,0)'); }
+      else { g.addColorStop(0, '#5a3428'); g.addColorStop(0.4, '#2e1813'); g.addColorStop(1, 'rgba(14,7,6,0)'); }
+      ctx.fillStyle = g; ctx.fill();
+      if (!h.arena) {   // filo iluminado arriba, como en el resto de la roca
+        ctx.strokeStyle = 'rgba(255,190,140,.22)'; ctx.lineWidth = Math.max(1, u * 0.035); ctx.beginPath();
+        for (let i = 0; i < 4; i++) { const [x, y] = pts[i + 1]; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+      }
+    }
+  }
   function dibujaArena(ctx, s, W, H, u, sx, sy) {
     const x0 = sx(s.x0), x1 = sx(s.x1), a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
     const t0 = s.kind === 'duna' ? s.top0 : s.top, t1 = s.kind === 'duna' ? s.top1 : s.top, y0 = sy(t0), y1 = sy(t1), yAt = x => y0 + (y1 - y0) * (x - x0) / Math.max(1, x1 - x0);
@@ -1368,7 +1399,7 @@
     }
     ctx.restore();
     if (OBJ.frente) {   // frente ilustrado: la lengua de lava que avanza, con 6 dibujos que se funden entre sí
-      const hd = u * ALTO * 1.2, im = OBJ.frente, wd = hd * (im.width / 6) / im.height;
+      const hd = u * ALTO * 1.6, im = OBJ.frente, wd = hd * (im.width / 6) / im.height;
       const yb = aba[aba.length - 1][1] + u * 0.05, x0 = xe + u * 0.1 - wd * 0.94 + wd / 2;
       for (let j = 1, x = x0 - wd * 0.62; x > -wd / 2 && j < 8; j++, x -= wd * 0.62) hojaSuave(ctx, im, (t * 0.9 + j * 1.7) % 5, x, yb + u * 0.04 * (j % 2), hd * (0.94 - 0.03 * (j % 2)));   // la colada sigue detrás: sin bordes cortados
       hojaSuave(ctx, im, (t * 0.9) % 5, x0, yb, hd);
@@ -1406,6 +1437,10 @@
         const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.3)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
         continue;
       }
+      if (h.arena == null) { const v = L.solids.find(q => Math.abs(q.x1 - h.x0) < 0.3 || Math.abs(q.x0 - h.x1) < 0.3); h.arena = !!(v && (v.kind === 'duna' || v.arena)); }
+      if (h.arena) {   // hoyo en la arena: arena oscura y en sombra, no roca volcánica
+        const yt = sy(h.top), g = ctx.createLinearGradient(0, yt, 0, yt + u * 4); g.addColorStop(0, '#7a5530'); g.addColorStop(0.5, '#4a2f18'); g.addColorStop(1, '#22150a'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2); continue;
+      }
       const yt = sy(h.top), g = ctx.createLinearGradient(0, yt, 0, H); g.addColorStop(0, '#3a1d18'); g.addColorStop(0.35, '#1a0d0c'); g.addColorStop(1, '#070304'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.35)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       ctx.strokeStyle = 'rgba(90,50,40,.5)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let k = 1; k < 5; k++) { const y = yt + u * k * 1.1; if (y > H) break; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + (k % 2 ? u * 0.1 : -u * 0.1)); ctx.stroke(); }
@@ -1442,6 +1477,7 @@
       }
       if (jit) ctx.restore();
     }
+    for (const h of esc.huecos) if (!h.agua) bordeHueco(ctx, h, W, H, u, sx, sy);
     if (st && L.peligros && L.peligros.length && window.Martin) dibujaPeligros(ctx, W, H, u, sx, sy, L, st, t);
     for (const d of esc.deco) { const x = sx(d.x); if (x < -60 || x > W + 60) continue; dibujaDeco(ctx, d, x, sy(d.y), u, t); }
     if (L.calor) dibujaSombrasCalor(ctx, W, H, u, sx, sy, L);
