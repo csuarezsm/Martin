@@ -997,21 +997,27 @@
     const gs = sol.filter(q => q.kind === 'ground' || q.kind === 'wall');
     for (const q of gs) { if (VECINOS.has(q)) continue; const I = gs.find(o => o !== q && Math.abs(o.x1 - q.x0) < 0.06 && o.bot <= q.top), D = gs.find(o => o !== q && Math.abs(o.x0 - q.x1) < 0.06 && o.bot <= q.top); VECINOS.set(q, { i: I ? I.top : null, d: D ? D.top : null }); }
   }
+  // canto de roca natural para los bloques de suelo: esquina desconchada y laterales con entrantes y salientes de tamaño variable
+  function perfilSuelo(ctx, x0, x1, yt, yb, u, sd, caraI, caraD) {
+    const salta = (k, y, cara) => { const q = (y - yt) / Math.max(1, cara); if (q >= 1) return 0; const amp = Math.min(1, (cara - (y - yt)) / (u * 0.5)); return u * (-0.16 + hash(sd + k * 7) * 0.46 + Math.sin(k * 1.7 + sd) * 0.06) * amp; };
+    const pasos = (cara, k0) => { const ys = []; let y = yt + u * 0.34, k = 0; while (y < yt + cara) { ys.push(y); y += u * (0.16 + hash(sd + k0 + k * 3) * 0.3); k++; } return ys; };
+    const esq = k => u * (0.2 + hash(sd + k) * 0.22);
+    const eI = caraI > 2 ? esq(11) : 0, eD = caraD > 2 ? esq(23) : 0;
+    if (caraI <= 2) x0 -= 1; if (caraD <= 2) x1 += 1;   // pegado a otro tramo: se solapan un píxel y no queda raya entre los dos
+    ctx.beginPath(); ctx.moveTo(x0 + eI, yt - u * 0.05);
+    ctx.lineTo(x1 - eD, yt - u * 0.05);
+    if (caraD > 2) { ctx.lineTo(x1 - eD * 0.35, yt + eD * 0.45); ctx.lineTo(x1 + u * 0.02, yt + eD * 1.1); pasos(caraD, 0).forEach((y, k) => ctx.lineTo(x1 + salta(k, y, caraD), y)); }
+    ctx.lineTo(x1, Math.min(yb, yt + caraD)); ctx.lineTo(x1, yb); ctx.lineTo(x0, yb); ctx.lineTo(x0, Math.min(yb, yt + caraI));
+    if (caraI > 2) { const ys = pasos(caraI, 50); for (let k = ys.length - 1; k >= 0; k--) ctx.lineTo(x0 - salta(k + 50, ys[k], caraI), ys[k]); ctx.lineTo(x0 - u * 0.02, yt + eI * 1.1); ctx.lineTo(x0 + eI * 0.35, yt + eI * 0.45); }
+    ctx.closePath();
+  }
   function dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX) {
     if (TX.tierraP && TX.lavaP) {
       const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4, a = Math.max(x0, -u), b = Math.min(x1, W + u); if (b <= a) return;
       const kL = u * 2.2 / TX.lavaP.height, kT = u * 0.95 / TX.tierraP.height, sd = Math.floor(s.x0 * 13 + s.top * 7);
       // cuánto se ve de cada lateral: si al lado hay suelo, solo la parte que queda por encima de él (antes se sombreaba entero y salía una raya)
       const vec = VECINOS.get(s) || {}, caraI = vec.i == null ? yb - yt : Math.max(0, sy(vec.i) - yt), caraD = vec.d == null ? yb - yt : Math.max(0, sy(vec.d) - yt);
-      const paso = u * 0.28, salta = (k, y, cara) => { const q = (y - yt) / Math.max(1, cara); return y - yt < u * 0.12 ? -u * 0.1 : u * (0.04 + hash(sd + k * 7) * 0.2) * Math.min(1, (cara - (y - yt)) / (u * 0.5)) * (q < 1 ? 1 : 0); };
-      const perfil = () => {   // canto de roca natural: esquinas redondeadas y laterales irregulares (solo en la parte visible)
-        ctx.beginPath(); ctx.moveTo(x0 + (caraI > 2 ? u * 0.14 : 0), yt - 1);
-        ctx.lineTo(x1 - (caraD > 2 ? u * 0.14 : 0), yt - 1);
-        if (caraD > 2) { let k = 0; for (let y = yt + u * 0.06; y < yt + caraD; y += paso, k++) ctx.lineTo(x1 + salta(k, y, caraD), y); }
-        ctx.lineTo(x1, Math.min(yb, yt + caraD)); ctx.lineTo(x1, yb); ctx.lineTo(x0, yb); ctx.lineTo(x0, Math.min(yb, yt + caraI));
-        if (caraI > 2) { const ys = []; for (let y = yt + u * 0.06; y < yt + caraI; y += paso) ys.push(y); for (let k = ys.length - 1; k >= 0; k--) ctx.lineTo(x0 - salta(k + 50, ys[k], caraI), ys[k]); }
-        ctx.closePath();
-      };
+      const perfil = () => perfilSuelo(ctx, x0, x1, yt, yb, u, sd, caraI, caraD);
       ctx.save(); perfil(); ctx.clip();
       const ea = a - u * 0.4, eb = b + u * 0.4;
       // textura y oscurecido anclados al tramo más bajo de alrededor: así dos bloques vecinos casan sin costura
@@ -1038,6 +1044,7 @@
     }
     const x0 = sx(s.x0), x1 = sx(s.x1), yt = sy(s.top), yb = s.bot > -1e8 ? sy(s.bot) : H + 4;
     const a = Math.max(x0, -6), b = Math.min(x1, W + 6); if (b <= a) return;
+    { const vec = VECINOS.get(s) || {}; ctx.save(); perfilSuelo(ctx, x0, x1, yt, yb, u, Math.floor(s.x0 * 13 + s.top * 7), vec.i == null ? yb - yt : Math.max(0, sy(vec.i) - yt), vec.d == null ? yb - yt : Math.max(0, sy(vec.d) - yt)); ctx.clip(); }   // bordes de roca, no de regla
     // cuerpo de lapilli con degradado de profundidad y textura
     let g = ctx.createLinearGradient(0, yt, 0, Math.min(yb, yt + u * 6)); g.addColorStop(0, '#463533'); g.addColorStop(0.25, '#2c2324'); g.addColorStop(1, '#130d0e');
     ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, yb - yt);
@@ -1062,6 +1069,7 @@
       if (xx < -u || xx > W + u) continue;
       g = ctx.createLinearGradient(xx, 0, xx + dir * u * 0.55, 0); g.addColorStop(0, 'rgba(0,0,0,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(dir > 0 ? xx : xx - u * 0.55, yt, u * 0.55, yb - yt);
     }
+    ctx.restore();
   }
 
   function dibujaRoca(ctx, s, base, W, H, u, sx, sy) {
@@ -1450,7 +1458,7 @@
     dibujaFondo(ctx, W, H, u, cam, TM, t, Math.max(0, (L.world.max_x - Math.max(0, L.world.min_x))) + 2);
     // abismo de los huecos
     for (const h of esc.huecos) {
-      const x0 = sx(h.x0), x1 = sx(h.x1); if (x1 < -4 || x0 > W + 4) continue;
+      const x0 = sx(h.x0) - (h.agua ? 0 : u * 0.45), x1 = sx(h.x1) + (h.agua ? 0 : u * 0.45); if (x1 < -4 || x0 > W + 4) continue;   // un poco más ancho: el canto mellado del suelo deja ver el fondo del hoyo, no el paisaje
       if (h.agua === 'lava') { dibujaRioLava(ctx, x0, x1, sy(h.top), H, u, t, h.x0); continue; }
       if (h.agua) { dibujaMar(ctx, x0, x1, sy(h.top), H, u, t, h.x0); continue; }
       if (TX.lavaP) { // abismo pintado: la misma lava, más oscura según se hunde
@@ -1465,7 +1473,7 @@
       }
       const yt = sy(h.top), g = ctx.createLinearGradient(0, yt, 0, H); g.addColorStop(0, '#3a1d18'); g.addColorStop(0.35, '#1a0d0c'); g.addColorStop(1, '#070304'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
       const eg = ctx.createRadialGradient((x0 + x1) / 2, H, 0, (x0 + x1) / 2, H, Math.max(u * 3, (x1 - x0))); eg.addColorStop(0, 'rgba(255,120,50,.35)'); eg.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = eg; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
-      ctx.strokeStyle = 'rgba(90,50,40,.5)'; ctx.lineWidth = Math.max(1, u * 0.04); for (let k = 1; k < 5; k++) { const y = yt + u * k * 1.1; if (y > H) break; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + (k % 2 ? u * 0.1 : -u * 0.1)); ctx.stroke(); }
+      // (sin rayas horizontales: parecían tablones)
     }
     const st = esc.s; if (!esc.solCon) esc.solCon = L.solids.concat(esc.rocas.filter(r => r.relleno).map(r => r.relleno)); vecinos(esc.solCon);
     for (const s of L.solids) {
@@ -1473,7 +1481,7 @@
       let jit = 0;
       if (s.fragil && st && st.der) { const dv = st.der[s.id]; if (dv === 0) {   // ya se ha hundido: queda un hoyo oscuro (no el cielo del fondo)
           const yt = sy(s.top), g = ctx.createLinearGradient(0, yt, 0, H); g.addColorStop(0, '#3a1d18'); g.addColorStop(0.35, '#1a0d0c'); g.addColorStop(1, '#070304'); ctx.fillStyle = g; ctx.fillRect(x0, yt, x1 - x0, H - yt + 2);
-          bordeHueco(ctx, { x0: s.x0, x1: s.x1, top: s.top }, W, H, u, sx, sy); continue; } if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
+          continue; } if (dv > 0) { jit = Math.sin(t * 60) * u * 0.05 * (1 + (60 - dv) / 30); ctx.save(); ctx.translate(jit, Math.max(0, 60 - dv) * u * 0.002); } }
       if (s.kind === 'duna' || s.arena) dibujaArena(ctx, s, W, H, u, sx, sy);
       else if (s.kind === 'ground' || s.kind === 'wall') dibujaSuelo(ctx, s, W, H, u, cam, sx, sy, TX);
       if (s.mdx) dibujaBarca(ctx, s, u, sx, sy, t);
@@ -1501,7 +1509,7 @@
       }
       if (jit) ctx.restore();
     }
-    for (const h of esc.huecos) if (!h.agua) bordeHueco(ctx, h, W, H, u, sx, sy);
+    for (const h of esc.huecos) if (!h.agua && h.arena) bordeHueco(ctx, h, W, H, u, sx, sy);
     if (st && L.peligros && L.peligros.length && window.Martin) dibujaPeligros(ctx, W, H, u, sx, sy, L, st, t);
     for (const d of esc.deco) { const x = sx(d.x); if (x < -60 || x > W + 60) continue; dibujaDeco(ctx, d, x, sy(d.y), u, t); }
     if (L.calor) dibujaSombrasCalor(ctx, W, H, u, sx, sy, L);
