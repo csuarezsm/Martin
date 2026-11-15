@@ -651,22 +651,21 @@
   const OLAS = { ms: 0, n: 0, off: false };
   function dibujaOlas(ctx, A, x, top, k, t, W) {
     if (OLAS.off) return;
-    const t0 = performance.now(), y0 = A.y0, y1 = A.y1, alto = y1 - y0, paso = Math.max(6, Math.ceil(alto / 40));
-    const a0 = Math.max(0, Math.floor(-x / k) - 4), a1 = Math.min(A.width, Math.ceil((W - x) / k) + 4), w = a1 - a0;   // solo la parte visible
+    // la franja del mar se escala una sola vez al tamaño de la pantalla: luego cada tira se copia tal cual (copiar escalando ~40 tiras por imagen daba tirones en el móvil)
+    if (!A.esc || A.esc.k !== k) { const y0 = A.y0, y1 = A.y1, c = lienzo(Math.ceil(A.width * k), Math.ceil((y1 - y0) * k) + 2); c.getContext('2d').drawImage(A, 0, y0, A.width, y1 - y0, 0, 0, c.width, (y1 - y0) * k); c.k = k; A.esc = c; }
+    const E = A.esc, alto = E.height, paso = Math.max(8, Math.ceil(alto / 18)), yT = top + A.y0 * k;
+    const a0 = Math.max(0, Math.floor(-x) - 8), a1 = Math.min(E.width, Math.ceil(W - x) + 8), w = a1 - a0;   // solo la parte visible
     if (w <= 0) return;
-    try { olasTiras(ctx, A, x, top, k, t, y0, y1, alto, paso, a0, w); } finally {
-      const d = performance.now() - t0; OLAS.ms = OLAS.n ? OLAS.ms * 0.95 + d * 0.05 : d; OLAS.n++;
-      if (OLAS.n > 90 && OLAS.ms > 3.5) OLAS.off = true;
-    }
-  }
-  function olasTiras(ctx, A, x, top, k, t, y0, y1, alto, paso, a0, w) {
-    for (let y = y0; y < y1; y += paso) {
-      const p = (y - y0) / alto, f = 0.15 + p,                       // más cerca de la orilla, olas más grandes y más separadas
+    const t0 = performance.now();
+    for (let y = 0; y < alto; y += paso) {
+      const p = y / alto, f = 0.15 + p,                       // más cerca de la orilla, olas más grandes y más separadas
         fase = Math.pow(p, 1.5) * 7 * Math.PI * 2 - t * 1.7,
-        dy = Math.sin(fase) * 3.6 * f, dx = Math.sin(fase * 0.6 + t * 0.8) * 2.2 * f;
-      const sy = Math.max(0, Math.min(A.height - paso, y + dy));
-      ctx.drawImage(A, a0, sy, w, paso, x + (a0 + dx) * k, top + y * k, w * k, paso * k + 1);
+        dy = Math.sin(fase) * 3.6 * f * k, dx = Math.sin(fase * 0.6 + t * 0.8) * 2.2 * f * k;
+      const sy = Math.max(0, Math.min(alto - paso, Math.round(y + dy))), hh = Math.min(paso + 1, alto - sy);
+      ctx.drawImage(E, a0, sy, w, hh, Math.round(x + a0 + dx), Math.round(yT + y), w, hh);
     }
+    const d = performance.now() - t0; OLAS.ms = OLAS.n ? OLAS.ms * 0.95 + d * 0.05 : d; OLAS.n++;
+    if (OLAS.n > 90 && OLAS.ms > 3.5) OLAS.off = true;
   }
   function dibujaPaisaje(ctx, W, H, u, cam, TM, t, F, largo) {
     // tamaño fijo (antes dependía de la altura del suelo y hacía un zoom brusco); en vertical sigue al suelo suavemente y solo en parte (paralaje)

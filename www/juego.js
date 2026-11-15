@@ -344,6 +344,26 @@ function evento(e) {
   else if (e.t === 'sofoco') { Sound.play('sofoco'); vibrate(40); RUN.fx.push({ k: 'texto', x: s.x, y: s.y + 2.4, v: 0, n: 90, txt: TR('🥵 ¡Qué calor! A la sombra') }); }
   else if (e.t === 'lava') { Sound.play('lava'); vibrate(80); RUN.shake = Math.max(RUN.shake || 0, 1.2); RUN.lavaAviso = performance.now(); }
 }
+// Mientras se ve el «¡Vamos!», se dibuja el nivel entero tramo a tramo en un lienzo aparte (uno por imagen): así las
+// imágenes y los dibujos guardados de cada sitio ya están listos cuando Martín llega, y no hay tirones la primera vez.
+function calentar() {
+  const s = RUN.s, L = RUN.L, cv = RUN.cv; if (!cv || !L || !RUN.ctx) return;
+  const clave = RUN.idx + ':' + RUN.modo; if (RUN.calor && RUN.calor.clave === clave && RUN.calor.hecho) return;
+  if (!RUN.calor || RUN.calor.clave !== clave) RUN.calor = { clave, x: L.world.min_x, hecho: false, c: document.createElement('canvas') };
+  const C = RUN.calor, vw = cv.width / (RUN.u || 1);
+  if (C.x > L.world.max_x) { C.hecho = true; C.c = null; return; }
+  C.c.width = cv.width; C.c.height = cv.height;
+  const g = { cv: RUN.cv, ctx: RUN.ctx, x: s.x, y: s.y, cx: RUN.cam.x, cy: RUN.cam.y, ci: RUN.camInit, fx: RUN.fx, sh: RUN.shake };
+  try {
+    if (!RUN.rect) return; RUN.rectT = performance.now();   // que no se pregunte el tamaño de la pantalla al lienzo de prueba
+    RUN.cv = C.c; RUN.ctx = C.c.getContext('2d');
+    s.x = C.x + vw * 0.3; const sol = L.solids.find(q => q.x0 <= s.x && q.x1 >= s.x); s.y = sol ? sol.top : s.y; RUN.camInit = null; RUN.fx = [];
+    dibujar(16);
+  } catch (e) {} finally {
+    RUN.cv = g.cv; RUN.ctx = g.ctx; s.x = g.x; s.y = g.y; RUN.cam.x = g.cx; RUN.cam.y = g.cy; RUN.camInit = g.ci; RUN.fx = g.fx; RUN.shake = g.sh;
+  }
+  C.x += vw * 0.9;
+}
 function startLoop() {
   stopLoop(true); RUN.on = true; RUN.last = performance.now(); RUN.acc = 0;
   const bucle = ts => {
@@ -361,8 +381,11 @@ function startLoop() {
       } else if (s.fase === 'meta' || s.fase === 'fallo') { RUN.t += dt / 1000; RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n); }
       else RUN.t += dt / 1000;
       window.JUGANDO = s.fase === 'jugando' || s.fase === 'reaparece';   // mientras se juega no se precarga nada
+      if (s.fase === 'lista') calentar();
       dibujar(dt); hud();
-      if (s.fase === 'jugando') { const d = Math.min(dt, 60); RUN.ema = RUN.ema == null ? d : RUN.ema * 0.95 + d * 0.05; RUN.nf = (RUN.nf || 0) + 1; }   // solo se mide jugando, y un tirón suelto no cuenta como lentitud
+      if (s.fase === 'jugando') { const d = Math.min(dt, 60); RUN.ema = RUN.ema == null ? d : RUN.ema * 0.95 + d * 0.05; RUN.nf = (RUN.nf || 0) + 1; }
+      if (s.fase === 'jugando' && !window.SIN_OLAS && RUN.nf > 60 && RUN.nf <= 420 && dt > 30 && ++RUN.picos > 15) {   // tirones sueltos frecuentes (aunque la media vaya bien): fuera el oleaje, que no cambia el tamaño del lienzo
+        window.SIN_OLAS = true; try { const c = JSON.parse(localStorage.getItem('martin.calidad') || '{}'); c.sinOlas = true; localStorage.setItem('martin.calidad', JSON.stringify(c)); } catch (e) {} }   // solo se mide jugando, y un tirón suelto no cuenta como lentitud
       if (RUN.nf > 150 && RUN.ema > 22) {   // va lento: se baja la calidad de una sola vez (cada cambio de tamaño del lienzo es un tirón) y se recuerda para las próximas partidas
         const r = RUN.ema / 16.7; window.SIN_OLAS = true;
         if (r > 1.45 && RUN.dprMax > 1) RUN.dprMax = Math.max(1, Math.round(RUN.dprMax / Math.sqrt(r) * 4) / 4);
@@ -529,7 +552,7 @@ function jugar(idx, modo, opts) {
 }
 function empezar() {
   if (!RUN.s || RUN.s.fase !== 'lista') return;
-  M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; RUN.nf = 0; RUN.ema = null; soltarTodo(); ponOverlay(); keepAwake();
+  M.empezar(RUN.s); if (RUN.fan) M.empezar(RUN.fan.s); RUN.overlay = ''; RUN.nf = 0; RUN.ema = null; RUN.picos = 0; soltarTodo(); ponOverlay(); keepAwake();
   if (RUN.modo === 'nivel') prog(RUN.idx).plays++;
 }
 function pausar() { Musica.tick(false, '');
