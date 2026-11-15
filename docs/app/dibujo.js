@@ -12,8 +12,11 @@
   // todas las imágenes del juego pasan por aquí para poder decodificarlas por adelantado (y que no se atasque al empezar a jugar)
   const TODAS = [];
   function nuevaImg() { const im = new Image(); TODAS.push(im); return im; }
-  function precarga() {   // decodifica una imagen cada vez, en los ratos libres, sin bloquear
-    let i = 0; const sig = () => { if (i >= TODAS.length) return; const im = TODAS[i++]; const seguir = () => (window.requestIdleCallback ? requestIdleCallback(sig, { timeout: 400 }) : setTimeout(sig, 30));
+  function precarga() {   // decodifica una imagen cada vez, en los ratos libres y nunca mientras se juega (ahí cada milisegundo cuenta)
+    let i = 0, f = 0; const sig = () => {
+      const R = window.__martin && window.__martin.RUN; if (window.JUGANDO && R && R.on && !document.hidden) { setTimeout(sig, 700); return; }
+      if (f < PAI.fotos.length) { const F = PAI.fotos[f++]; cargaFoto(F); if (F.ok) { setTimeout(sig, 0); return; } F.img.addEventListener('load', () => setTimeout(sig, 60), { once: true }); F.img.addEventListener('error', () => setTimeout(sig, 0), { once: true }); return; }   // primero los paisajes: son los que más pesan
+      if (i >= TODAS.length) return; const im = TODAS[i++]; const seguir = () => (window.requestIdleCallback ? requestIdleCallback(sig) : setTimeout(sig, 30));
       if (im.complete && im.naturalWidth && im.decode) im.decode().then(seguir, seguir); else if (!im.complete) { im.addEventListener('load', seguir, { once: true }); im.addEventListener('error', seguir, { once: true }); } else seguir(); };
     sig();
   }
@@ -611,6 +614,10 @@
   function fotoTema(tema) {
     if (PAI.porTema[tema] === -1) return null;
     const f = PAI.fotos[PAI.porTema[tema] || 0];
+    cargaFoto(f);
+    return f.ok ? f : null;
+  }
+  function cargaFoto(f) {
     if (!f.img && typeof Image !== 'undefined') {
       f.img = nuevaImg();
       f.img.onload = () => {   // el dibujo entero (sin fundidos, que mezclaban dos sitios distintos); nunca se repite
@@ -621,7 +628,6 @@
       };
       f.img.src = f.src;
     }
-    return f.ok ? f : null;
   }
   fotoTema(0);
   /* Oleaje: se separa del dibujo solo el agua (píxeles azules o de espuma dentro de la franja del mar) y luego se pinta

@@ -360,9 +360,19 @@ function startLoop() {
         for (let k = 1; k < turbo() && (s.fase === 'jugando' || s.fase === 'reaparece'); k++) paso1();
       } else if (s.fase === 'meta' || s.fase === 'fallo') { RUN.t += dt / 1000; RUN.fx = RUN.fx.filter(f => (f.v += 1) < f.n); }
       else RUN.t += dt / 1000;
+      window.JUGANDO = s.fase === 'jugando' || s.fase === 'reaparece';   // mientras se juega no se precarga nada
       dibujar(dt); hud();
       if (s.fase === 'jugando') { const d = Math.min(dt, 60); RUN.ema = RUN.ema == null ? d : RUN.ema * 0.95 + d * 0.05; RUN.nf = (RUN.nf || 0) + 1; }   // solo se mide jugando, y un tirón suelto no cuenta como lentitud
-      if (RUN.nf > 150 && RUN.ema > 22) { if (!window.SIN_OLAS) window.SIN_OLAS = true; else if (RUN.dprMax > 1.25) RUN.dprMax -= 0.25; RUN.nf = 0; RUN.ema = 16; }   // si va lento: primero fuera el oleaje, luego menos resolución
+      if (RUN.nf > 150 && RUN.ema > 22) {   // va lento: se baja la calidad de una sola vez (cada cambio de tamaño del lienzo es un tirón) y se recuerda para las próximas partidas
+        const r = RUN.ema / 16.7; window.SIN_OLAS = true;
+        if (r > 1.45 && RUN.dprMax > 1) RUN.dprMax = Math.max(1, Math.round(RUN.dprMax / Math.sqrt(r) * 4) / 4);
+        try { localStorage.setItem('martin.calidad', JSON.stringify({ dpr: RUN.dprMax, sinOlas: true })); } catch (e) {}
+        RUN.nf = 0; RUN.ema = 16;
+      }
+      else if (RUN.nf > 900 && RUN.ema < 12 && RUN.dprMax < 2) {   // va muy holgado durante un buen rato: se recupera un poco de nitidez (un solo cambio)
+        RUN.dprMax = Math.min(2, RUN.dprMax + 0.25); RUN.nf = 0;
+        try { localStorage.setItem('martin.calidad', JSON.stringify({ dpr: RUN.dprMax, sinOlas: !!window.SIN_OLAS })); } catch (e) {}
+      }   // si va lento: primero fuera el oleaje, luego menos resolución
       if ((s.fase === 'meta' || s.fase === 'fallo') && RUN.tFin && !RUN.overlay && performance.now() - RUN.tFin > (s.fase === 'meta' ? 900 : 700) / Math.max(1, turbo() > 1 ? 4 : 1)) terminar();
     }
     Musica.tick(!!(RUN.s && RUN.modo !== undefined && (RUN.s.fase === 'jugando' || RUN.s.fase === 'reaparece') && !document.hidden), RUN.s ? estiloMusica(RUN.idx) : '');
@@ -375,7 +385,7 @@ function ajustaCanvas() {
   // el tamaño del lienzo se consulta cada medio segundo (no en cada imagen) y la resolución baja sola si el móvil no llega a 45 imágenes/s
   const ahora = performance.now();
   if (!RUN.rect || ahora - RUN.rectT > 500) { RUN.rect = cv.parentNode.getBoundingClientRect(); RUN.rectT = ahora; }
-  if (RUN.dprMax == null) RUN.dprMax = 2;
+  if (RUN.dprMax == null) { RUN.dprMax = 2; try { const c = JSON.parse(localStorage.getItem('martin.calidad') || '{}'); if (c.dpr) RUN.dprMax = c.dpr; if (c.sinOlas) window.SIN_OLAS = true; } catch (e) {} }   // la calidad que ya se vio que aguanta este móvil
   const r = RUN.rect, dpr = Math.min(window.devicePixelRatio || 1, RUN.dprMax);
   const w = Math.max(160, Math.round(r.width * dpr)), h = Math.max(120, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
