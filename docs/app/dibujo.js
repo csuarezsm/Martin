@@ -1171,7 +1171,7 @@
         if (OBJ.geiser) {   // 6 dibujos: quieto, aviso, sube, chorro, se apaga, humo
           const p = faseHoja(e, h), im = OBJ.geiser, hd = u * 4.6;
           if (e.aviso || e.activo) { const g = ctx.createRadialGradient(x, y, 0, x, y, u * 0.9); g.addColorStop(0, 'rgba(255,140,50,' + (e.activo ? 0.7 : 0.4) + ')'); g.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = g; ctx.fillRect(x - u, y - u, u * 2, u * 1.3); }
-          hojaSuave(ctx, im, p, x, y + u * 0.3, hd, p > 2.5 && p < 3.5 ? 1 + Math.sin(t * 3) * 0.025 : 1); continue;   // el chorro respira un poco mientras está arriba
+          hojaMorph(ctx, im, 'geiser', p + (p > 2.6 && p < 3.4 ? Math.sin(t * 3) * 0.06 : 0), x, y + u * 0.3, hd, t); continue;   // el chorro respira un poco mientras está arriba
         }
         ctx.fillStyle = '#1a1012'; ctx.beginPath(); ctx.ellipse(x, y + u * 0.02, u * 0.55, u * 0.14, 0, 0, TAU); ctx.fill();
         const brillo = e.aviso ? 0.35 + 0.4 * (e.c / h.aviso) : e.activo ? 0.8 : 0.18;
@@ -1210,7 +1210,7 @@
         const cx = (x0 + x1) / 2, w = x1 - x0;
         if (OBJ.bufadero) {   // 6 dibujos de un bufadero (chorro que sale de un agujero en la roca), cuando llegue el dibujo; la ola de orilla no encaja aquí
           const p = faseHoja(e, h), hd = u * (h.alto * 1.35 + 1.1);
-          hojaSuave(ctx, OBJ.bufadero, p, cx, y + u * 0.35, hd, p > 2.5 && p < 3.5 ? 1 + Math.sin(t * 5) * 0.03 : 1); continue;
+          hojaMorph(ctx, OBJ.bufadero, 'bufadero', p + (p > 2.6 && p < 3.4 ? Math.sin(t * 5) * 0.06 : 0), cx, y + u * 0.35, hd, t); continue;
         }
         ctx.fillStyle = 'rgba(15,40,60,.45)'; ctx.beginPath(); ctx.ellipse(cx, y + u * 0.05, w * 0.5, u * 0.16, 0, 0, TAU); ctx.fill();   // roca mojada del bufadero
         ctx.fillStyle = '#0d1a22'; ctx.beginPath(); ctx.ellipse(cx, y + u * 0.04, w * 0.18, u * 0.08, 0, 0, TAU); ctx.fill();
@@ -1243,11 +1243,28 @@
     if (f > 0.01 && b !== a) { ctx.globalAlpha = f; ctx.drawImage(im, b * fw, 0, fw, im.height, x - wd / 2, yb - h2, wd, h2); }
     ctx.globalAlpha = 1;
   }
+  // géiser y bufadero: en vez de fundir dos dibujos de alturas muy distintas (se ve a saltos), el penacho se estira
+  // para que su punta suba y baje seguida, y las piedras de la base no se mueven
+  const PUNTAS = { geiser: [273, 178, 77, 1, 117, 263], bufadero: [213, 170, 128, 1, 101, 212] };
+  function hojaMorph(ctx, im, k, p, x, yb, hd, t) {
+    const T = PUNTAS[k], fw = im.width / 6, IH = im.height, R = T[0] - 4, sc = hd / IH, wd = fw * sc;
+    const a = Math.max(0, Math.min(5, Math.floor(p))), b = Math.min(5, a + 1), f = Math.max(0, Math.min(1, p - a)), e = f * f * (3 - 2 * f);
+    const alto = i => Math.max(0, R - T[i]), P = alto(a) + (alto(b) - alto(a)) * e;   // altura del penacho en este instante (px de la hoja)
+    const vaiv = Math.sin(t * 2.3 + x * 0.01) * 0.035 * Math.min(1, P / 120);   // se mece un poco con el viento
+    const dib = (i, al) => { if (al <= 0.01) return; ctx.globalAlpha = al;
+      ctx.drawImage(im, i * fw, R, fw, IH - R, x - wd / 2, yb - (IH - R) * sc, wd, (IH - R) * sc);   // base: piedras, sin estirar
+      const h0 = alto(i); if (h0 < 2) return;
+      const s = Math.max(0.55, Math.min(1.8, P / h0)), hh = R * sc * s, yB = yb - (IH - R) * sc + 1;
+      ctx.save(); ctx.translate(x, yB); ctx.transform(1, 0, -vaiv, 1, 0, 0); ctx.drawImage(im, i * fw, 0, fw, R, -wd / 2, -hh, wd, hh); ctx.restore(); };
+    if (b === a) dib(a, 1); else { dib(a, Math.min(1, 2 * (1 - e))); dib(b, Math.min(1, 2 * e)); } ctx.globalAlpha = 1;   // fundido sin cortes en ningún extremo
+  }
   // de la fase del peligro (aviso, activo) a la posición en la hoja: sube, se mantiene arriba y se apaga poco a poco
   function faseHoja(e, h) {
     if (e.activo) { const q = Math.max(0, Math.min(1, (e.c - h.aviso) / h.activo));
-      return q < 0.15 ? 1 + q / 0.15 : q < 0.3 ? 2 + (q - 0.15) / 0.15 : q < 0.72 ? 3 : q < 0.88 ? 3 + (q - 0.72) / 0.16 : 4 + (q - 0.88) / 0.12; }
-    if (e.aviso) return Math.max(0, Math.min(1, e.c / h.aviso));
+      return q < 0.25 ? 1.8 + 1.2 * (q / 0.25) : q < 0.7 ? 3 : 3 + 0.6 * (q - 0.7) / 0.3; }   // del aviso al chorro sin salto; al final empieza a bajar
+    if (e.aviso) { const a = Math.max(0, Math.min(1, e.c / h.aviso)); return 1.8 * a * a; }   // el aviso va creciendo, cada vez más deprisa
+    const tras = e.c - h.aviso - h.activo;   // ya no hace daño: el humo se deshace poco a poco en vez de desaparecer de golpe
+    if (tras >= 0 && tras < 60) return 3.6 + 1.4 * tras / 60;
     return 0;
   }
   function fruto(ctx, k, x, y, r) {
