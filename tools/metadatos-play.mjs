@@ -17,8 +17,8 @@ if (video) writeFileSync(D + 'video.txt', video);
 mkdirSync(D + 'images', { recursive: true });
 copyFileSync(PS + 'icono-512.png', D + 'images/icon.png'); copyFileSync(PS + 'grafico-destacado-1024x500.png', D + 'images/featureGraphic.png');
 for (const [pre, dir] of [['movil-', 'phoneScreenshots'], ['tablet7-', 'sevenInchScreenshots'], ['tablet10-', 'tenInchScreenshots']]) {
-  mkdirSync(D + 'images/' + dir, { recursive: true });
-  const fs = readdirSync(PS).filter(f => f.startsWith(pre) && f.endsWith('.png')).sort(); if (!fs.length || fs.length > 8) throw new Error(`Capturas ${pre}: ${fs.length} (tiene que haber de 1 a 8)`);
+  const fs = readdirSync(PS).filter(f => f.startsWith(pre) && f.endsWith('.png')).sort(); if (fs.length > 8 || (!fs.length && pre === 'movil-')) throw new Error(`Capturas ${pre}: ${fs.length} (de móvil tiene que haber de 2 a 8; las de tablet son opcionales)`);
+  if (fs.length) mkdirSync(D + 'images/' + dir, { recursive: true });
   fs.forEach((f, i) => copyFileSync(PS + f, `${D}images/${dir}/${i + 1}_${f}`));
 }
 // notas de la versión: la primera línea del último commit (es lo que lee el jugador)
