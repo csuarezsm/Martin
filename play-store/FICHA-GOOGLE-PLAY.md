@@ -96,7 +96,7 @@ Juego de entretenimiento sin apuestas. Martín está inspirado en un guelfo real
 | Etiquetas | Plataformas, Aventura, Un jugador, Casual, Educativo |
 | Correo de contacto | [correo de contacto de IT Canarias] |
 | Sitio web | https://itcanarias.com |
-| Política de privacidad | https://csuarezsm.github.io/Martin/privacidad.html |
+| Política de privacidad | https://martin.itcanarias.com/privacidad.html |
 | Precio | Gratis |
 
 ## Contenido de la aplicación (formularios)

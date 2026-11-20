@@ -469,7 +469,7 @@ window.NOTICIAS_MARTIN = ['https://www.laprovincia.es/videos/lanzarote/2026/08/1
   'https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html',
   'https://www.tiktok.com/@unahoramenostv/video/7605692657339256097'];   // el Martín real (prensa, agosto de 2026)
 window.NOTICIA_MARTIN = NOTICIAS_MARTIN[0];
-const APP_VERSION = '3.4.14';
+const APP_VERSION = '3.4.15';
 const REPO = 'csuarezsm/Martin';
 const MAX_ARCHIVE = 500;
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -713,8 +713,8 @@ function openGameRules() {
 
 /* ---------- Compartir la app ---------- */
 const APK_URL = 'https://github.com/' + REPO + '/releases/latest/download/martin.apk';
-const WEB_URL = 'https://csuarezsm.github.io/Martin/app/';
-const DESCARGA_URL = 'https://csuarezsm.github.io/Martin/';
+const WEB_URL = 'https://martin.itcanarias.com/app/';
+const DESCARGA_URL = 'https://martin.itcanarias.com/';
 const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isStandalone = () => window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 function openIOSInstall(force) {

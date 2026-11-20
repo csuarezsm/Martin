@@ -2,7 +2,7 @@
 
 Martín, un guelfo (cría de camello canario) de Uga inspirado en uno real, lleva el agua por los caminos que dejó la tormenta: lava, rocas, huecos y bajadas. **11 niveles de plataformas en dos mundos** con tres estrellas cada uno, a veces con dos caminos (uno rápido y arriesgado, otro lento y seguro), y un **reto diario** igual para todos con ranking.
 Para Android e iPhone. Gratis, sin anuncios y sin cuentas. App Capacitor + web (`www/`). Todo se guarda en el móvil; solo el reto diario usa el servidor de juegos (nombre y pulsaciones, para comprobar el tiempo).
-Paquete: `com.itcanarias.martin` · versión 3.4.14
+Paquete: `com.itcanarias.martin` · versión 3.4.15
 
 Novedades de la 3.0: **Mundo 3 · El guelfo de Uga**, una precuela con 6 niveles, un nivel secreto (El Echadero) y un nivel de premio (Arena negra): Martín todavía es un guelfo, más pequeño y con menos salto, que crece de nivel en nivel; sigue al camellero y a la manada, busca la sombra en el calor de julio y vive el eclipse del 12 de agosto. Ocho escenas cuentan su historia, hay biberones escondidos, sonido de fondo de pueblo y manada, y cuatro fichas nuevas en el Cuaderno de viaje con datos del Ayuntamiento de Yaiza, el Ministerio de Agricultura y la RAE.
 
@@ -14,7 +14,7 @@ De la 2.1: **peligros vivos** (piedras que ruedan, géiseres de vapor, rachas de
 
 De la 2.0: **Cuaderno de viaje**. Cada nivel recorre un lugar real de Lanzarote (Uga, los molinos de Tiagua y Teguise, Timanfaya, La Geria, Los Hervideros y Teguise) y, al terminarlo, se abre su ficha divulgativa con un dato curioso y sus fuentes. Los textos están en `www/lugares.js`.
 
-**iPhone y navegadores**: la misma app se publica como versión web instalable en https://csuarezsm.github.io/Martin/app/ (GitHub Pages, carpeta `docs/app`, copia de `www/`). En Safari: Compartir → «Añadir a pantalla de inicio». Tras cambiar `www/`, ejecuta `npm run web`.
+**iPhone y navegadores**: la misma app se publica como versión web instalable en https://martin.itcanarias.com/app/ (GitHub Pages, carpeta `docs/app`, copia de `www/`). En Safari: Compartir → «Añadir a pantalla de inicio». Tras cambiar `www/`, ejecuta `npm run web`.
 
 © 2026 IT Canarias. Todos los derechos reservados. Martín está inspirado en un guelfo real de Uga ([la noticia](https://www.eldiario.es/canariasahora/sociedad/eclipse-deja-imagenes-historia-martin-cria-camello-lanzarote_1_13444558.amp.html)); la historia y los caminos del juego son inventados; dibujos, sonidos y código propios.
 
