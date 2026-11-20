@@ -42,7 +42,7 @@
   <p>Los Caminos del Volcán: un guelfo de Uga lleva el agua por toda Lanzarote. Gratis y sin anuncios.</p>
   <a class="btn" id="gp" href="https://play.google.com/store/apps/details?id=com.itcanarias.martin">▶️ Descargar en Google Play</a>
   <a class="btn" id="dl" style="background:transparent;color:var(--txt);border:2px solid var(--gold);font-size:15px" href="https://github.com/csuarezsm/Martin/releases/latest/download/martin.apk">⬇️ Android sin Google Play (archivo APK)</a>
-  <a class="btn" id="ios" href="app/" style="background:transparent;color:var(--txt);border:2px solid var(--gold)">📱 iPhone y otros móviles: abrir la versión web</a>
+  <a class="btn" id="ios" href="app/" style="background:transparent;color:var(--txt);border:2px solid var(--gold)">📱💻 iPhone y ordenador: jugar en el navegador</a>
   <div class="mut" id="ver" style="font-size:14px"></div>
   <ul>
     <li>🐪 Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Tras la tormenta, lleva el agua por caminos de lava, rocas y huecos hasta el punto de entrega.</li>
@@ -73,6 +73,11 @@ fetch('https://csuarezsm.github.io/juegos-servidor/juegos.json', { cache: 'no-ca
   const list = c.juegos.filter(j => j && j.id !== box.dataset.yo && ok(j.descarga || j.web)).slice(0, 30);
   if (list.length) box.innerHTML = list.map(j => `<a class="mjl" href="${e(j.descarga || j.web)}">${ok(j.icono) ? `<img src="${e(j.icono)}" alt="">` : ''}<span><b>${e(j.nombre)}</b><small>${e(j.descripcion)}</small></span></a>`).join('');
 }).catch(() => {});
+// En ordenador (Windows, Mac, Linux), primero jugar en el navegador
+if (!/Android|iPhone|iPad|iPod/.test(navigator.userAgent) && !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+  const a = document.getElementById('gp'), b = document.getElementById('ios'); a.parentNode.insertBefore(b, a);
+  b.style.cssText = ''; b.textContent = '💻 Jugar ahora en el navegador';
+}
 // En iPhone/iPad, primero lo suyo
 if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
   const a = document.getElementById('gp'), b = document.getElementById('ios'); a.parentNode.insertBefore(b, a);
