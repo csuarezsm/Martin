@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Martín: Los Caminos del Volcán — descarga la app</title>
-<meta name="description" content="Martín, un camello canario, lleva el agua por los caminos de Lanzarote: 11 niveles de plataformas y un reto diario. Gratis y sin anuncios.">
+<meta name="description" content="Martín, un guelfo de Uga, lleva el agua por los caminos de Lanzarote: 24 niveles, lava, barcas, dunas y reto diario. Gratis y sin anuncios.">
 <meta property="og:title" content="Martín: Los Caminos del Volcán">
-<meta property="og:description" content="Un camello canario, un cántaro de agua y un reto diario para todos. Gratis y sin anuncios.">
-<meta property="og:image" content="https://csuarezsm.github.io/Martin/icon.png">
+<meta property="og:description" content="🐪 Un guelfo de Uga lleva el agua por toda Lanzarote. 24 niveles, lugares reales y reto diario. Gratis y sin anuncios. Android y iPhone.">
+<meta property="og:image" content="https://csuarezsm.github.io/Martin/og.png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="500">
+<meta property="og:url" content="https://csuarezsm.github.io/Martin/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="icon.png">
 <style>
   :root{--bg:#2a1c18;--card:#41291f;--txt:#fbf1e4;--mut:#d0b8a4;--gold:#ff9a3c}
@@ -35,21 +39,22 @@
 <body>
   <img src="icon.png" alt="Icono de Martín">
   <h1>Martín</h1>
-  <p>Los Caminos del Volcán: un camello canario, un cántaro de agua y un reto diario para todos. Gratis y sin anuncios.</p>
-  <a class="btn" id="dl" href="https://github.com/csuarezsm/Martin/releases/latest/download/martin.apk">⬇️ Descargar para Android</a>
+  <p>Los Caminos del Volcán: un guelfo de Uga lleva el agua por toda Lanzarote. Gratis y sin anuncios.</p>
+  <a class="btn" id="gp" href="https://play.google.com/store/apps/details?id=com.itcanarias.martin">▶️ Descargar en Google Play</a>
+  <a class="btn" id="dl" style="background:transparent;color:var(--txt);border:2px solid var(--gold);font-size:15px" href="https://github.com/csuarezsm/Martin/releases/latest/download/martin.apk">⬇️ Android sin Google Play (archivo APK)</a>
   <a class="btn" id="ios" href="app/" style="background:transparent;color:var(--txt);border:2px solid var(--gold)">📱 iPhone y otros móviles: abrir la versión web</a>
   <div class="mut" id="ver" style="font-size:14px"></div>
   <ul>
     <li>🐪 Martín es un guelfo, una cría de camello canario, de Uga, y existe de verdad. Tras la tormenta, lleva el agua por caminos de lava, rocas y huecos hasta el punto de entrega.</li>
     <li>💧 Reglas claras: el agua baja solo por caídas fuertes, golpes contra rocas y huecos; siempre se ve la causa.</li>
-    <li>🌋 Dos mundos y 11 niveles: Uga y el sur, y la costa y el norte (El Golfo, Janubio, Famara, Haría y el Mirador del Río). Tres estrellas en cada uno y, a veces, dos caminos.</li>
+    <li>🌋 24 niveles por toda la isla: Uga, Timanfaya, El Golfo, Janubio, Famara, Haría, el Mirador del Río, las dunas del jable, las barcas de Órzola y los ríos de fuego.</li>
+    <li>📖 Aprende mientras juegas: cuaderno de viaje con lugares reales y guía de plantas y animales de Lanzarote, con datos de fuentes oficiales.</li>
     <li>📅 Reto diario: el mismo nivel y las mismas condiciones para todos, con ranking. El servidor repite tu partida para comprobar el tiempo.</li>
     <li>👆 Botones grandes (también para zurdos), salto más alto si lo mantienes, pausa y reintento al instante.</li>
     <li>Funciona sin conexión y se actualiza sola. Sin anuncios y sin cuentas.</li>
   </ul>
   <div class="steps" id="pasosAndroid">
-    <b>Android:</b> pulsa «Descargar para Android», abre el archivo descargado y toca <b>Instalar</b>.
-    Si Android lo pide, permite instalar apps de esta fuente. Ábrelo en <b>Chrome</b>: desde WhatsApp o Samsung Internet la descarga puede fallar.
+    <b>Android:</b> pulsa «Descargar en Google Play» y toca <b>Instalar</b>. Se actualiza sola.
   </div>
   <div class="steps" id="pasosIOS" style="margin-top:12px">
     <b>iPhone:</b> abre la versión web en <b>Safari</b>, pulsa <b>Compartir</b> (el cuadrado con la flecha) y elige <b>«Añadir a pantalla de inicio»</b>.
@@ -70,7 +75,7 @@ fetch('https://csuarezsm.github.io/juegos-servidor/juegos.json', { cache: 'no-ca
 }).catch(() => {});
 // En iPhone/iPad, primero lo suyo
 if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-  const a = document.getElementById('dl'), b = document.getElementById('ios'); a.parentNode.insertBefore(b, a);
+  const a = document.getElementById('gp'), b = document.getElementById('ios'); a.parentNode.insertBefore(b, a);
   b.style.cssText = ''; b.textContent = '📱 Abrir Martín para iPhone';
   document.getElementById('pasosAndroid').parentNode.insertBefore(document.getElementById('pasosIOS'), document.getElementById('pasosAndroid'));
 }
